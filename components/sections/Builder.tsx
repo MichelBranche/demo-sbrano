@@ -59,7 +59,7 @@ const STEPS = [
   { t: "Aggiungi il resto", d: "Formaggi, verdure, salse, extra." },
   { t: "Chiudi il tuo burger", d: "Aggiungi il pane superiore e completa il tuo mostro." },
 ];
-/** Sharpie notes: next to the active step on desktop, on the stage on mobile */
+/** Marker notes: next to the active step on desktop, on the stage on mobile */
 const NOTES = ["Parti dal pane, campione.", "Qui si decide chi sei.", "Ora sporcalo per bene.", "Chiudilo e sbranalo."];
 /** short stage hint on desktop (the step note already sits next to the steps there) */
 const HINTS = ["Scegli il pane", "Ora la carne", "Aggiungi il resto", "Chiudi il burger"];

@@ -18,14 +18,12 @@ export const LINKS = [
   { href: "#locale", label: "Il locale" },
   { href: "#dove", label: "Dove siamo" },
 ];
-/** fake delivery marks (demo): brand colours + simple glyphs, no third-party logos or links */
+/** delivery row (demo, no real links): official logos used as-is (Wikimedia Commons, public domain / trademark of each brand),
+ * sized per logo so they read optically equal inside identical white pills */
 const DELIVERY = [
-  { id: "deliveroo", name: "Deliveroo", bg: "#00CCBC", fg: "#fff", cls: "lowercase tracking-[-0.02em]",
-    icon: <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor"><path d="M15.6 2.5 14.4 9 12 3.8 6.9 5l1.9 8.2-2.3 3.4 1.6 4.9 8.9-2 2-11.1-1.4-5.9Zm-2.2 12.6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-3.3-1.3a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z" /></svg> },
-  { id: "glovo", name: "Glovo", bg: "#FFC244", fg: "#00A082", cls: "tracking-[-0.01em]",
-    icon: <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 4.6 5.3 11.3 6.2 12.5a1 1 0 0 0 1.6 0C13.7 20.3 19 13.6 19 9a7 7 0 0 0-7-7Zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" /></svg> },
-  { id: "justeat", name: "Just Eat", bg: "#FF8000", fg: "#fff", cls: "tracking-[-0.01em]",
-    icon: <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor"><path d="M12 3 2.5 11h2.7v9.5h5.3v-6h3v6h5.3V11h2.7L12 3Z" /></svg> },
+  { id: "deliveroo", name: "Deliveroo", src: "/assets/delivery/deliveroo.svg", w: 300, h: 80, cls: "h-[23px] md:h-[26px]" },
+  { id: "glovo", name: "Glovo", src: "/assets/delivery/glovo.svg", w: 2515, h: 833, cls: "h-[21px] md:h-[24px]" },
+  { id: "justeat", name: "Just Eat", src: "/assets/delivery/justeat.svg", w: 190, h: 47, cls: "h-[18px] md:h-[21px]" },
 ];
 
 /** day bar: rotates three burgers every 4s, each links to its spot (menu carousel or the monthly special) */
@@ -132,7 +130,7 @@ export default function Hero() {
     <header ref={root} className="relative px-2 pb-2 md:px-3 md:pb-3">
       <DayBar />
       {/* floating bar (fixed) */}
-      <div data-cart-wrap className="float-bar invisible fixed left-1/2 top-3 z-50 flex w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 items-center justify-between rounded-full bg-ink p-1.5 pl-3 opacity-0 shadow-2xl ring-1 ring-cream/15">
+      <div data-cart-wrap className="float-bar invisible fixed left-1/2 top-3 z-[88] flex w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 items-center justify-between rounded-full bg-ink p-1.5 pl-3 opacity-0 shadow-2xl ring-1 ring-cream/15">
         <a href="#top" className="sb-lift-tilt sb-lift relative flex h-11 items-center rounded-full bg-lime px-4 md:h-12 md:px-5" aria-label="SBRANO, torna su">
           {/* compact state: bold plain wordmark (no tagline / mascot) so it stays legible at pill height */}
           <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} sizes="140px" className="h-7 w-auto md:h-8" />
@@ -207,10 +205,8 @@ export default function Hero() {
                     <li key={d.id}>
                       <a href="#" data-delivery={d.id} aria-label={`Ordina su ${d.name} (demo, nessun link reale)`}
                         onClick={(e) => { e.preventDefault(); announce({ title: "Solo demo", sub: `Qui partirebbe ${d.name}. Nella demo nessun ordine vero.`, img: "/assets/mascot/running.webp", cta: false }); }}
-                        className="sb-lift-tilt sb-lift group flex h-9 items-center gap-1.5 rounded-full border-2 border-ink px-3 text-[13px] min-[400px]:h-10 min-[400px]:px-3.5 min-[400px]:text-[14px] md:gap-2 font-black leading-none shadow-[3px_3px_0_#111] transition-shadow hover:shadow-[5px_5px_0_#111] md:h-11 md:px-4"
-                        style={{ background: d.bg, color: d.fg }}>
-                        <span aria-hidden className="transition-transform duration-300 ease-[cubic-bezier(.3,1.8,.5,1)] group-hover:-rotate-12 group-hover:scale-110">{d.icon}</span>
-                        <span className={d.cls}>{d.name}</span>
+                        className="sb-lift-tilt sb-lift flex h-10 items-center rounded-full border-2 border-ink bg-white px-3.5 shadow-[3px_3px_0_#111] transition-shadow hover:shadow-[5px_5px_0_#111] md:h-11 md:px-4">
+                        <Image src={d.src} alt="" width={d.w} height={d.h} unoptimized className={`w-auto ${d.cls}`} />
                       </a>
                     </li>
                   ))}

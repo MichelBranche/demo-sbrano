@@ -68,7 +68,7 @@ html.sb-nopre .sb-preloader { display: none; }
   rotate: var(--r); }
 @keyframes sb-pile-in { from { scale: 1.8; opacity: 0; } 60% { opacity: 1; } }
 @keyframes sb-pile-out { to { translate: calc(-50% + var(--x)) calc(-50% + var(--y)); scale: 1.25; rotate: calc(var(--r) * 4); opacity: 0; } }
-.sb-pre-copy { position: relative; height: 1.2em; font: 800 clamp(1.25rem, 1rem + 1vw, 1.75rem)/1.2 var(--font-marker-src), cursive; color: var(--color-ink); text-align: center; }
+.sb-pre-copy { position: relative; height: 1.2em; font: 400 clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem)/1.2 var(--font-marker-src), cursive; color: var(--color-ink); text-align: center; -webkit-text-stroke: 0.022em currentColor; }
 .sb-pre-copy span { display: block; white-space: nowrap; animation: sb-copy-a .62s step-end forwards; }
 .sb-pre-copy span + span { position: absolute; inset: 0; opacity: 0; animation: sb-copy-b .62s step-end forwards; }
 @keyframes sb-copy-a { to { opacity: 0; } }
@@ -125,7 +125,7 @@ label:active .sb-knob { scale: 1.3 .85; }
 
 /* ---------- VICIO-style character pass ---------- */
 .font-tanker { font-family: var(--font-tanker-src), Impact, "Arial Narrow", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
-.font-marker { font-family: var(--font-marker-src), "Comic Sans MS", cursive; font-weight: 800; letter-spacing: 0; }
+.font-marker { font-family: var(--font-marker-src), "Comic Sans MS", cursive; font-weight: 400; letter-spacing: 0.01em; -webkit-text-stroke: 0.022em currentColor; paint-order: stroke fill; }
 
 /* marker ellipse CTA */
 .sb-ell { perspective: 400px; }
@@ -158,7 +158,7 @@ label:active .sb-knob { scale: 1.3 .85; }
 /* stamp sticker (filiera) */
 @layer components { .sb-stamp { display: inline-block; border: 3px solid currentColor; border-radius: 10px; padding: .45em .7em .35em; box-shadow: inset 0 0 0 2px var(--stamp-bg, #f6ebd7), inset 0 0 0 4px currentColor; } }
 
-/* builder sharpie note */
+/* builder marker note */
 @keyframes sb-note-in { from { opacity: 0; transform: translateY(6px) rotate(var(--r, -3deg)) scale(.9); } }
 .sb-note { transform: rotate(var(--r, -3deg)); animation: sb-note-in .35s cubic-bezier(.3,1.6,.5,1) backwards; }
 

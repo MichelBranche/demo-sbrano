@@ -31,7 +31,7 @@ const excon = localFont({
   fallback: ["system-ui", "sans-serif"],
 });
 
-// Tanker: condensed uppercase display (names, nav, footer, day bar). Sharpie: marker accents (stickers, notes, 404). Both Fontshare FFL, self-hosted.
+// Tanker: condensed uppercase display (names, nav, footer, day bar). Comico: hand-lettered marker caps for accents (stickers, notes, 404). Both Fontshare / ITF FFL, self-hosted.
 const tanker = localFont({
   src: "./fonts/Tanker-Regular.woff2",
   variable: "--font-tanker-src",
@@ -40,9 +40,9 @@ const tanker = localFont({
   fallback: ["Impact", "Arial Narrow", "sans-serif"],
 });
 const marker = localFont({
-  src: "./fonts/Sharpie-Extrabold.woff2",
+  src: "./fonts/Comico-Regular.woff2",
   variable: "--font-marker-src",
-  weight: "800",
+  weight: "400",
   display: "swap",
   preload: true,
   fallback: ["Comic Sans MS", "cursive"],
