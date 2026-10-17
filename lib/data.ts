@@ -11,7 +11,7 @@ export const MENU: MenuItem[] = [
   { id: "pollo-ruggente", name: "Pollo Ruggente", price: 10.9, img: "/assets/menu/pollo-ruggente.webp", cutout: true, cats: ["pollo"], tag: "Croccante", desc: "Pollo fritto croccante, cheddar, bacon, cetrioli. Fa rumore.", kcal: 860 },
   { id: "pollo-teriyaki", name: "Pollo Teriyaki", price: 11.5, img: "/assets/menu/pollo-teriyaki-extra.webp", cutout: true, cats: ["pollo"], tag: "Novità", desc: "Pollo glassato teriyaki, bacon, pomodoro, cetrioli. Torino incontra Tokyo.", kcal: 910 },
   { id: "patatine", name: "Patatine Sbrano", price: 4.5, img: "/assets/packaging/fries.webp", cutout: true, cats: ["contorni"], tag: "Tagliate a mano", desc: "Patate vere, doppia frittura, sale grosso. Dipendenza garantita.", kcal: 420 },
-  { id: "bibita", name: "Bibita Sbrano", price: 3.5, img: "/assets/packaging/cup.webp", cutout: true, cats: ["bibite"], tag: "Ghiacciata", desc: "Bibita alla spina nel bicchierone lime. Ghiaccio a volontà.", kcal: 180 },
+  { id: "bibita", name: "Bibita Sbrano", price: 3.5, img: "/assets/drinks/sbrano.webp", cutout: true, cats: ["bibite"], tag: "Ghiacciata", desc: "Bibita alla spina nel bicchierone lime. Ghiaccio a volontà.", kcal: 180 },
 ];
 
 export const FILTERS: { id: Cat; label: string }[] = [
@@ -62,10 +62,10 @@ export const BUN_TOP: Ingredient = { id: "bun-top", name: "Pane sopra", img: "/a
 export const MENU_UPGRADE = 3.5;
 export const MENU_FRIES = { name: "Patatine Sbrano", img: "/assets/packaging/fries.webp" };
 export const DRINKS: { id: string; name: string; img: string; tint: string }[] = [
-  { id: "sbrano", name: "Bibita Sbrano", img: "/assets/packaging/cup.webp", tint: "#d6ff4d" },
-  { id: "cola", name: "Cola", img: "/assets/packaging/cup.webp", tint: "#5a2d1a" },
-  { id: "limonata", name: "Limonata", img: "/assets/packaging/cup.webp", tint: "#ffe45c" },
-  { id: "te-pesca", name: "Tè freddo pesca", img: "/assets/packaging/cup.webp", tint: "#ffb27a" },
+  { id: "sbrano", name: "Bibita Sbrano", img: "/assets/drinks/sbrano.webp", tint: "#d6ff4d" },
+  { id: "pepsi", name: "Pepsi", img: "/assets/drinks/pepsi.webp", tint: "#f6ebd7" },
+  { id: "fanta", name: "Fanta", img: "/assets/drinks/fanta.webp", tint: "#f6ebd7" },
+  { id: "sprite", name: "Sprite", img: "/assets/drinks/sprite.webp", tint: "#f6ebd7" },
 ];
 
 export const euro = (n: number) =>

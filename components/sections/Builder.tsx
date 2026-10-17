@@ -235,7 +235,7 @@ export default function Builder() {
                   {DRINKS.map((d) => (
                     <button key={d.id} type="button" role="radio" aria-checked={drink === d.id} onClick={() => setDrink(d.id)} data-drink={d.id}
                       className={`flex items-center gap-1.5 rounded-full border-2 py-0.5 pl-0.5 pr-3 text-xs font-bold ${drink === d.id ? "border-ink bg-ink text-lime" : "border-ink/20 bg-white/60 text-ink"}`}>
-                      <span className="h-5 w-5 rounded-full border border-ink/20" style={{ background: d.tint }} />{d.name}
+                      <span className="relative h-7 w-7 overflow-hidden rounded-full border border-ink/20" style={{ background: d.tint }}><Image src={d.img} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>{d.name}
                     </button>
                   ))}
                 </div>

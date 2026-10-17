@@ -41,7 +41,10 @@
 | menu/pollo-ruggente.webp | 1448x1086 | yes | Pollo Ruggente: crispy fried chicken burger with cheddar, bacon, pickles, cut-out |
 | menu/pollo-teriyaki-extra.webp | 1536x1024 | yes | EXTRA (source misnamed "mordi-e-fuggi"): glazed crispy chicken burger with bacon, tomato, pickles, cut-out |
 | menu/sbranatore.webp | 1536x1024 | yes | Sbranatore: double cheeseburger, bacon, cheddar, pickles, red onion, cut-out |
-| packaging/cup.webp | 1024x1536 | yes | Iced SBRANO cup with straw, cut-out |
+| drinks/sbrano.webp | - | yes | Bibita Sbrano, default lidded cup (Michel, replaces old packaging/cup.webp) |
+| drinks/pepsi.webp | - | yes | Pepsi, dark cola open cup |
+| drinks/fanta.webp | - | yes | Fanta, orange |
+| drinks/sprite.webp | - | yes | Sprite, clear |
 | packaging/fries.webp | 1268x1241 | yes | Fries in neon-lime SBRANO box, cut-out |
 | packaging/sticker-kit.webp | 1774x887 | yes | EXTRA: sticker & packaging kit flat-lay, cut-out |
 | promo/burger-mese.webp | 1672x941 | no | Burger of the month: spicy bacon jalapeño cheeseburger (same source as menu/mordi-e-fuggi) |
