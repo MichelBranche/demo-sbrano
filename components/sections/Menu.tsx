@@ -35,7 +35,9 @@ export default function Menu() {
       el.style.transform = `translate3d(-50%,-50%,${-R}px) rotateY(${a}deg) translateZ(${R}px)`;
       el.style.opacity = String(Math.max(0, 1 - t * 1.25));
       el.style.zIndex = String(100 - Math.round(abs));
-      el.style.pointerEvents = abs < 100 ? "auto" : "none";
+      // wrapper has headroom padding: only the card itself takes pointer events
+      el.style.pointerEvents = "none";
+      (el.firstElementChild as HTMLElement | null)?.style.setProperty("pointer-events", abs < 100 ? "auto" : "none");
     });
     if (best !== activeRef.current) { activeRef.current = best; setActive(best); }
   }, []);
@@ -136,7 +138,8 @@ export default function Menu() {
             const isActive = i === active;
             const dim = filter && !it.cats.includes(filter);
             return (
-              <div key={it.id} ref={(el) => { cards.current[i] = el; }} className="absolute left-0 top-0 will-change-transform" style={{ backfaceVisibility: "hidden" }}>
+              <div key={it.id} ref={(el) => { cards.current[i] = el; }} className="absolute left-0 top-0 will-change-transform" style={{ backfaceVisibility: "hidden", padding: "112px 48px 16px", marginTop: -48 }}>
+                {/* padding = headroom: the 3D-transformed wrapper clips its painted bounds, so the popped-out burger and the scaled active card must stay inside it */}
                 <article className={`relative w-[230px] rounded-[28px] p-3 transition-[transform,background-color,filter] duration-500 ease-[cubic-bezier(.2,1.4,.4,1)] md:w-[290px] ${isActive ? "scale-[1.08] bg-ink text-cream shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]" : "bg-white text-ink"} ${dim ? "grayscale opacity-40" : ""}`}>
                   <div className={`relative h-[200px] rounded-[20px] md:h-[250px] ${it.cutout ? (isActive ? "bg-lime" : "bg-cream") : "overflow-hidden"}`}>
                     <div ref={(el) => { imgs.current[i] = el; }}

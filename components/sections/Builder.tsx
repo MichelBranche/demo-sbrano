@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import { INGREDIENTS, ING_GROUPS, BUN_BOTTOM, BUN_TOP, euro, type Ingredient } from "@/lib/data";
 import { stackLayout, composeBurger } from "@/lib/stack";
@@ -9,8 +9,9 @@ import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 
 type Layer = { uid: number; ing: Ingredient };
-/** generous cap: every ingredient fits at least once, plus room for doubles */
-const MAX = 24;
+/** total filling layers (buns excluded) and max copies of the same ingredient */
+const MAX = 40;
+const PER = 5;
 const PLACES = ["di Vanchiglia", "del Balon", "della Mole", "di Santa Giulia", "del Po", "di Porta Palazzo"];
 
 function makeName(fill: Ingredient[], closed: boolean) {
@@ -19,6 +20,8 @@ function makeName(fill: Ingredient[], closed: boolean) {
   const p = n("patty"), c = n("chicken");
   let base = "Il Vegetariano Arrabbiato";
   if (p && c) base = "Il Terra-Aria";
+  else if (p >= 5) base = "Il Titano";
+  else if (p >= 4) base = "Il Grattacielo";
   else if (p >= 3) base = "Il Mostro";
   else if (p === 2) base = "Il Doppio";
   else if (p === 1) base = "Lo Smash";
@@ -33,7 +36,8 @@ function makeName(fill: Ingredient[], closed: boolean) {
   if (n("mayo")) adj.push("Cremoso");
   const teri = n("teriyaki") ? " di Tokyo" : "";
   const place = teri || " " + PLACES[fill.reduce((a, f) => a + f.id.length, 0) % PLACES.length];
-  const xl = fill.length >= 8 ? " XXL" : "";
+  const L = fill.length;
+  const xl = L >= 35 ? " Apocalittico" : L >= 25 ? " Leggendario" : L >= 18 ? " Mostruoso" : L >= 12 ? " XXXL" : L >= 8 ? " XXL" : "";
   return `${base} ${adj.slice(0, 2).join(" ")}${xl}${place}${closed ? "" : " (senza cappello)"}`.replace(/\s+/g, " ");
 }
 
@@ -56,11 +60,20 @@ export default function Builder() {
   const name = makeName(fill, closed);
   const spicy = fill.some((f) => f.spicy);
   const full = fill.length >= MAX;
+  const counts = useMemo(() => {
+    const m: Record<string, number> = {};
+    fill.forEach((f) => { m[f.id] = (m[f.id] ?? 0) + 1; });
+    return m;
+  }, [fill]);
+
 
   const mood = useMemo(() => {
     if (!layers.length) return { img: "/assets/mascot/waving.webp", say: "Ciao! Tocca un ingrediente." };
+    if (fill.length >= MAX) return { img: "/assets/mascot/eating-burger.webp", say: "Basta! Non entra in bocca. Né in cucina." };
+    if (fill.length >= 30) return { img: "/assets/mascot/running.webp", say: "Chiamo i pompieri. E un dentista." };
+    if (fill.length >= 20) return { img: "/assets/mascot/eating-burger.webp", say: "Serve una scala per morderlo." };
+    if (fill.length >= 12) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Ok, questo è un mostro vero. Rispetto." };
     if (fill.filter((f) => f.id === "patty").length >= 3) return { img: "/assets/mascot/eating-burger.webp", say: "Ma sei serio? Rispetto." };
-    if (fill.length >= MAX) return { img: "/assets/mascot/eating-burger.webp", say: "Basta! Non entra in bocca." };
     if (spicy) return { img: "/assets/mascot/running.webp", say: "Brucia! Scappo a prendere da bere." };
     if (closed && fill.length >= 4) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Capolavoro. Roba da re." };
     if (closed) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Chiuso. Si mangia." };
@@ -69,8 +82,19 @@ export default function Builder() {
 
   // stack layout (shared with the cart snapshot renderer)
   const { offsets, top: topOffset, height: stackH } = stackLayout(layers.map((l) => l.ing));
-  // shrink the whole burger so a tall stack always fits on the plate and never covers the UI
-  const fit = Math.min(1, 300 / Math.max(1, stackH));
+  // the burger grows freely, then auto-scales so it always fits the plate AND the viewport
+  const plateRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 520, h: 520, vh: 900 });
+  useEffect(() => {
+    const el = plateRef.current; if (!el) return;
+    const upd = () => setBox({ w: el.offsetWidth, h: el.offsetHeight, vh: window.innerHeight });
+    upd();
+    const ro = new ResizeObserver(upd); ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const widthFit = Math.min(1, (box.w * 0.62) / 260);
+  const availH = Math.max(200, Math.min(box.h * 0.72, box.vh * 0.6)); // stays inside the plate, clear of the fixed navbar
+  const fit = Math.min(widthFit, availH / Math.max(1, stackH));
 
   const popMascot = contextSafe(() => {
     if (reduced()) return;
@@ -87,7 +111,8 @@ export default function Builder() {
   });
 
   const addIng = (ing: Ingredient) => {
-    if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati: togline uno (tocca il chip ✕) per aggiungere ${ing.name}.`); return; }
+    if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati: togline uno (−) per aggiungere ${ing.name}.`); return; }
+    if ((counts[ing.id] ?? 0) >= PER) { setToast(`Massimo ${PER} × ${ing.name}. Varia un po'!`); return; }
     setToast("");
     const next = [...layers];
     const newOnes: Layer[] = [];
@@ -109,6 +134,10 @@ export default function Builder() {
     else doIt();
     popMascot();
   });
+  const removeOne = (ing: Ingredient) => {
+    const last = [...layers].reverse().find((l) => l.ing.id === ing.id);
+    if (last) remove(last.uid);
+  };
   const reset = () => { setLayers([]); setClosed(false); setToast(""); popMascot(); };
 
   const order = () => {
@@ -134,21 +163,23 @@ export default function Builder() {
     gsap.from(".b-ringline", { scale: 0.6, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.15, scrollTrigger: { trigger: ".b-orbit", start: "top 80%", once: true } });
   }, { scope: root });
 
-  const counts = useMemo(() => {
-    const m: Record<string, number> = {};
-    fill.forEach((f) => { m[f.id] = (m[f.id] ?? 0) + 1; });
-    return m;
-  }, [fill]);
 
   const Chip = ({ ing }: { ing: Ingredient }) => {
     const count = counts[ing.id] ?? 0;
+    const maxed = full || count >= PER;
     return (
-      <button type="button" onClick={() => addIng(ing)} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={full} data-ing={ing.id}
-        className={`b-chip flex items-center gap-2 rounded-full border-2 py-1 pl-1 pr-2 text-left text-[13px] font-bold transition-[transform,background-color,opacity] duration-200 active:scale-95 md:hover:-translate-y-0.5 ${count ? "border-ink bg-ink text-lime" : "border-ink/10 bg-white text-ink md:hover:bg-lime"} ${full ? "opacity-50" : ""}`}>
-        <span className={`relative h-9 w-9 shrink-0 rounded-full ${count ? "bg-lime" : "bg-cream"}`}><Image src={ing.img} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
-        <span className="flex-1 leading-tight">{ing.name}{ing.spicy && <span aria-label="piccante"> 🌶</span>}<span className={`block text-[11px] font-medium ${count ? "text-lime/60" : "text-ink/50"}`}>+{euro(ing.price)}</span></span>
-        <span className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs ${count ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{count ? `×${count}` : "+"}</span>
-      </button>
+      <div data-ing={ing.id} className={`b-chip flex items-center gap-1 rounded-full border-2 p-1 text-[13px] font-bold transition-colors duration-200 ${count ? "border-ink bg-ink text-lime" : "border-ink/10 bg-white text-ink"}`}>
+        <button type="button" onClick={() => addIng(ing)} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={maxed}
+          className={`flex min-w-0 flex-1 items-center gap-2 rounded-full pr-1 text-left transition-transform active:scale-95 ${maxed ? "opacity-60" : ""}`}>
+          <span className={`relative h-9 w-9 shrink-0 rounded-full ${count ? "bg-lime" : "bg-cream"}`}><Image src={ing.img} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
+          <span className="min-w-0 flex-1 leading-tight">{ing.name}{ing.spicy && <span aria-label="piccante"> 🌶</span>}<span className={`block text-[11px] font-medium ${count ? "text-lime/60" : "text-ink/50"}`}>+{euro(ing.price)}</span></span>
+        </button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          {count > 0 && <button type="button" onClick={() => removeOne(ing)} aria-label={`Togli un ${ing.name}`} className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 text-base leading-none hover:bg-cream/30">−</button>}
+          {count > 0 && <span className="w-5 text-center text-xs tabular-nums" data-count>{count}</span>}
+          <button type="button" onClick={() => addIng(ing)} tabIndex={-1} aria-hidden className={`flex h-7 w-7 items-center justify-center rounded-full text-base leading-none ${count ? "bg-lime text-ink" : "bg-ink text-lime"} ${maxed ? "opacity-40" : ""}`}>+</button>
+        </div>
+      </div>
     );
   };
 
@@ -195,13 +226,13 @@ export default function Builder() {
 
         {/* right: plate + grouped picker */}
         <div className="b-orbit relative order-1 lg:order-2">
-          <div className="relative mx-auto aspect-square w-full max-w-[520px]">
+          <div ref={plateRef} className="relative mx-auto aspect-square w-full max-w-[520px]">
             <div className="b-ringline absolute inset-[6%] rounded-full border-2 border-dashed border-ink/25" />
             <div className="b-ringline absolute inset-0 hidden rounded-full border-2 border-ink/10 md:block" />
             <div className="absolute inset-[14%] rounded-full bg-lime" />
             {/* stack */}
             <div className="absolute inset-x-0 bottom-[26%] flex justify-center">
-              <div className="relative h-[300px] w-[260px] origin-bottom scale-[0.78] sm:scale-100">
+              <div className="relative h-[300px] w-[260px]">
                 <div ref={stackRef} className="absolute inset-0" aria-label="Il tuo burger">
                   <div className="absolute -bottom-3 left-1/2 h-6 w-[90%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-sm" />
                   <div className="absolute inset-0 origin-bottom transition-transform duration-500" style={{ transform: `scale(${fit})` }}>
@@ -245,19 +276,19 @@ export default function Builder() {
           <div className="b-picker mt-6 rounded-[28px] bg-white/60 p-4 md:p-5">
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-ink/60">Ingredienti</p>
-              <p className={`text-xs font-bold uppercase tracking-wider tabular-nums ${full ? "text-red-600" : "text-ink/60"}`}>{full ? `Stack pieno ${fill.length}/${MAX}` : `${fill.length}/${MAX} strati`}</p>
+              <p className={`text-xs font-bold uppercase tracking-wider tabular-nums ${full ? "text-red-600" : "text-ink/60"}`}>{full ? `Stack pieno ${fill.length}/${MAX}` : `${fill.length}/${MAX} strati • max ${PER} per ingrediente`}</p>
             </div>
             <div className="space-y-4">
               {ING_GROUPS.map((g) => (
                 <div key={g.id} className="b-group" role="group" aria-label={g.label}>
                   <p className="mb-2 flex items-baseline gap-2 px-1"><span className="font-display text-xl uppercase leading-none">{g.label}</span><span className="text-xs text-ink/50">{g.hint}</span></p>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2 min-[460px]:grid-cols-2">
                     {INGREDIENTS.filter((i) => i.group === g.id).map((ing) => <Chip key={ing.id} ing={ing} />)}
                   </div>
                 </div>
               ))}
             </div>
-            {full && <p className="mt-3 rounded-2xl bg-ink px-4 py-2 text-sm text-lime" role="status">Hai raggiunto {MAX} strati. Togli uno strato (✕) per aggiungerne altri.</p>}
+            {full && <p className="mt-3 rounded-2xl bg-ink px-4 py-2 text-sm text-lime" role="status">Hai raggiunto {MAX} strati. Togli uno strato (−) per aggiungerne altri.</p>}
             {!full && toast && <p className="mt-3 px-1 text-sm text-ink/70" role="status">{toast}</p>}
           </div>
         </div>
