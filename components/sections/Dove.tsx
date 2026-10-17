@@ -47,7 +47,7 @@ export default function Dove() {
           </ul>
           <div className="mt-auto flex flex-wrap gap-3 pt-8">
             <PillButton href="https://www.google.com/maps/search/?api=1&query=Piazza+Santa+Giulia+Torino" variant="lime">Indicazioni stradali</PillButton>
-            <a href="tel:+390110000000" className="flex h-12 items-center rounded-full border-2 border-cream/30 px-6 text-[13px] font-bold uppercase tracking-wider hover:border-lime hover:text-lime md:h-14">Chiama</a>
+            <a href="tel:+390110000000" className="sb-lift flex h-12 items-center rounded-full border-2 border-cream/30 px-6 text-[13px] font-bold uppercase tracking-wider hover:border-lime hover:text-lime md:h-14">Chiama</a>
           </div>
         </div>
 

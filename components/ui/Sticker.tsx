@@ -20,7 +20,7 @@ export default function Sticker({ name, className = "", tilt = -8, parallax = 40
   }, { scope: ref });
   return (
     <div ref={ref} aria-hidden className={`sb-sticker pointer-events-none select-none ${className}`}>
-      <div className="sb-sticker-in pointer-events-auto" style={{ ["--tilt" as string]: `${tilt}deg` } as React.CSSProperties}>
+      <div data-press className="sb-sticker-in pointer-events-auto" style={{ ["--tilt" as string]: `${tilt}deg` } as React.CSSProperties}>
         <Image src={s.src} alt="" width={s.w} height={s.h} sizes={sizes} loading="lazy" draggable={false}
           className={`h-auto w-full ${spin ? "sb-sticker-spin" : ""} drop-shadow-[4px_6px_0_rgba(0,0,0,.18)]`} />
       </div>

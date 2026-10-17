@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCart } from "./CartProvider";
 import { euro } from "@/lib/data";
 import BurgerStack from "./BurgerStack";
+import Tick from "../ui/Tick";
 
 export default function CartDrawer() {
   const { lines, total, open, setOpen, setQty, clear, count } = useCart();
@@ -82,17 +83,19 @@ export default function CartDrawer() {
                             </ul>
                           ) : l.note && <p className="truncate text-xs text-ink/60">{l.note}</p>}
                           {l.menu && (
-                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-bold" data-cart-menu>
-                              <span className="relative h-7 w-7 rounded-full bg-lime"><Image src={l.menu.friesImg} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>
-                              <span className="relative h-7 w-7 rounded-full bg-lime"><Image src={l.menu.drinkImg} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>
-                              Menu: patatine + {l.menu.drink}
+                            <p className="mt-1.5 flex items-center gap-2 text-xs font-bold" data-cart-menu>
+                              <span className="flex shrink-0 -space-x-2" aria-hidden>
+                                <span className="relative h-9 w-9 shrink-0 rounded-full bg-lime ring-2 ring-cream"><Image src={l.menu.friesImg} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
+                                <span className="relative h-9 w-9 shrink-0 rounded-full bg-lime ring-2 ring-cream"><Image src={l.menu.drinkImg} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
+                              </span>
+                              <span className="min-w-0 leading-tight">Menu: {l.menu.fries} + {l.menu.drink}</span>
                             </p>
                           )}
                           <p className="text-sm tabular-nums">{euro(l.price)}</p>
                         </div>
                         <div className="flex items-center gap-1 rounded-full bg-ink p-1 text-lime">
                           <button aria-label="Meno" onClick={() => setQty(l.id, l.qty - 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">−</button>
-                          <span className="w-6 text-center tabular-nums">{l.qty}</span>
+                          <span className="w-6 text-center tabular-nums"><span key={l.qty} className="sb-pop inline-block">{l.qty}</span></span>
                           <button aria-label="Più" onClick={() => setQty(l.id, l.qty + 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">+</button>
                         </div>
                       </motion.li>
@@ -111,7 +114,7 @@ export default function CartDrawer() {
                     </form>
                   ) : (
                     <>
-                      <div className="flex items-end justify-between"><span className="font-bold uppercase tracking-wider text-ink/60">Totale</span><span className="font-display text-4xl tabular-nums">{euro(total)}</span></div>
+                      <div className="flex items-end justify-between"><span className="font-bold uppercase tracking-wider text-ink/60">Totale</span><span className="font-display text-4xl tabular-nums"><Tick value={total} format={euro} /></span></div>
                       <button onClick={() => setStep("checkout")} className="flex h-14 w-full items-center justify-center rounded-full bg-ink font-bold uppercase tracking-wider text-lime transition-transform hover:scale-[1.02]">Procedi all’ordine</button>
                     </>
                   )}

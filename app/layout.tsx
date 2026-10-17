@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
 import SmoothScroll from "@/components/SmoothScroll";
+import CartToast from "@/components/cart/CartToast";
+import Micro from "@/components/Micro";
 import CartDrawer from "@/components/cart/LazyCartDrawer";
 import Preloader from "@/components/Preloader";
 
@@ -54,6 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SmoothScroll />
           {children}
           <CartDrawer />
+          <CartToast />
+          <Micro />
         </CartProvider>
       </body>
     </html>

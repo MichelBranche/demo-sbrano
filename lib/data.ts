@@ -77,6 +77,12 @@ export const isTop = (id: string) => id.startsWith("bun-top");
 /** "Fallo menu": burger + Patatine Sbrano + a drink of choice */
 export const MENU_UPGRADE = 3.5;
 export const MENU_FRIES = { name: "Patatine Sbrano", img: "/assets/packaging/fries.webp" };
+/** "Fallo menu" fries choice (same menu price for all three) */
+export const FRIES: { id: string; name: string; full: string; desc: string; img: string }[] = [
+  { id: "classiche", name: "Classiche", full: "Patatine classiche", desc: "Tagliate a mano, sale grosso.", img: "/assets/packaging/fries.webp" },
+  { id: "curly", name: "Curly", full: "Patatine curly", desc: "A spirale, speziate.", img: "/assets/packaging/fries-curly.webp" },
+  { id: "rustiche", name: "Rustiche", full: "Patatine rustiche", desc: "Spicchi con la buccia.", img: "/assets/packaging/fries-rustiche.webp" },
+];
 /** available sodas (first = default). The lidded Sbrano cup is only the generic "Bibita" image. */
 export const DRINKS: { id: string; name: string; img: string; tint: string }[] = [
   { id: "pepsi", name: "Pepsi", img: "/assets/drinks/pepsi.webp", tint: "#f6ebd7" },

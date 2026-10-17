@@ -2,10 +2,11 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { INGREDIENTS, BREADS, DRINKS, MENU_FRIES, MENU_UPGRADE, euro, type Ingredient, type IngGroup } from "@/lib/data";
+import { INGREDIENTS, BREADS, DRINKS, FRIES, MENU_UPGRADE, euro, type Ingredient, type IngGroup } from "@/lib/data";
 import { stackLayout, composeBurger } from "@/lib/stack";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
+import Tick from "../ui/Tick";
 
 type Layer = { uid: number; ing: Ingredient };
 /** total filling layers (buns excluded) and max copies of the same ingredient */
@@ -42,7 +43,7 @@ function makeName(fill: Ingredient[], closed: boolean) {
   return `${base} ${adj.slice(0, 2).join(" ")}${xl}${place}${closed ? "" : " (senza cappello)"}`.replace(/\s+/g, " ");
 }
 
-type Tab = "pane" | IngGroup;
+type Tab = "pane" | IngGroup | "menu";
 const TABS: { id: Tab; label: string; step: number }[] = [
   { id: "pane", label: "Pane", step: 0 },
   { id: "base", label: "Carne", step: 1 },
@@ -50,6 +51,7 @@ const TABS: { id: Tab; label: string; step: number }[] = [
   { id: "verdure", label: "Verdure", step: 2 },
   { id: "salse", label: "Salse", step: 2 },
   { id: "croccanti", label: "Extra", step: 2 },
+  { id: "menu", label: "Menu", step: 2 },
 ];
 const STEPS = [
   { t: "Pane", d: "La base di tutto." },
@@ -60,7 +62,7 @@ const STEPS = [
 /** handwritten hint on the stage, per step (Lunar: no apostrophes) */
 const HINTS = ["Scegli il primo ingrediente", "Ora scegli la carne", "Aggiungi il resto", "Chiudi il tuo burger"];
 const PRELOAD = [...INGREDIENTS.map((i) => i.img), ...BREADS.flatMap((b) => [b.bottom.img, b.top.img]),
-  ...["waving", "eating-burger", "running", "crown-thumbs-up"].map((m) => `/assets/mascot/${m}.webp`)];
+  ...FRIES.map((f) => f.img), ...DRINKS.map((d) => d.img), ...["waving", "eating-burger", "running", "crown-thumbs-up"].map((m) => `/assets/mascot/${m}.webp`)];
 
 const Check = ({ className = "" }: { className?: string }) => (
   <svg viewBox="0 0 20 20" className={className} aria-hidden><path d="M4.5 10.5l3.6 3.6L15.5 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -79,13 +81,15 @@ export default function Builder() {
   const [toast, setToast] = useState("");
   const [asMenu, setAsMenu] = useState(false);
   const [drink, setDrink] = useState(DRINKS[0].id);
+  const [fries, setFries] = useState(FRIES[0].id);
   const [tab, setTab] = useState<Tab>("pane");
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false); // mobile summary expanded
   const [warm, setWarm] = useState(false);
   const drinkObj = DRINKS.find((d) => d.id === drink) ?? DRINKS[0];
+  const friesObj = FRIES.find((f) => f.id === fries) ?? FRIES[0];
   const bread = BREADS.find((b) => b.id === breadId) ?? BREADS[0];
-  const { add } = useCart();
+  const { add, announce } = useCart();
   const { contextSafe } = useGSAP({ scope: root });
 
   const fill = fillLayers.map((l) => l.ing);
@@ -166,6 +170,17 @@ export default function Builder() {
     });
   });
 
+  const toggleMenu = (on: boolean) => {
+    setAsMenu(on);
+    if (on) {
+      setOpen(false); setTab("menu"); setStep(2);
+      // mobile: bring the stage (fries + drink appear next to the burger) and the picker into view
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        const el = root.current?.querySelector<HTMLElement>(".b-orbit");
+        if (el) setTimeout(() => (window.__lenis ? window.__lenis.scrollTo(el, { offset: -70 }) : el.scrollIntoView({ behavior: "smooth", block: "start" })), 60);
+      }
+    } else if (tab === "menu") { setTab("formaggi"); }
+  };
   const goTab = (t: Tab) => { setOpen(false); setTab(t); setStep(TABS.find((x) => x.id === t)!.step); };
   const goStep = (i: number) => {
     if (i === 3) { setStep(3); closeTop(); return; }
@@ -185,10 +200,23 @@ export default function Builder() {
     if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati. Rimuovine uno (−) per aggiungere ${ing.name}.`); return; }
     if ((counts[ing.id] ?? 0) >= PER) { setToast(`Puoi aggiungere al massimo ${PER} porzioni di ${ing.name}.`); return; }
     setToast(""); setOpen(false);
+    floatUp(ing);
     const l = { uid: uid.current++, ing };
     setFill((f) => [...f, l]);
     setTimeout(() => dropIn(`[data-layer="${l.uid}"]`), 0);
     popMascot();
+  };
+  /** "+0,50 €" bubble rising from the card stepper */
+  const floatUp = (ing: Ingredient) => {
+    if (reduced()) return;
+    const at = root.current?.querySelector(`[data-ing="${ing.id}"] [data-count]`)?.getBoundingClientRect();
+    if (!at || !at.width) return;
+    const d = document.createElement("span");
+    d.textContent = `+${euro(ing.price)}`;
+    d.className = "sb-float-up pointer-events-none fixed z-[90] rounded-full bg-lime px-2 py-0.5 text-[11px] font-bold text-ink ring-2 ring-ink";
+    Object.assign(d.style, { left: at.left - 14 + "px", top: at.top - 22 + "px" });
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 850);
   };
   const closeTop = () => {
     if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
@@ -211,19 +239,23 @@ export default function Builder() {
   const order = () => {
     if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
     const ids = [bread.bottom.id, ...fill.map((f) => f.id), bread.top.id];
-    const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${drinkObj.id}` : "");
+    const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${friesObj.id}-${drinkObj.id}` : "");
     const finalPrice = Math.round((price + (closed ? 0 : bread.top.price)) * 100) / 100;
     const fillNames = fill.map((f) => f.name);
     const finalName = makeName(fill, true); // the order always closes the bun first
     const go = async () => {
       let img = "/assets/menu/sbranatore.webp";
       try { img = await composeBurger(ids); } catch { /* fallback: stacked component in cart */ }
-      flyToCart(stackRef.current, img, () => {
+      // the composed burger (and the menu sides) fly along a curve into the cart pill
+      const ghost = stackRef.current;
+      if (ghost && !reduced()) gsap.to(ghost, { opacity: 0.18, scale: 0.9, duration: 0.25, ease: "power2.out", onComplete: () => { gsap.to(ghost, { opacity: 1, scale: 1, duration: 0.6, delay: 0.75, ease: "back.out(2)" }); } });
+      flyToCart(stackRef.current, asMenu ? [img, friesObj.img, drinkObj.img] : img, () => {
         add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames,
           note: `Pane: ${bread.name}. Ingredienti: ${fillNames.join(", ")}`,
-          ...(asMenu ? { menu: { fries: MENU_FRIES.name, drink: drinkObj.name, friesImg: MENU_FRIES.img, drinkImg: drinkObj.img } } : {}) });
+          ...(asMenu ? { menu: { fries: friesObj.full, drink: drinkObj.name, friesImg: friesObj.img, drinkImg: drinkObj.img } } : {}) });
+        announce({ title: "Nel sacchetto!", sub: asMenu ? `Il tuo mostro con ${friesObj.full.toLowerCase()} e ${drinkObj.name} è nel carrello.` : "Il tuo mostro è nel carrello.", img });
         setToast("Aggiunto all’ordine."); setOpen(false);
-      });
+      }, { big: true });
     };
     if (!closed) { closeTop(); setTimeout(go, 750); } else go();
   };
@@ -243,7 +275,7 @@ export default function Builder() {
   /* ---------- pieces ---------- */
   const card = (opts: { key: string; img: string; name: string; desc?: string; priceLabel: string; selected: boolean; badge?: React.ReactNode; spicy?: boolean;
     main: React.ReactNode; foot: React.ReactNode }) => (
-    <div key={opts.key} data-ing={opts.key}
+    <div key={opts.key} data-ing={opts.key} data-tilt
       className={`b-card relative flex w-[164px] shrink-0 snap-start flex-col rounded-[22px] border-2 bg-white p-2 transition-[border-color,box-shadow] duration-200 md:w-[172px] lg:w-[clamp(140px,11vw,172px)] ${opts.selected ? "border-lime shadow-[0_0_0_3px_#d6ff4d]" : "border-ink/10"}`}>
       <span aria-hidden className={`absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${opts.selected ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
       {opts.main}
@@ -272,7 +304,7 @@ export default function Builder() {
       foot: (
         <span className="flex h-8 items-center rounded-full bg-ink p-0.5 text-lime">
           <button type="button" onClick={() => removeOne(ing)} disabled={!count} aria-label={`Togli un ${ing.name}`} className="flex h-7 w-7 items-center justify-center rounded-full text-base leading-none hover:bg-cream/15 disabled:opacity-30">−</button>
-          <span className="w-4 text-center text-xs font-bold tabular-nums" data-count>{count}</span>
+          <span className="w-4 text-center text-xs font-bold tabular-nums" data-count><span key={count} className={count ? "sb-pop inline-block" : "inline-block"}>{count}</span></span>
           <button type="button" onClick={() => addIng(ing)} tabIndex={-1} aria-hidden className={`flex h-7 w-7 items-center justify-center rounded-full bg-lime text-base leading-none text-ink ${maxed ? "opacity-40" : ""}`}>+</button>
         </span>
       ),
@@ -292,6 +324,30 @@ export default function Builder() {
       ),
     });
   };
+
+  const tile = (o: { key: string; img: string; name: string; desc: string; sel: boolean; onPick: () => void; data: Record<string, string>; tint?: string }) => (
+    <button key={o.key} type="button" role="radio" aria-checked={o.sel} onClick={o.onPick} {...o.data} data-tilt
+      className={`b-card group relative flex w-[calc((100vw-84px)/3)] max-w-[150px] shrink-0 flex-col items-center md:w-[150px] rounded-[22px] border-2 bg-white p-2 pb-2.5 text-center transition-[border-color,box-shadow] duration-200 ${o.sel ? "border-lime shadow-[0_0_0_3px_#d6ff4d]" : "border-ink/10 hover:border-ink/30"}`}>
+      <span aria-hidden className={`absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${o.sel ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
+      <span className="relative block aspect-square w-full overflow-hidden rounded-[16px]" style={{ background: o.tint ?? "#f6ebd7" }}>
+        <Image src={o.img} alt="" fill sizes="150px" loading="eager" className={`object-contain p-1.5 transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:-rotate-6 group-hover:scale-110 ${o.sel ? "scale-105" : ""}`} />
+      </span>
+      <span className="mt-2 block text-[13px] font-bold leading-tight md:text-[14px]">{o.name}</span>
+      <span className="mt-0.5 hidden text-[11px] leading-tight text-ink/55 md:block">{o.desc}</span>
+    </button>
+  );
+  const menuPicker = (
+    <div className="flex flex-col gap-4">
+      <div role="radiogroup" aria-label="Scegli le patatine">
+        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Patatine</p>
+        <div className="flex gap-3">{FRIES.map((f) => tile({ key: f.id, img: f.img, name: f.name, desc: f.desc, sel: fries === f.id, onPick: () => setFries(f.id), data: { "data-fries": f.id } }))}</div>
+      </div>
+      <div role="radiogroup" aria-label="Scegli la bibita">
+        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Bibita</p>
+        <div className="flex gap-3">{DRINKS.map((d) => tile({ key: d.id, img: d.img, name: d.name, desc: "Alla spina, refill disponibile.", sel: drink === d.id, onPick: () => setDrink(d.id), data: { "data-drink": d.id }, tint: d.tint }))}</div>
+      </div>
+    </div>
+  );
 
   return (
     <section ref={root} id="builder" aria-labelledby="b-title" className="relative overflow-x-clip px-4 pb-10 pt-20 md:px-10 md:pb-28 md:pt-28">
@@ -342,6 +398,19 @@ export default function Builder() {
               <circle cx="56" cy="51" r="26" fill="none" stroke="#111" strokeOpacity=".08" strokeWidth=".25" />
               <g className="sb-orbit" style={{ transformOrigin: "56px 51px" }}><circle cx="56" cy="4.5" r="1.1" fill="#111" /></g>
             </svg>
+            {/* Fallo menu: fries + drink slide in next to the burger */}
+            {asMenu && (
+              <>
+                <button type="button" onClick={() => goTab("menu")} aria-label={`Patatine: ${friesObj.full}. Cambia`} data-stage-side="fries"
+                  className="sb-side-l absolute bottom-[15%] left-[1%] z-[4] aspect-square w-[24%] max-w-[150px] lg:left-[4%] lg:w-[21%]">
+                  <span key={friesObj.id} className="sb-pop relative block h-full w-full"><Image src={friesObj.img} alt="" fill sizes="150px" className="object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,.25)]" /></span>
+                </button>
+                <button type="button" onClick={() => goTab("menu")} aria-label={`Bibita: ${drinkObj.name}. Cambia`} data-stage-side="drink"
+                  className="sb-side-r absolute bottom-[15%] right-[1%] z-[4] aspect-[3/4] w-[20%] max-w-[124px] lg:right-[5%] lg:w-[17%]">
+                  <span key={drinkObj.id} className="sb-pop relative block h-full w-full"><Image src={drinkObj.img} alt="" fill sizes="124px" className="object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,.25)]" /></span>
+                </button>
+              </>
+            )}
             {/* stack */}
             <div className="absolute inset-x-0 bottom-[19%] flex justify-center">
               <div className="relative h-[300px] w-[260px]">
@@ -380,7 +449,7 @@ export default function Builder() {
             {/* handwritten hint + waving mascot */}
             <div className="pointer-events-none absolute right-0 top-0 z-[70] flex w-[34%] max-w-[230px] flex-col items-end text-right">
               <div className="flex items-start gap-1">
-                <p className="mt-1 rotate-[-5deg] font-display text-[12px] uppercase leading-[1.05] md:text-[17px] lg:text-[clamp(14px,1.25vw,20px)]" aria-live="polite">{hint}</p>
+                <p className="mt-1 rotate-[-5deg] font-display text-[12px] uppercase leading-[1.05] md:text-[17px] lg:text-[clamp(14px,1.25vw,20px)]" aria-live="polite"><span key={hint} className="sb-pop-in inline-block">{hint}</span></p>
                 <div className="relative h-12 w-12 shrink-0 md:h-16 md:w-16"><Image src="/assets/mascot/waving.webp" alt="" fill sizes="64px" className="object-contain" /></div>
               </div>
               <svg aria-hidden viewBox="0 0 120 70" className="mr-[30%] mt-0.5 h-auto w-[52%] text-ink">
@@ -395,12 +464,12 @@ export default function Builder() {
         <div className="rounded-[28px] border border-ink/10 bg-[#fbf4e6] p-3 md:p-5 lg:col-start-2 lg:row-start-3 lg:self-start">
           <div className="flex flex-col-reverse gap-3">
             <div role="tablist" aria-label="Categorie" className="no-scrollbar -mx-3 flex min-w-0 gap-1.5 overflow-x-auto px-3 md:mx-0 md:px-0">
-              {TABS.map((t) => {
-                const n = t.id === "pane" ? 0 : fill.filter((f) => f.group === t.id).length;
+              {TABS.filter((t) => t.id !== "menu" || asMenu).map((t) => {
+                const n = t.id === "pane" || t.id === "menu" ? 0 : fill.filter((f) => f.group === t.id).length;
                 const on = tab === t.id;
                 return (
                   <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => goTab(t.id)} data-tab={t.id}
-                    className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-[12px] lg:h-9 lg:px-3.5 lg:text-[11px] font-bold uppercase tracking-wider transition-colors ${on ? "border-ink bg-lime text-ink" : "border-ink/12 bg-white text-ink/80 hover:border-ink/40"}`}>
+                    className={`sb-lift flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-[12px] lg:h-9 lg:px-3.5 lg:text-[11px] font-bold uppercase tracking-wider transition-colors ${t.id === "menu" ? (on ? "sb-pop-in border-ink bg-ink text-lime" : "sb-pop-in border-ink bg-white text-ink") : on ? "border-ink bg-lime text-ink" : "border-ink/12 bg-white text-ink/80 hover:border-ink/40"}`}>
                     {t.label}
                     {n > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] tabular-nums text-lime">{n}</span>}
                   </button>
@@ -413,9 +482,9 @@ export default function Builder() {
             </p>
           </div>
           <div ref={cardsRef} className="no-scrollbar -mx-3 mt-4 snap-x snap-mandatory overflow-x-auto scroll-pl-3 px-3 pb-2 pt-2 md:-mx-5 md:px-5">
-            {TABS.filter((t) => warm || t.id === tab).map((t) => (
+            {TABS.filter((t) => (warm || t.id === tab) && (t.id !== "menu" || asMenu)).map((t) => (
               <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-3">
-                {t.id === "pane" ? BREADS.map(breadCard) : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
+                {t.id === "pane" ? BREADS.map(breadCard) : t.id === "menu" ? menuPicker : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
               </div>
             ))}
           </div>
@@ -437,7 +506,7 @@ export default function Builder() {
                 </span>
               </button>
               <button onClick={order} className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink" data-builder-order-mobile aria-label={`Aggiungi all’ordine, ${euro(price)}`}>
-                <span className="tabular-nums">{euro(price)}</span><span aria-hidden className="text-lg leading-none">+</span>
+                <Tick value={price} format={euro} /><span aria-hidden className="text-lg leading-none">+</span>
               </button>
             </div>
 
@@ -458,10 +527,10 @@ export default function Builder() {
               </div>
 
               <div className="mt-4 grid grid-cols-3 divide-x divide-cream/15 rounded-[20px] border border-cream/15">
-                {[["Prezzo", euro(price), ""], ["Energia", String(kcal), "kcal"], ["Strati", String(fill.length), `/${MAX}`]].map(([l, v, u]) => (
+                {([["Prezzo", price, euro, ""], ["Energia", kcal, undefined, "kcal"], ["Strati", fill.length, undefined, `/${MAX}`]] as const).map(([l, v, f, u]) => (
                   <div key={l} className="px-3 py-2.5 md:px-4">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-cream/50">{l}</p>
-                    <p className="whitespace-nowrap font-display text-[22px] leading-tight tabular-nums md:text-[clamp(22px,2vw,30px)]">{v}{u && <span className="text-[0.55em] text-cream/50"> {u}</span>}</p>
+                    <p className="whitespace-nowrap font-display text-[22px] leading-tight tabular-nums md:text-[clamp(22px,2vw,30px)]"><Tick value={v} format={f} />{u && <span className="text-[0.55em] text-cream/50"> {u}</span>}</p>
                   </div>
                 ))}
               </div>
@@ -469,30 +538,23 @@ export default function Builder() {
               {/* Fallo menu */}
               <div className={`mt-3 rounded-[22px] p-3 transition-colors ${asMenu ? "bg-lime text-ink" : "bg-cream/10"}`}>
                 <label className="flex cursor-pointer items-center gap-3">
-                  <input type="checkbox" checked={asMenu} onChange={(e) => setAsMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
-                  <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`absolute top-1 h-5 w-5 rounded-full transition-transform ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
-                  <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano e una bibita a scelta.</span></span>
+                  <input type="checkbox" checked={asMenu} onChange={(e) => toggleMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
+                  <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-lime ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`sb-knob absolute top-1 h-5 w-5 rounded-full ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>{asMenu ? `${friesObj.full} e ${drinkObj.name}.` : "Patatine Sbrano e una bibita a scelta."}</span></span>
                   <span className="flex shrink-0 -space-x-3" aria-hidden>
-                    <span className="relative h-10 w-10 rounded-full bg-cream ring-2 ring-ink"><Image src={MENU_FRIES.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
-                    <span className="relative h-10 w-10 rounded-full ring-2 ring-ink" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                    <span key={friesObj.id} className="sb-pop relative h-10 w-10 rounded-full bg-cream ring-2 ring-ink"><Image src={friesObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                    <span key={drinkObj.id} className="sb-pop relative h-10 w-10 rounded-full ring-2 ring-ink" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
                   </span>
                 </label>
                 {asMenu && (
-                  <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Scegli la bibita">
-                    {DRINKS.map((d) => (
-                      <button key={d.id} type="button" role="radio" aria-checked={drink === d.id} onClick={() => setDrink(d.id)} data-drink={d.id}
-                        className={`flex items-center gap-1.5 rounded-full border-2 py-0.5 pl-0.5 pr-3 text-xs font-bold ${drink === d.id ? "border-ink bg-ink text-lime" : "border-ink/20 bg-white/60 text-ink"}`}>
-                        <span className="relative h-7 w-7 overflow-hidden rounded-full border border-ink/20" style={{ background: d.tint }}><Image src={d.img} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>{d.name}
-                      </button>
-                    ))}
-                  </div>
+                  <button type="button" onClick={() => goTab("menu")} className="sb-pop-in mt-2 text-xs font-bold uppercase tracking-wider underline underline-offset-4">Cambia patatine o bibita</button>
                 )}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={order} className="group hidden h-12 items-center justify-between gap-3 rounded-full bg-lime pl-6 pr-2 text-ink lg:flex" data-builder-order>
+                <button onClick={order} data-mag="0.2" className="group hidden h-12 items-center justify-between gap-3 rounded-full bg-lime pl-6 pr-2 text-ink lg:flex" data-builder-order>
                   <span className="whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.08em]">Aggiungi all&apos;ordine</span>
-                  <span className="flex h-9 items-center gap-2 border-l-2 border-ink/20 pl-3 pr-3 font-bold tabular-nums">{euro(price)}</span>
+                  <span className="flex h-9 items-center gap-2 border-l-2 border-ink/20 pl-3 pr-3 font-bold tabular-nums"><Tick value={price} format={euro} /></span>
                 </button>
                 <button onClick={reset} className="flex h-12 items-center gap-2 rounded-full border-2 border-cream/30 px-5 text-xs font-bold uppercase tracking-wider transition-colors hover:border-lime hover:text-lime">
                   <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 3.5v3.2h3.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>

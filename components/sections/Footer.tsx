@@ -35,12 +35,12 @@ export default function Footer() {
             {/* 5. links */}
             <div className="order-5 md:order-none rounded-[22px] bg-cream/5 p-4 md:rounded-none md:bg-transparent md:p-0">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-cream/40">Naviga</p>
-              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 md:block md:space-y-1.5">{LINKS.map((l) => <li key={l.href}><a href={l.href} className="hover:text-lime">{l.label}</a></li>)}</ul>
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 md:block md:space-y-1.5">{LINKS.map((l) => <li key={l.href}><a href={l.href} className="sb-uline hover:text-lime">{l.label}</a></li>)}</ul>
             </div>
             {/* 4. social */}
             <div className="order-4 md:order-none rounded-[22px] bg-cream/5 p-4 md:rounded-none md:bg-transparent md:p-0">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-cream/40">Social</p>
-              <ul className="flex flex-wrap gap-2 md:block md:space-y-1.5">{SOCIAL.map((s) => <li key={s.n}><a href={s.h} target="_blank" rel="noreferrer" className="inline-block rounded-full border border-cream/20 px-3 py-1.5 text-sm hover:text-lime md:rounded-none md:border-0 md:p-0 md:text-base">{s.n} ↗</a></li>)}</ul>
+              <ul className="flex flex-wrap gap-2 md:block md:space-y-1.5">{SOCIAL.map((s) => <li key={s.n}><a href={s.h} target="_blank" rel="noreferrer" className="sb-lift-tilt sb-lift inline-block rounded-full border border-cream/20 px-3 py-1.5 text-sm hover:text-lime md:rounded-none md:border-0 md:p-0 md:text-base">{s.n} ↗</a></li>)}</ul>
               <p className="mt-3 text-sm text-cream/60 md:mt-4">@sbrano.burger</p>
             </div>
             {/* 6. sticker */}
@@ -62,7 +62,7 @@ export default function Footer() {
               <div className="rounded-[22px] bg-cream/5 p-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-cream/40">Indirizzo</p>
                 <p className="text-sm">Piazza Santa Giulia<br />10124 Torino, Vanchiglia</p>
-                <a href="#dove" className="mt-2 inline-block text-sm font-bold text-lime">Come arrivare →</a>
+                <a href="#dove" className="sb-uline mt-2 text-sm font-bold text-lime">Come arrivare →</a>
               </div>
               <div className="rounded-[22px] bg-cream/5 p-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-cream/40">Contatti</p>
@@ -85,7 +85,7 @@ export default function Footer() {
           {/* 7. legal */}
           <div className="order-7 md:order-none flex flex-col gap-1 border-t border-cream/10 pt-4 text-[11px] text-cream/50 md:mt-6 md:flex-row md:items-center md:justify-between md:gap-2 md:pt-5 md:text-xs">
             <p>SBRANO è un brand di fantasia. Il sito è un concept demo ambientato in Piazza Santa Giulia, Torino.</p>
-            <p>Concept demo di <a href="https://michelbranche.it" className="font-bold text-lime hover:underline">Michel Branche, michelbranche.it</a></p>
+            <p>Concept demo di <a href="https://michelbranche.it" className="sb-uline font-bold text-lime">Michel Branche, michelbranche.it</a></p>
           </div>
         </div>
       </div>

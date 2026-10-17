@@ -8,8 +8,10 @@ export type CartLine = {
   /** builder "Fallo menu": fries + chosen drink */
   menu?: { fries: string; drink: string; drinkImg: string; friesImg: string };
 };
+export type Notice = { key: number; title: string; sub: string; img: string; /** show the "Apri" cart button (default true) */ cta?: boolean };
 type Ctx = {
   lines: CartLine[]; count: number; total: number; open: boolean; bump: number;
+  notice: Notice | null; announce: (n: Omit<Notice, "key"> | null) => void;
   setOpen: (o: boolean) => void;
   add: (l: Omit<CartLine, "qty">, qty?: number) => void;
   setQty: (id: string, qty: number) => void;
@@ -37,6 +39,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [bump, setBump] = useState(0);
   const [ready, setReady] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const announce = useCallback((n: Omit<Notice, "key"> | null) => setNotice(n ? { ...n, key: Date.now() } : null), []);
 
   useEffect(() => {
     try { const raw = localStorage.getItem(KEY); if (raw) setLines(migrate(JSON.parse(raw))); } catch {}
@@ -51,6 +55,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...prev, { ...l, qty }];
     });
     setBump((b) => b + 1);
+    // default confirmation sticker; callers can override right after with announce()
+    setNotice({ key: Date.now(), title: "Preso!", sub: `${l.name} è nel carrello.`, img: l.img });
   }, []);
   const setQty = useCallback((id: string, qty: number) => {
     setLines((prev) => (qty <= 0 ? prev.filter((p) => p.id !== id) : prev.map((p) => (p.id === id ? { ...p, qty } : p))));
@@ -60,8 +66,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => {
     const count = lines.reduce((a, l) => a + l.qty, 0);
     const total = lines.reduce((a, l) => a + l.qty * l.price, 0);
-    return { lines, count, total, open, setOpen, add, setQty, clear, bump };
-  }, [lines, open, add, setQty, clear, bump]);
+    return { lines, count, total, open, setOpen, add, setQty, clear, bump, notice, announce };
+  }, [lines, open, add, setQty, clear, bump, notice, announce]);
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }
 

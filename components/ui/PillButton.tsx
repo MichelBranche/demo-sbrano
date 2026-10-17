@@ -21,7 +21,7 @@ const PillButton = forwardRef<HTMLAnchorElement & HTMLButtonElement, Props>(func
     </>
   );
   const cls = `group inline-flex items-center gap-1 select-none ${className}`;
-  if (href) return <a ref={ref} href={href} className={cls} onClick={onClick}>{inner}</a>;
-  return <button ref={ref} type={type} className={cls} onClick={onClick}>{inner}</button>;
+  if (href) return <a ref={ref} href={href} className={cls} onClick={onClick} data-mag="0.18">{inner}</a>;
+  return <button ref={ref} type={type} className={cls} onClick={onClick} data-mag="0.18">{inner}</button>;
 });
 export default PillButton;

@@ -131,7 +131,7 @@ export default function Menu() {
       <div className="m-pills mt-8 flex flex-wrap justify-center gap-2 px-4">
         {FILTERS.map((f) => (
           <button key={f.id} onClick={() => pick(f.id)} aria-pressed={filter === f.id}
-            className={`m-pill h-11 rounded-full border-2 border-ink px-5 text-sm font-bold uppercase tracking-wider transition-colors ${filter === f.id ? "bg-ink text-lime" : "bg-transparent hover:bg-lime"}`}>
+            className={`m-pill sb-lift h-11 rounded-full border-2 border-ink px-5 text-sm font-bold uppercase tracking-wider transition-colors ${filter === f.id ? "bg-ink text-lime" : "bg-transparent hover:bg-lime"}`}>
             {f.label}
           </button>
         ))}
@@ -188,13 +188,13 @@ export default function Menu() {
       </div>
 
       <div className="flex items-center justify-center gap-5">
-        <button onClick={() => goTo((active - 1 + N) % N)} aria-label="Precedente" className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">←</button>
+        <button onClick={() => goTo((active - 1 + N) % N)} aria-label="Precedente" className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">←</button>
         <div className="flex gap-2">
           {MENU.map((it, i) => (
             <button key={it.id} onClick={() => goTo(i)} aria-label={it.name} className={`h-2.5 rounded-full transition-all duration-500 ${i === active ? "w-9 bg-ink" : "w-2.5 bg-ink/25"}`} />
           ))}
         </div>
-        <button onClick={() => goTo((active + 1) % N)} aria-label="Successivo" className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">→</button>
+        <button onClick={() => goTo((active + 1) % N)} aria-label="Successivo" className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">→</button>
       </div>
       <p className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-ink/50" aria-live="polite">← trascina • {m.name} →</p>
       <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 px-5 text-center">

@@ -46,7 +46,7 @@ export default function Filiera() {
             <path d="M160 120 C 500 160, 420 420, 700 460 S 1100 700, 1200 900" stroke="#111" strokeOpacity=".25" strokeWidth="3" strokeDasharray="10 12" />
           </svg>
           {CARDS.map((c, i) => (
-            <article key={c.n} className={`f-card relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-5 shadow-[-18px_18px_0_#F6EBD7] md:p-7 lg:absolute lg:left-[var(--l)] lg:top-[var(--t)] lg:w-[480px] lg:rotate-[var(--r)] ${c.tone}`}
+            <article key={c.n} data-tilt className={`f-card relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-5 shadow-[-18px_18px_0_#F6EBD7] md:p-7 lg:absolute lg:left-[var(--l)] lg:top-[var(--t)] lg:w-[480px] lg:rotate-[var(--r)] ${c.tone}`}
               style={{ zIndex: i + 1, ["--l" as string]: ["0%", "32%", "64%"][i], ["--t" as string]: ["0px", "250px", "500px"][i], ["--r" as string]: ["-3deg", "2deg", "-2deg"][i] } as React.CSSProperties}>
               <div className="flex items-start justify-between">
                 <span className="font-display text-7xl leading-none md:text-8xl">{c.n}</span>
