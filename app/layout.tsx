@@ -55,7 +55,7 @@ const PILE: [string, number, number, number, number, number, number, number][] =
   ["vanchiglia", 300, 301, 30, -26, 62, -46, 12],
   ["smash", 300, 302, -30, 22, -66, 34, 9],
   ["prezzi-giusti", 300, 198, 30, 24, 58, 42, -8],
-  ["sbrana", 300, 292, 2, -34, 4, -70, -6],
+  ["sbrana", 300, 302, 2, -34, 4, -70, -6],
   ["mascot-wave", 300, 276, -4, 32, -10, 72, 7],
   ["mascot-crown", 300, 344, 0, 0, 0, 0, -3],
 ];

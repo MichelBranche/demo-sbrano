@@ -1,9 +1,10 @@
-// Decodes text-encoded font files (app/fonts/*.woff2.b64) into real .woff2 before dev/build,
-// so binary fonts can travel through text-only commits. Runs as predev/prebuild.
+// Decodes text-encoded binaries (*.b64) into real files before dev/build, so fonts and sticker images
+// can travel through text-only commits. Runs as predev/prebuild. Covers app/fonts and public/assets/stickers.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
-const dir = new URL("../app/fonts/", import.meta.url);
-for (const f of readdirSync(dir).filter((n) => n.endsWith(".woff2.b64"))) {
-  const out = new URL(f.replace(/\.b64$/, ""), dir);
-  writeFileSync(out, Buffer.from(readFileSync(new URL(f, dir), "utf8").replace(/\s+/g, ""), "base64"));
-  console.log("font:", f.replace(/\.b64$/, ""));
+for (const rel of ["../app/fonts/", "../public/assets/stickers/"]) {
+  const dir = new URL(rel, import.meta.url);
+  for (const f of readdirSync(dir).filter((n) => n.endsWith(".b64"))) {
+    writeFileSync(new URL(f.replace(/\.b64$/, ""), dir), Buffer.from(readFileSync(new URL(f, dir), "utf8").replace(/\s+/g, ""), "base64"));
+    console.log("decoded:", rel.slice(3) + f.replace(/\.b64$/, ""));
+  }
 }
