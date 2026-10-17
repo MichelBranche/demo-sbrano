@@ -1,5 +1,4 @@
 "use client";
-import Sticker from "../ui/Sticker";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger } from "@/lib/gsap";
@@ -17,6 +16,8 @@ export const LINKS = [
   { href: "#locale", label: "Il locale" },
   { href: "#dove", label: "Dove siamo" },
 ];
+/** links shown inside the top notch (wireframe: 4 pills); Builder stays in the mobile menu and compact bar */
+const NOTCH = LINKS.filter((l) => l.href !== "#builder");
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -32,13 +33,11 @@ export default function Hero() {
       const tl = gsap.timeline({ paused: true, defaults: { ease: "expo.out" } });
       tl.from(".h-nav > *", { y: -30, opacity: 0, duration: 0.8, stagger: 0.06 })
         .from(".h-line", { yPercent: 115, rotate: 4, duration: 1.1, stagger: 0.12 }, 0.1)
-        .from(".h-logo", { scale: 0.6, rotate: -8, opacity: 0, duration: 1, ease: "back.out(2)" }, 0.15)
+        .from(".h-blob", { scale: 0.6, rotate: -10, opacity: 0, duration: 1.3, ease: "back.out(1.4)" }, 0.2)
         .from(".h-burger", { yPercent: 40, xPercent: 20, rotate: 18, scale: 0.5, opacity: 0, duration: 1.4, ease: "elastic.out(1, 0.6)" }, 0.3)
         .from(".h-shadow", { scaleX: 0.2, opacity: 0, duration: 1.2 }, 0.45)
         .from(".h-fade", { y: 24, opacity: 0, duration: 0.8, stagger: 0.07 }, 0.5)
         .from(".h-badge", { scale: 0, rotate: -180, duration: 1.1, ease: "back.out(1.6)" }, 0.8)
-        .fromTo(".h-arrow-path", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut", stagger: 0.25 }, 1.0)
-        .from(".h-note", { opacity: 0, rotate: -12, scale: 0.7, duration: 0.6, ease: "back.out(2)" }, 1.0)
         .from(".h-mini", { y: 60, opacity: 0, duration: 0.8 }, 1.1);
       const off = onSiteReady(() => tl.play());
       // breathing
@@ -82,81 +81,87 @@ export default function Hero() {
         <CartButton />
       </div>
 
-      <div id="top" className="relative rounded-[28px] bg-ink p-2 md:rounded-[40px] md:p-3">
-        {/* NAV */}
-        <nav className="h-nav relative z-20 flex h-16 items-center justify-between px-1 md:h-20 md:px-3" aria-label="Principale">
-          <a href="#top" className="relative block h-12 w-32 rounded-full bg-lime md:h-14 md:w-36" aria-label="SBRANO home">
+      {/* 01 FRAME: rounded lime frame, nav sits in a diagonal notch cut into the top edge */}
+      <div id="top" className="grain relative overflow-hidden rounded-[28px] bg-lime md:rounded-[40px]">
+        <svg className="pointer-events-none absolute left-1/2 top-0 z-10 hidden h-[64px] w-[600px] -translate-x-1/2 lg:block" viewBox="0 0 600 64" aria-hidden>
+          <path d="M0 0 H600 C584 0 574 4 566 14 L536 52 C529 60 520 64 506 64 H94 C80 64 71 60 64 52 L34 14 C26 4 16 0 0 0 Z" fill="#F6EBD7" />
+        </svg>
+        <nav className="h-nav relative z-20 flex items-center justify-between px-3 pt-3 md:px-4 lg:pt-[10px]" aria-label="Principale">
+          <a href="#top" className="relative block h-12 w-32 rounded-full bg-cream md:w-36" aria-label="SBRANO home">
             <Image src="/assets/brand/logo-mascot.webp" alt="SBRANO" fill priority sizes="144px" className="object-contain px-3 py-0.5" />
           </a>
-          <ul className="absolute left-1/2 hidden -translate-x-1/2 gap-1 rounded-full bg-ink-3 p-1 lg:flex">
-            {LINKS.map((l) => (
-              <li key={l.href}><a href={l.href} className="block rounded-full px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider text-cream/80 transition-colors hover:bg-lime hover:text-ink">{l.label}</a></li>
+          <ul className="absolute left-1/2 top-[14px] hidden -translate-x-1/2 gap-2 lg:flex">
+            {NOTCH.map((l) => (
+              <li key={l.href}><a href={l.href} className="flex h-10 items-center rounded-full bg-ink px-5 text-[13px] font-bold uppercase tracking-wider text-cream transition-colors hover:bg-lime hover:text-ink hover:ring-2 hover:ring-ink">{l.label}</a></li>
             ))}
           </ul>
           <div className="flex items-center gap-2">
             <CartButton />
-            <button onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label="Menu" className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full bg-cream lg:hidden">
-              <span className={`h-0.5 w-5 bg-ink transition-transform ${menuOpen ? "translate-y-1 rotate-45" : ""}`} />
-              <span className={`h-0.5 w-5 bg-ink transition-transform ${menuOpen ? "-translate-y-1 -rotate-45" : ""}`} />
+            <a href="#menu" className="group hidden items-center gap-1 lg:inline-flex" aria-label="Ordina">
+              <span className="flex h-12 items-center rounded-full bg-ink px-6 text-[13px] font-bold uppercase tracking-[0.08em] text-lime">Ordina</span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-lg font-bold text-lime transition-transform duration-500 ease-[cubic-bezier(.2,1.6,.4,1)] group-hover:rotate-45">↗</span>
+            </a>
+            <button onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label="Menu" className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full bg-ink lg:hidden">
+              <span className={`h-0.5 w-5 bg-lime transition-transform ${menuOpen ? "translate-y-1 rotate-45" : ""}`} />
+              <span className={`h-0.5 w-5 bg-lime transition-transform ${menuOpen ? "-translate-y-1 -rotate-45" : ""}`} />
             </button>
           </div>
         </nav>
-        <div className={`grid overflow-hidden transition-[grid-template-rows] duration-500 lg:hidden ${menuOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-          <ul className="min-h-0 space-y-1 px-1">
-            {LINKS.map((l) => <li key={l.href}><a onClick={() => setMenuOpen(false)} href={l.href} className="block py-2 font-display text-4xl uppercase text-cream hover:text-lime">{l.label}</a></li>)}
+        <div className={`relative z-20 grid overflow-hidden transition-[grid-template-rows] duration-500 lg:hidden ${menuOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+          <ul className="min-h-0 space-y-1 px-4">
+            {LINKS.map((l) => <li key={l.href}><a onClick={() => setMenuOpen(false)} href={l.href} className="block py-2 font-display text-4xl uppercase text-ink">{l.label}</a></li>)}
             <li className="h-3" />
           </ul>
         </div>
 
-        {/* HERO PANEL */}
-        <section className="grain relative overflow-hidden rounded-[22px] bg-lime md:rounded-[30px]" aria-label="SBRANO">
-          <div className="relative grid min-h-[760px] grid-cols-1 px-5 pb-28 pt-8 md:min-h-[min(860px,calc(100svh-110px))] md:px-10 md:pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-32">
+        {/* 02 HERO */}
+        <section className="relative" aria-label="SBRANO">
+          <div className="relative grid grid-cols-1 px-5 pb-24 pt-8 md:px-10 md:pb-28 md:pt-12 lg:min-h-[min(800px,calc(100svh-96px))] lg:grid-cols-[1.02fr_1fr] lg:items-center lg:gap-6 lg:pb-28 lg:pt-6">
             <div className="h-title h-title-par relative z-10 flex flex-col">
-              <div className="h-logo relative mb-5 aspect-[1800/673] w-[220px] md:w-[300px]">
-                <Image src="/assets/brand/logo.webp" alt="SBRANO, burger fries good mood" fill priority sizes="300px" className="object-contain" />
-              </div>
               <h1 className="font-display uppercase leading-[0.84] text-ink">
-                <span className="block overflow-hidden pb-[0.05em]"><span className="h-line block whitespace-nowrap text-[12.6vw] md:text-[clamp(60px,7.6vw,120px)] lg:text-[clamp(60px,6.9vw,118px)]">Fame brutta.</span></span>
-                <span className="block overflow-hidden pb-[0.05em] pl-[7%]">
-                  <span className="h-line inline-flex items-center gap-3 rounded-full bg-ink px-5 pb-1 pt-2 whitespace-nowrap text-[10vw] text-lime md:px-8 md:text-[clamp(48px,6vw,96px)] lg:text-[clamp(48px,5.4vw,92px)]">
-                    Prezzi giusti.
+                {/* L1: solid filled pill */}
+                <span className="block overflow-hidden pb-[0.06em]">
+                  <span className="h-line inline-block whitespace-nowrap rounded-full bg-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[10.4vw] text-lime md:text-[clamp(56px,7vw,112px)] lg:text-[clamp(56px,6.1vw,112px)]">Fame brutta.</span>
+                </span>
+                {/* L2: offset right, dashed outline pill ending with an arrow */}
+                <span className="mt-2 block overflow-visible pb-[0.06em] pl-[9%] md:mt-3 md:pl-[14%]">
+                  <span className="h-line inline-flex items-center gap-[0.22em] whitespace-nowrap rounded-full border-[3px] border-dashed border-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[9.2vw] md:border-4 md:text-[clamp(48px,6vw,96px)] lg:text-[clamp(48px,5.3vw,96px)]">
+                    Prezzi giusti
+                    <svg viewBox="0 0 60 40" className="h-[0.62em] w-[0.9em] shrink-0" aria-hidden><path d="M4 20 H50 M34 5 L52 20 L34 35" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </span>
                 </span>
               </h1>
-              <p className="h-fade mt-6 max-w-md text-lg font-medium leading-snug md:text-xl">
-                Smash burger, pollo che scrocchia e patatine tagliate a mano. In Piazza Santa Giulia, Vanchiglia. Zero fronzoli, tanto gusto.
+              {/* sub / payoff: 2 lines */}
+              <p className="h-fade mt-8 max-w-[36rem] text-lg font-medium leading-snug md:text-[19px]">
+                Smash burger, pollo che scrocchia e patatine tagliate a mano.<br className="hidden md:block" /> In Piazza Santa Giulia, Vanchiglia. Zero fronzoli, tanto gusto.
               </p>
-              <p className="h-fade mt-3 text-xs font-bold uppercase tracking-[0.3em]">Burger • Fries • Good mood</p>
-              <div className="h-fade mt-7 flex flex-wrap gap-3">
+              <div className="h-fade mt-8 flex flex-wrap items-center gap-3">
                 <PillButton href="#menu" variant="dark">Ordina ora</PillButton>
-                <PillButton href="#menu" variant="cream" icon="↓">Guarda il menu</PillButton>
+                <a href="#menu" className="flex h-12 items-center rounded-full border-2 border-ink px-6 text-[13px] font-bold uppercase tracking-[0.08em] transition-colors hover:bg-ink hover:text-lime md:h-14 md:px-7">Vedi menu</a>
               </div>
-              {/* in-flow accent where the tag pills were: takes its own space, never overlaps */}
-              <Sticker name="asterisco" spin tilt={0} parallax={0} className="mt-6 hidden w-14 md:block" sizes="56px" />
+              <ul className="h-fade mt-6 flex flex-wrap gap-2" aria-label="In breve">
+                {["Torino", "Smash", "Take away"].map((t) => <li key={t} className="rounded-full bg-ink/10 px-4 py-2 text-xs font-bold uppercase tracking-wider">{t}</li>)}
+              </ul>
             </div>
 
-            {/* burger side */}
-            <div className="relative mt-8 h-[340px] sm:h-[440px] lg:mt-0 lg:h-auto">
-              <div className="h-shadow absolute bottom-[8%] left-1/2 h-10 w-[70%] -translate-x-1/2 lg:bottom-[14%]">
-                <div className="h-shadow-breath h-full w-full rounded-[50%] bg-ink/30 blur-md" />
+            {/* burger side: cutout burger inside an organic blob with dashed outline + floor shadow */}
+            <div className="relative mt-10 h-[400px] sm:h-[480px] lg:mt-0 lg:h-full lg:min-h-[560px]">
+              <div className="h-shadow absolute bottom-[1%] left-1/2 h-8 w-[66%] -translate-x-1/2 md:h-10 lg:bottom-[4%]">
+                <div className="h-shadow-breath h-full w-full rounded-[50%] bg-ink/35 blur-md" />
               </div>
-              <div className="h-burger absolute will-change-transform inset-x-[-6%] bottom-[10%] top-0 lg:inset-x-[-12%] lg:bottom-[16%] lg:top-[4%]">
+              <svg className="h-blob absolute inset-x-[4%] bottom-[5%] top-0 h-[95%] w-[92%] lg:inset-x-[2%] lg:bottom-[8%] lg:top-[1%] lg:h-[91%] lg:w-[96%]" viewBox="0 0 500 520" preserveAspectRatio="none" aria-hidden>
+                <path d="M252 14 C372 8 474 76 482 204 C490 330 444 448 330 494 C236 530 112 510 56 428 C2 350 12 214 50 136 C88 58 160 20 252 14 Z" fill="#F6EBD7" />
+                <path d="M252 14 C372 8 474 76 482 204 C490 330 444 448 330 494 C236 530 112 510 56 428 C2 350 12 214 50 136 C88 58 160 20 252 14 Z" fill="none" stroke="#111" strokeWidth="3" strokeDasharray="12 10" vectorEffect="non-scaling-stroke" transform="translate(250 262) scale(1.035) translate(-250 -262)" />
+              </svg>
+              <div className="h-burger absolute will-change-transform inset-x-[-4%] bottom-[12%] top-[6%] lg:inset-x-[-8%] lg:bottom-[15%] lg:top-[8%]">
                 <div className="h-burger-par h-full w-full will-change-transform"><div className="h-burger-tilt h-full w-full">
                   <div className="h-burger-breath relative h-full w-full will-change-transform">
                     <Image src="/assets/menu/sbranatore.webp" alt="Sbranatore: doppio smash con cheddar, bacon, cetrioli e cipolla rossa" fill priority sizes="(min-width:1024px) 55vw, 100vw" className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,.25)]" />
                   </div></div>
                 </div>
               </div>
-              {/* hand note + arrow */}
-              <div className="h-note absolute -top-2 right-0 rotate-[-6deg] font-display text-xl uppercase leading-none md:text-2xl lg:right-[2%] lg:top-[2%]">
-                doppio smash,<br />zero rimpianti
-              </div>
-              <svg className="pointer-events-none absolute right-[16%] top-[9%] h-24 w-28 md:h-32 md:w-36 lg:right-[18%] lg:top-[11%]" viewBox="0 0 140 120" fill="none" aria-hidden>
-                <path className="h-arrow-path" pathLength={1} strokeDasharray="1" d="M128 6C112 40 92 50 70 52C44 54 30 66 22 104" stroke="#111" strokeWidth="4" strokeLinecap="round" />
-                <path className="h-arrow-path" pathLength={1} strokeDasharray="1" d="M8 86C14 94 18 100 22 106C30 100 36 94 44 90" stroke="#111" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {/* rotating badge */}
-              <div className="h-badge absolute bottom-[4%] left-[2%] h-28 w-28 md:h-36 md:w-36 lg:bottom-[12%] lg:left-[-6%]">
+              {/* rotating badge, overlapping the blob bottom-left */}
+              <div className="h-badge absolute bottom-[3%] left-[-1%] z-10 h-28 w-28 md:h-36 md:w-36 lg:bottom-[9%] lg:left-[-5%]">
                 <div className="relative h-full w-full rounded-full bg-ink">
                   <svg viewBox="0 0 200 200" className="animate-spin-slow absolute inset-0 h-full w-full" aria-hidden>
                     <defs><path id="badgeCircle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" /></defs>
@@ -165,26 +170,25 @@ export default function Hero() {
                   <span className="absolute inset-0 m-auto flex h-11 w-11 items-center justify-center rounded-full bg-lime text-xl md:h-14 md:w-14">★</span>
                 </div>
               </div>
-            </div>
-
-            {/* mini product card */}
-            <div ref={mini} className="h-mini absolute bottom-20 right-4 z-10 hidden w-[280px] items-center gap-3 rounded-[24px] bg-ink p-3 text-cream shadow-xl md:right-8 md:flex">
-              <div className="relative h-16 w-20 shrink-0 rounded-2xl bg-lime">
-                <Image src={star.img} alt="" fill sizes="80px" className="object-contain p-1" />
+              {/* mini product card, bottom-right over the blob */}
+              <div ref={mini} className="h-mini absolute bottom-[-4%] right-0 z-10 flex w-[252px] items-center gap-2.5 rounded-[22px] bg-ink p-2.5 text-cream shadow-xl md:w-[290px] md:gap-3 md:rounded-[24px] md:p-3 lg:bottom-[3%] lg:right-[-2%]">
+                <div className="relative h-14 w-16 shrink-0 rounded-2xl bg-lime md:h-16 md:w-20">
+                  <Image src={star.img} alt="" fill sizes="80px" className="object-contain p-1" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] uppercase tracking-wider text-cream/60">Il più sbranato</p>
+                  <p className="truncate font-bold">{star.name}</p>
+                  <span className="mt-1 inline-block rounded-full bg-lime px-2.5 py-0.5 text-sm font-bold tabular-nums text-ink">{euro(star.price)}</span>
+                </div>
+                <button onClick={addStar} aria-label={`Aggiungi ${star.name}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lime text-2xl md:h-11 md:w-11 text-ink transition-transform hover:rotate-90">+</button>
               </div>
-              <div className="flex-1">
-                <p className="text-xs uppercase tracking-wider text-cream/60">Il più sbranato</p>
-                <p className="font-bold">{star.name}</p>
-                <p className="tabular-nums text-lime">{euro(star.price)}</p>
-              </div>
-              <button onClick={addStar} aria-label={`Aggiungi ${star.name}`} className="flex h-11 w-11 items-center justify-center rounded-full bg-lime text-2xl text-ink transition-transform hover:rotate-90">+</button>
             </div>
           </div>
-          {/* wavy bottom edge */}
-          <svg className="absolute bottom-[-1px] left-0 h-[60px] w-full md:h-[80px]" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
-            <path d="M0 40 C 120 0, 240 0, 360 40 S 600 80, 720 40 S 960 0, 1080 40 S 1320 80, 1440 40 L1440 80 L0 80 Z" fill="#111" />
-          </svg>
         </section>
+        {/* 03 wavy divider: the frame bottom melts into the page, then the ribbon */}
+        <svg className="pointer-events-none absolute bottom-[-1px] left-0 h-[56px] w-full md:h-[80px]" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 40 C 120 0, 240 0, 360 40 S 600 80, 720 40 S 960 0, 1080 40 S 1320 80, 1440 40 L1440 80 L0 80 Z" fill="#F6EBD7" />
+        </svg>
       </div>
     </header>
   );

@@ -30,10 +30,11 @@ export default function Locale() {
     });
   }, { scope: root });
   return (
-    <section ref={root} id="locale" className="relative bg-ink pb-20 pt-20 md:pb-28 text-cream md:pt-28">
+    <section ref={root} id="locale" className="relative bg-ink pb-32 pt-20 md:pb-36 lg:pb-28 text-cream md:pt-28">
       <div className="px-4 md:px-10">
         <SectionHead dark label="La tana" icon="mascot" tilt={-3} l1="Vieni a" l2="sporcarti" note="Piazza Santa Giulia, cuore di Vanchiglia. Tavoli fuori, musica dentro, mani unte ovunque." />
       </div>
+      <div className="relative mt-14">
       <div className="relative mx-auto mt-14 max-w-[1440px] px-4 md:px-10" style={{ perspective: "1200px" }}>
         <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[300px_300px] lg:gap-6">
           {PICS.map((p) => (
@@ -42,9 +43,11 @@ export default function Locale() {
             </figure>
           ))}
         </div>
-        <Ribbon id="loc-rb" tone="lime" className="absolute left-0 right-0 top-[42%] z-10" text={["Vanchiglia", "✶", "Good mood", "✶", "Mani unte", "✶", "Aperti fino a tardi", "✶"]} path="M-100 180 C 300 60, 600 60, 800 130 S 1200 230, 1540 60" />
       </div>
-      <Sticker name="corona" tilt={-12} parallax={24} className="absolute bottom-4 right-6 w-20 md:bottom-6 md:right-[6%] md:w-28" sizes="(min-width:768px) 112px, 80px" />
+      {/* like the hero ribbon: full-bleed (section width = viewport, no container padding), same curve, layered above the photos */}
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2"><Ribbon id="loc-rb" tone="lime" text={["Aperti fino a tardi", "✶", "Vanchiglia", "✶", "Good mood", "✶", "Mani unte", "✶"]} /></div>
+      </div>
+      <Sticker name="corona" tilt={-12} parallax={24} className="absolute bottom-4 right-6 w-20 md:bottom-6 md:right-[6%] md:w-28 lg:bottom-auto lg:right-[8%] lg:top-28" sizes="(min-width:768px) 112px, 80px" />
     </section>
   );
 }

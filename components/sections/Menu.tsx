@@ -5,6 +5,7 @@ import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import { MENU, FILTERS, DRINKS, euro, type Cat } from "@/lib/data";
 import SectionHead from "../ui/SectionHead";
 import Badge from "../ui/Badge";
+import Sticker from "../ui/Sticker";
 import { BLUR } from "@/lib/blur";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
@@ -201,7 +202,8 @@ export default function Menu() {
         <p className="text-sm md:text-base">Burger + patatine + bibita a <b>{euro(13.9)}</b>. Lo diciamo piano, sennò finisce.</p>
       </div>
       {/* Free refill band: real fountain photo, fetched early (eager, low priority) with blur placeholder so it never pops in */}
-      <div className="mx-auto mt-10 max-w-[1100px] px-4 md:px-10" data-refill>
+      <div className="relative mx-auto mt-10 max-w-[1100px] px-4 md:px-10" data-refill>
+        <Sticker name="asterisco" spin tilt={0} parallax={16} className="absolute -top-9 right-4 z-10 hidden w-[72px] md:block" sizes="72px" />
         <div className="grid overflow-hidden rounded-[28px] bg-ink text-cream md:grid-cols-[1.25fr_1fr] md:rounded-[36px]">
           <div className="relative aspect-[16/9] md:aspect-auto md:min-h-[300px]">
             <Image src="/assets/locale/free-refill.webp" alt="Il banco bibite SBRANO con la spina e il murale della mascotte" fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
