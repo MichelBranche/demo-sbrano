@@ -5,16 +5,16 @@ import Badge, { type BadgeIcon } from "./Badge";
 
 /** Pill label + staggered two-line uppercase title. */
 export default function SectionHead({
-  label, l1, l2, dark = false, align = "center", note, icon = "bolt", tilt = -3,
-}: { label: string; l1: string; l2: string; dark?: boolean; align?: "center" | "left"; note?: string; icon?: BadgeIcon; tilt?: number }) {
+  label, l1, l2, dark = false, align = "center", note, icon = "bolt", tilt = -3, reveal = true,
+}: { label: string; l1: string; l2: string; dark?: boolean; align?: "center" | "left"; note?: string; icon?: BadgeIcon; tilt?: number; reveal?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(() => {
-    if (reduced()) return;
+    if (reduced() || !reveal) return; // reveal={false}: rendered static, never hidden
     gsap.from(".sh-line", {
       yPercent: 110, rotate: 3, duration: 1, ease: "expo.out", stagger: 0.12,
-      scrollTrigger: { trigger: ref.current, start: "top 85%" },
+      scrollTrigger: { trigger: ref.current, start: "top 95%" },
     });
-    gsap.from(".sh-pill", { scale: 0, rotate: -12, duration: 0.7, ease: "back.out(2)", scrollTrigger: { trigger: ref.current, start: "top 85%" } });
+    gsap.from(".sh-pill", { scale: 0, rotate: -12, duration: 0.7, ease: "back.out(2)", scrollTrigger: { trigger: ref.current, start: "top 95%" } });
   }, { scope: ref });
   const center = align === "center";
   return (

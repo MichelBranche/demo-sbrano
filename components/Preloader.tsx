@@ -13,7 +13,7 @@ export default function Preloader() {
     const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[fetchpriority="high"]'));
     const imgReady = Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise<void>((r) => { im.addEventListener("load", () => r(), { once: true }); im.addEventListener("error", () => r(), { once: true }); }))));
     const fontsReady = document.fonts?.ready ?? Promise.resolve();
-    const cap = new Promise<void>((r) => setTimeout(r, 1100));
+    const cap = new Promise<void>((r) => setTimeout(r, 1500));
     let done = false;
     const finish = () => {
       if (done) return; done = true;

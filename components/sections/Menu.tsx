@@ -93,7 +93,7 @@ export default function Menu() {
     state.current.rot = -140;
     render();
     gsap.to(state.current, { rot: 0, duration: 2.2, ease: "expo.out", onUpdate: render, scrollTrigger: { trigger: stage.current, start: "top 75%" } });
-    gsap.from(".m-pill", { y: 20, opacity: 0, stagger: 0.06, duration: 0.6, ease: "back.out(2)", scrollTrigger: { trigger: ".m-pills", start: "top 85%" } });
+    // filter pills: static (no opacity-0 state that could be seen while scrolling in)
   }, { scope: root });
 
   const pick = (c: Cat) => {
@@ -117,7 +117,7 @@ export default function Menu() {
   return (
     <section ref={root} id="menu" className="relative overflow-hidden pb-16 pt-20 md:pt-28">
       <div className="px-5">
-        <SectionHead label="Roba da sbranare" icon="mascot" tilt={-3} l1="Scegli la" l2="tua vittima" note="Trascina il cilindro, filtra, sbrana. Prezzi da piazza, porzioni da tangenziale." />
+        <SectionHead reveal={false} label="Roba da sbranare" icon="mascot" tilt={-3} l1="Scegli la" l2="tua vittima" note="Trascina il cilindro, filtra, sbrana. Prezzi da piazza, porzioni da tangenziale." />
       </div>
       <div className="m-pills mt-8 flex flex-wrap justify-center gap-2 px-4">
         {FILTERS.map((f) => (

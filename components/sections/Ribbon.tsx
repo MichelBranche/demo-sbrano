@@ -40,9 +40,7 @@ export default function Ribbon({ id = "rb", text = WORDS, tone = "dark", classNa
     });
     visible = trig.isActive;
     gsap.ticker.add(tick);
-    gsap.from(root.current!.querySelector(".rb-band"), {
-      strokeDashoffset: 1, duration: 1.4, ease: "power3.out", scrollTrigger: { trigger: root.current, start: "top 85%" },
-    });
+    // no draw-in on the band: the ribbon is fully rendered from the first paint (it used to pop in while scrolling)
     return () => { gsap.ticker.remove(tick); trig.kill(); };
   }, { scope: root });
   const band = tone === "dark" ? "#111" : "#D6FF4D";
@@ -51,7 +49,7 @@ export default function Ribbon({ id = "rb", text = WORDS, tone = "dark", classNa
     <div ref={root} className={`pointer-events-none relative w-full overflow-hidden ${className}`} aria-hidden>
       <svg viewBox="0 0 1440 240" className="block h-[140px] w-full md:h-[240px]" preserveAspectRatio="xMidYMid slice">
         <defs><path id={`${id}-p`} d={d} /></defs>
-        <path className="rb-band" d={d} pathLength={1} strokeDasharray="1" stroke={band} strokeWidth="78" fill="none" />
+        <path className="rb-band" d={d} stroke={band} strokeWidth="78" fill="none" />
         <text className="font-display" fontSize="44" fill={ink} dy="15" letterSpacing="1">
           <textPath href={`#${id}-p`} startOffset="0">{str.toUpperCase()}</textPath>
         </text>
