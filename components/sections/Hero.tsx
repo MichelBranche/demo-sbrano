@@ -73,9 +73,9 @@ export default function Hero() {
     <header ref={root} className="relative p-2 md:p-3">
       {/* floating bar (fixed) */}
       <div data-cart-wrap className="float-bar invisible fixed left-1/2 top-3 z-50 flex w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 items-center justify-between rounded-full bg-ink p-1.5 pl-3 opacity-0 shadow-2xl ring-1 ring-cream/15">
-        <a href="#top" className="relative flex h-10 items-center rounded-full bg-lime px-4 md:h-11 md:px-5" aria-label="SBRANO, torna su">
+        <a href="#top" className="relative flex h-11 items-center rounded-full bg-lime px-4 md:h-12 md:px-5" aria-label="SBRANO, torna su">
           {/* compact state: bold plain wordmark (no tagline / mascot) so it stays legible at pill height */}
-          <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} sizes="120px" className="h-6 w-auto md:h-7" />
+          <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} sizes="140px" className="h-7 w-auto md:h-8" />
         </a>
         <nav className="hidden gap-1 md:flex">{LINKS.slice(0, 4).map((l) => <a key={l.href} href={l.href} className="rounded-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-cream/80 transition-colors hover:bg-cream/10 hover:text-lime">{l.label}</a>)}</nav>
         <CartButton />
@@ -87,8 +87,9 @@ export default function Hero() {
           <path d="M0 0 H600 C584 0 574 4 566 14 L536 52 C529 60 520 64 506 64 H94 C80 64 71 60 64 52 L34 14 C26 4 16 0 0 0 Z" fill="#F6EBD7" />
         </svg>
         <nav className="h-nav relative z-20 flex items-center justify-between px-3 pt-3 md:px-4 lg:pt-[10px]" aria-label="Principale">
-          <a href="#top" className="relative block h-12 w-32 rounded-full bg-cream md:w-36" aria-label="SBRANO home">
-            <Image src="/assets/brand/logo-mascot.webp" alt="SBRANO" fill priority sizes="144px" className="object-contain px-3 py-0.5" />
+          <a href="#top" className="relative flex h-12 items-center rounded-full bg-cream px-4 md:h-[52px] md:px-5" aria-label="SBRANO home">
+            {/* bold wordmark (no mascot), same as the compact bar, sized to fill the pill */}
+            <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} priority sizes="160px" className="h-8 w-auto md:h-9" />
           </a>
           <ul className="absolute left-1/2 top-[14px] hidden -translate-x-1/2 gap-2 lg:flex">
             {NOTCH.map((l) => (
@@ -96,7 +97,7 @@ export default function Hero() {
             ))}
           </ul>
           <div className="flex items-center gap-2">
-            <CartButton />
+            <CartButton variant="dark" />
             <a href="#menu" className="group hidden items-center gap-1 lg:inline-flex" aria-label="Ordina">
               <span className="flex h-12 items-center rounded-full bg-ink px-6 text-[13px] font-bold uppercase tracking-[0.08em] text-lime">Ordina</span>
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-lg font-bold text-lime transition-transform duration-500 ease-[cubic-bezier(.2,1.6,.4,1)] group-hover:rotate-45">↗</span>

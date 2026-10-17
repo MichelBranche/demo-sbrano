@@ -15,10 +15,10 @@ export default function CartButton({ variant = "lime" }: { variant?: "lime" | "d
   const c = variant === "lime" ? "bg-lime text-ink" : "bg-ink text-lime";
   return (
     <button ref={ref} data-cart-target onClick={() => setOpen(true)} aria-label={`Carrello, ${count} articoli`}
-      className={`relative flex h-11 items-center gap-2 rounded-full pl-4 pr-1.5 font-bold uppercase tracking-wider text-xs md:h-12 ${c}`}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-      <span className="hidden sm:inline">Carrello</span>
-      <span ref={badge} className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm tabular-nums ${variant === "lime" ? "bg-ink text-lime" : "bg-lime text-ink"}`}>{count}</span>
+      className={`relative flex h-11 w-14 shrink-0 items-center justify-center rounded-full md:h-12 md:w-16 ${c}`}>
+      {/* icon-only cart pill; count sits in a small badge on the top-right edge */}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span ref={badge} aria-hidden className={`absolute -right-1 -top-1 flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1 text-[11px] font-bold tabular-nums ring-2 ${variant === "lime" ? "bg-ink text-lime ring-lime" : "bg-lime text-ink ring-ink"}`}>{count}</span>
     </button>
   );
 }
