@@ -17,11 +17,15 @@ export default function Preloader() {
     let done = false;
     const finish = () => {
       if (done) return; done = true;
-      el?.classList.add("done");
-      window.__sbReady = true;
-      window.dispatchEvent(new Event("sbrano:ready"));
-      requestAnimationFrame(() => ScrollTrigger.refresh());
-      setTimeout(() => el?.remove(), 600);
+      // measure every ScrollTrigger on the final layout BEFORE revealing the page,
+      // so nothing re-computes (and jumps) on the first scroll
+      ScrollTrigger.refresh();
+      requestAnimationFrame(() => {
+        el?.classList.add("done");
+        window.__sbReady = true;
+        window.dispatchEvent(new Event("sbrano:ready"));
+        setTimeout(() => el?.remove(), 600);
+      });
     };
     Promise.race([Promise.all([imgReady, fontsReady]), cap]).then(finish);
   }, []);

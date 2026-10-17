@@ -6,6 +6,7 @@ import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 import { euro } from "@/lib/data";
 import { BLUR } from "@/lib/blur";
+import Badge from "../ui/Badge";
 
 /** One photo only: the real Diavolo di Vanchiglia (spicy bacon & jalapeño smash). */
 const SHOT = { src: "/assets/promo/burger-mese.webp", alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño" };
@@ -64,7 +65,7 @@ export default function Spotlight() {
               <span className="pill-label absolute right-4 top-4 z-10 bg-lime text-ink">Solo a ottobre</span>
             </div>
             <div className="flex flex-col justify-center text-cream">
-              <span className="pill-label w-fit bg-lime text-ink">🔥 Burger del mese</span>
+              <Badge icon="fire" tilt={-4} dark className="w-fit">Il boss del mese</Badge>
               <h2 id="sp-title" className="mt-4 font-display text-[11vw] uppercase leading-[0.85] md:text-[clamp(44px,4.6vw,76px)]">
                 Il Diavolo<br /><span className="whitespace-nowrap pl-[6%] text-lime">di Vanchiglia</span>
               </h2>

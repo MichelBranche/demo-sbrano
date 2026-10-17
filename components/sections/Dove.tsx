@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, reduced } from "@/lib/gsap";
 import PillButton from "../ui/PillButton";
+import Badge from "../ui/Badge";
 
 export const HOURS = [
   ["Lunedì", "Chiuso (dormiamo)"],
@@ -33,7 +34,7 @@ export default function Dove() {
     <section ref={root} id="dove" className="relative px-4 pb-20 md:px-10">
       <div className="mx-auto grid max-w-[1360px] gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-6">
         <div className="d-info flex flex-col rounded-[32px] bg-ink p-6 text-cream md:p-10">
-          <span className="pill-label w-fit bg-lime text-ink">Dove siamo</span>
+          <Badge icon="pin" tilt={-4} dark>Trovaci, se hai fame</Badge>
           <h2 className="mt-5 font-display text-5xl uppercase leading-[0.88] md:text-7xl">Piazza<br /><span className="pl-[8%] text-lime">Santa Giulia</span></h2>
           <p className="mt-4 text-cream/70">Piazza Santa Giulia, 10124 Torino. Vanchiglia, a due passi dalla Mole e dal Po. Cerca l&apos;insegna lime, non puoi sbagliare.</p>
           <ul className="mt-6 divide-y divide-cream/10">

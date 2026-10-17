@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import Badge from "../ui/Badge";
 
 const R = [
   { n: "Giulia, Vanchiglia", t: "Sono venuta per un burger, sono rimasta per il secondo. Lo Sbranatore è illegale.", a: "/assets/mascot/eating-burger.webp" },
@@ -42,7 +43,7 @@ export default function Reviews() {
   return (
     <section ref={ref} className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center">
-        <span className="pill-label bg-ink text-lime">Recensioni</span>
+        <Badge icon="crown" tilt={2}>Dicono di noi (con la bocca piena)</Badge>
         <h2 id="rv-title" className="font-display text-[13vw] uppercase leading-[0.86] md:text-[clamp(56px,7vw,112px)]">
           <span className="block md:-translate-x-[8%]">Parlano</span><span className="block md:translate-x-[10%]">a bocca piena</span>
         </h2>

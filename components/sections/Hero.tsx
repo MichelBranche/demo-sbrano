@@ -44,8 +44,11 @@ export default function Hero() {
       gsap.to(".h-burger-breath", { scale: 1.035, y: -10, rotate: -1.2, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
       gsap.to(".h-shadow-breath", { scaleX: 0.92, opacity: 0.55, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
       // scroll parallax
-      gsap.to(".h-burger", { yPercent: 18, rotate: 6, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true } });
-      gsap.to(".h-title", { yPercent: -20, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true } });
+      // Parallax lives on its OWN wrapper (.h-burger-par / .h-title-par). Before, it targeted .h-burger,
+      // the same element the intro animates with from(yPercent:40): the scrub tween recorded the intro's
+      // start value (yPercent 40) and on the first scroll pixel snapped the burger ~100px down.
+      gsap.fromTo(".h-burger-par", { yPercent: 0, rotate: 0 }, { yPercent: 18, rotate: 6, ease: "none", immediateRender: false, scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.4 } });
+      gsap.fromTo(".h-title-par", { yPercent: 0 }, { yPercent: -20, ease: "none", immediateRender: false, scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.4 } });
       // mouse tilt
       const qx = gsap.quickTo(".h-burger-tilt", "x", { duration: 0.8, ease: "power3" });
       const qy = gsap.quickTo(".h-burger-tilt", "y", { duration: 0.8, ease: "power3" });
@@ -107,7 +110,7 @@ export default function Hero() {
         {/* HERO PANEL */}
         <section className="grain relative overflow-hidden rounded-[22px] bg-lime md:rounded-[30px]" aria-label="SBRANO">
           <div className="relative grid min-h-[760px] grid-cols-1 px-5 pb-28 pt-8 md:min-h-[min(860px,calc(100svh-110px))] md:px-10 md:pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-32">
-            <div className="h-title relative z-10 flex flex-col">
+            <div className="h-title h-title-par relative z-10 flex flex-col">
               <div className="h-logo relative mb-5 aspect-[1800/673] w-[220px] md:w-[300px]">
                 <Image src="/assets/brand/logo.webp" alt="SBRANO, burger fries good mood" fill priority sizes="300px" className="object-contain" />
               </div>
@@ -139,10 +142,10 @@ export default function Hero() {
                 <div className="h-shadow-breath h-full w-full rounded-[50%] bg-ink/30 blur-md" />
               </div>
               <div className="h-burger absolute will-change-transform inset-x-[-6%] bottom-[10%] top-0 lg:inset-x-[-12%] lg:bottom-[16%] lg:top-[4%]">
-                <div className="h-burger-tilt h-full w-full">
+                <div className="h-burger-par h-full w-full will-change-transform"><div className="h-burger-tilt h-full w-full">
                   <div className="h-burger-breath relative h-full w-full will-change-transform">
                     <Image src="/assets/menu/sbranatore.webp" alt="Sbranatore: doppio smash con cheddar, bacon, cetrioli e cipolla rossa" fill priority sizes="(min-width:1024px) 55vw, 100vw" className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,.25)]" />
-                  </div>
+                  </div></div>
                 </div>
               </div>
               {/* hand note + arrow */}

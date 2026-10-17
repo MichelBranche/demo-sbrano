@@ -58,5 +58,15 @@ export const INGREDIENTS: Ingredient[] = [
 export const BUN_BOTTOM: Ingredient = { id: "bun-bottom", name: "Pane sotto", img: "/assets/ingredients/bun-bottom.webp", price: 1.5, kcal: 150, h: 34, w: 100, ratio: 1.5, group: "base" };
 export const BUN_TOP: Ingredient = { id: "bun-top", name: "Pane sopra", img: "/assets/ingredients/bun-top.webp", price: 1.5, kcal: 170, h: 0, w: 102, ratio: 1.5, group: "base" };
 
+/** "Fallo menu": burger + Patatine Sbrano + a drink of choice */
+export const MENU_UPGRADE = 3.5;
+export const MENU_FRIES = { name: "Patatine Sbrano", img: "/assets/packaging/fries.webp" };
+export const DRINKS: { id: string; name: string; img: string; tint: string }[] = [
+  { id: "sbrano", name: "Bibita Sbrano", img: "/assets/packaging/cup.webp", tint: "#d6ff4d" },
+  { id: "cola", name: "Cola", img: "/assets/packaging/cup.webp", tint: "#5a2d1a" },
+  { id: "limonata", name: "Limonata", img: "/assets/packaging/cup.webp", tint: "#ffe45c" },
+  { id: "te-pesca", name: "Tè freddo pesca", img: "/assets/packaging/cup.webp", tint: "#ffb27a" },
+];
+
 export const euro = (n: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);

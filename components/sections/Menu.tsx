@@ -117,7 +117,7 @@ export default function Menu() {
   return (
     <section ref={root} id="menu" className="relative overflow-hidden pb-16 pt-20 md:pt-28">
       <div className="px-5">
-        <SectionHead label="Il menu" l1="Scegli la" l2="tua vittima" note="Trascina il cilindro, filtra, sbrana. Prezzi da piazza, porzioni da tangenziale." />
+        <SectionHead label="Roba da sbranare" icon="mascot" tilt={-3} l1="Scegli la" l2="tua vittima" note="Trascina il cilindro, filtra, sbrana. Prezzi da piazza, porzioni da tangenziale." />
       </div>
       <div className="m-pills mt-8 flex flex-wrap justify-center gap-2 px-4">
         {FILTERS.map((f) => (

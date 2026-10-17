@@ -31,7 +31,7 @@ export default function Locale() {
   return (
     <section ref={root} id="locale" className="relative bg-ink pb-10 pt-20 text-cream md:pt-28">
       <div className="px-4 md:px-10">
-        <SectionHead dark label="Il locale" l1="Vieni a" l2="sporcarti" note="Piazza Santa Giulia, cuore di Vanchiglia. Tavoli fuori, musica dentro, mani unte ovunque." />
+        <SectionHead dark label="La tana" icon="mascot" tilt={-3} l1="Vieni a" l2="sporcarti" note="Piazza Santa Giulia, cuore di Vanchiglia. Tavoli fuori, musica dentro, mani unte ovunque." />
       </div>
       <div className="relative mx-auto mt-14 max-w-[1440px] px-4 md:px-10" style={{ perspective: "1200px" }}>
         <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[300px_300px] lg:gap-6">

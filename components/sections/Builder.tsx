@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { INGREDIENTS, ING_GROUPS, BUN_BOTTOM, BUN_TOP, euro, type Ingredient } from "@/lib/data";
+import { INGREDIENTS, ING_GROUPS, BUN_BOTTOM, BUN_TOP, DRINKS, MENU_FRIES, MENU_UPGRADE, euro, type Ingredient } from "@/lib/data";
 import { stackLayout, composeBurger } from "@/lib/stack";
 import SectionHead from "../ui/SectionHead";
 import { useCart } from "../cart/CartProvider";
@@ -50,12 +50,16 @@ export default function Builder() {
   const [layers, setLayers] = useState<Layer[]>([]); // includes bun-bottom as first
   const [closed, setClosed] = useState(false);
   const [toast, setToast] = useState("");
+  const [asMenu, setAsMenu] = useState(false);
+  const [drink, setDrink] = useState(DRINKS[0].id);
+  const drinkObj = DRINKS.find((d) => d.id === drink) ?? DRINKS[0];
   const { add } = useCart();
   const { contextSafe } = useGSAP({ scope: root });
 
   const fill = layers.filter((l) => l.ing.id !== "bun-bottom").map((l) => l.ing);
   const all = [...layers.map((l) => l.ing), ...(closed ? [BUN_TOP] : [])];
-  const price = all.reduce((a, i) => a + i.price, 0) + (all.length ? 2.0 : 0); // +2€ mano d'opera & amore
+  const burgerPrice = all.reduce((a, i) => a + i.price, 0) + (all.length ? 2.0 : 0); // +2€ mano d'opera & amore
+  const price = burgerPrice + (asMenu && all.length ? MENU_UPGRADE : 0);
   const kcal = all.reduce((a, i) => a + i.kcal, 0);
   const name = makeName(fill, closed);
   const spicy = fill.some((f) => f.spicy);
@@ -143,14 +147,16 @@ export default function Builder() {
   const order = () => {
     if (!fill.length) { setToast("Un burger senza niente è solo pane triste."); return; }
     const ids = [...layers.map((l) => l.ing.id), BUN_TOP.id];
-    const key = "custom-" + ids.join("-");
+    const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${drinkObj.id}` : "");
     const finalPrice = Math.round((price + (closed ? 0 : BUN_TOP.price)) * 100) / 100;
     const fillNames = fill.map((f) => f.name);
+    const finalName = makeName(fill, true); // the order always closes the bun first
     const go = async () => {
       let img = "/assets/menu/sbranatore.webp";
       try { img = await composeBurger(ids); } catch { /* fallback: stacked component in cart */ }
       flyToCart(stackRef.current, img, () => {
-        add({ id: key, name, price: finalPrice, img, layers: ids, ingredients: fillNames, note: `Tuo: ${fillNames.join(", ")}` });
+        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames, note: `Tuo: ${fillNames.join(", ")}`,
+          ...(asMenu ? { menu: { fries: MENU_FRIES.name, drink: drinkObj.name, friesImg: MENU_FRIES.img, drinkImg: drinkObj.img } } : {}) });
         setToast("Aggiunto! Il cassiere ti guarda con stima.");
       });
     };
@@ -188,7 +194,7 @@ export default function Builder() {
       <div className="mx-auto grid max-w-[1360px] items-start gap-10 lg:grid-cols-[0.9fr_1.1fr]">
         {/* left: copy + live info */}
         <div className="order-2 lg:order-1 lg:sticky lg:top-24">
-          <SectionHead label="Burger builder" l1="Costruisci" l2="il tuo mostro" align="left" />
+          <SectionHead label="Fai il mostro" icon="bolt" tilt={-4} l1="Costruisci" l2="il tuo mostro" align="left" />
           <ol className="mt-8 space-y-3">
             {[["Pane", "Il pane sotto arriva da solo. Siamo gentili."], ["Ciccia e extra", "Scegli dai gruppi qui sotto. Ognuno cade al suo posto."], ["Chiudi e ordina", "Il pane sopra chiude i giochi. Poi dritto in cassa."]].map(([t, d], i) => (
               <li key={t} className="flex items-center gap-4 rounded-[22px] bg-white/60 p-3 pr-5">
@@ -213,7 +219,29 @@ export default function Builder() {
                 {closed && <li><button onClick={() => setClosed(false)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink">Pane sopra ✕</button></li>}
               </ul>
             )}
-            <div className="mt-5 flex flex-wrap gap-2">
+            {/* Fallo menu */}
+            <div className={`mt-5 rounded-[22px] p-3 transition-colors ${asMenu ? "bg-lime text-ink" : "bg-cream/10"}`}>
+              <label className="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" checked={asMenu} onChange={(e) => setAsMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
+                <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`absolute top-1 h-5 w-5 rounded-full transition-transform ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
+                <span className="flex-1"><span className="block font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano + bibita a scelta</span></span>
+                <span className="flex -space-x-3" aria-hidden>
+                  <span className="relative h-10 w-10 rounded-full bg-cream"><Image src={MENU_FRIES.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                  <span className="relative h-10 w-10 rounded-full" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                </span>
+              </label>
+              {asMenu && (
+                <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Scegli la bibita">
+                  {DRINKS.map((d) => (
+                    <button key={d.id} type="button" role="radio" aria-checked={drink === d.id} onClick={() => setDrink(d.id)} data-drink={d.id}
+                      className={`flex items-center gap-1.5 rounded-full border-2 py-0.5 pl-0.5 pr-3 text-xs font-bold ${drink === d.id ? "border-ink bg-ink text-lime" : "border-ink/20 bg-white/60 text-ink"}`}>
+                      <span className="h-5 w-5 rounded-full border border-ink/20" style={{ background: d.tint }} />{d.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
               <button onClick={order} className="group flex items-center gap-1" data-builder-order>
                 <span className="flex h-12 items-center rounded-full bg-lime px-6 text-[13px] font-bold uppercase tracking-[0.08em] text-ink">Aggiungi all&apos;ordine</span>
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime text-xl text-ink transition-transform duration-500 group-hover:rotate-90">+</span>

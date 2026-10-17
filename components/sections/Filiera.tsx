@@ -35,7 +35,7 @@ export default function Filiera() {
     <section ref={root} id="filiera" className="relative overflow-hidden px-4 pb-24 pt-10 md:px-10 md:pt-24">
       <div className="mx-auto max-w-[1360px]">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end">
-          <SectionHead label="Filiera corta" l1="Roba buona," l2="gente vera" align="left" />
+          <SectionHead label="Niente trucchi, solo roba vera" icon="star" tilt={3} l1="Roba buona," l2="gente vera" align="left" />
           <p className="f-intro font-display text-2xl uppercase leading-[1.05] md:text-[34px]">
             {INTRO.split(" ").map((w, i) => <span key={i} className="f-word">{w} </span>)}
           </p>

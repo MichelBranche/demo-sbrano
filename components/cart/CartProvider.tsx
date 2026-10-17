@@ -5,6 +5,8 @@ export type CartLine = {
   id: string; name: string; price: number; img: string; qty: number; note?: string;
   /** custom builder burger: layer ids bottom→top (incl. buns) and readable ingredient names */
   layers?: string[]; ingredients?: string[];
+  /** builder "Fallo menu": fries + chosen drink */
+  menu?: { fries: string; drink: string; drinkImg: string; friesImg: string };
 };
 type Ctx = {
   lines: CartLine[]; count: number; total: number; open: boolean; bump: number;

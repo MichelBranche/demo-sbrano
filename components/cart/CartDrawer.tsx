@@ -81,6 +81,13 @@ export default function CartDrawer() {
                               {l.ingredients.map((n, k) => <li key={k} className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px] leading-tight text-ink/70">{n}</li>)}
                             </ul>
                           ) : l.note && <p className="truncate text-xs text-ink/60">{l.note}</p>}
+                          {l.menu && (
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-bold" data-cart-menu>
+                              <span className="relative h-7 w-7 rounded-full bg-lime"><Image src={l.menu.friesImg} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>
+                              <span className="relative h-7 w-7 rounded-full bg-lime"><Image src={l.menu.drinkImg} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>
+                              Menu: patatine + {l.menu.drink}
+                            </p>
+                          )}
                           <p className="text-sm tabular-nums">{euro(l.price)}</p>
                         </div>
                         <div className="flex items-center gap-1 rounded-full bg-ink p-1 text-lime">
