@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /app/fonts/Comico-Regular.woff2
+/public/assets/promo/tonyptony.webp
+/public/assets/menu/tonyptony.webp
