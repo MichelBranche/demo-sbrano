@@ -13,7 +13,6 @@ const SHOT = { src: "/assets/promo/burger-mese.webp", alt: "Il Diavolo di Vanchi
 const ACC = [
   { t: "Ingredienti", chips: ["Doppio smash", "Cheddar", "Bacon croccante", "Jalapeño", "Salsa spicy", "Brioche al sesamo"] },
   { t: "Allergeni", chips: ["Glutine", "Latte", "Uova", "Sesamo", "Senape"] },
-  { t: "Abbinamento", chips: ["Patatine Sbrano", "Bibita ghiacciata", "Tanta acqua", "Un amico che ti regge"] },
 ];
 
 const Wave = ({ flip = false }: { flip?: boolean }) => (
@@ -84,9 +83,7 @@ export default function Spotlight() {
                       </button>
                       <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${on ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                         <div className="min-h-0 overflow-hidden">
-                          <div className="flex flex-wrap gap-2 px-5 pb-5">
-                            {a.chips.map((c) => <span key={c} className="rounded-full bg-ink px-3 py-1.5 text-sm text-cream">{c}</span>)}
-                          </div>
+                          <p className="px-5 pb-5 text-[15px] font-medium leading-snug">{a.chips.join(", ")}.</p>
                         </div>
                       </div>
                     </div>

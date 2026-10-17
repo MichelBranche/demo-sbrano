@@ -1,4 +1,5 @@
 "use client";
+import Sticker from "../ui/Sticker";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger } from "@/lib/gsap";
@@ -130,10 +131,8 @@ export default function Hero() {
                 <PillButton href="#menu" variant="dark">Ordina ora</PillButton>
                 <PillButton href="#menu" variant="cream" icon="↓">Guarda il menu</PillButton>
               </div>
-              {/* tags */}
-            <div className="h-fade mt-6 hidden flex-wrap gap-2 md:flex">
-              {["Torino", "Smash", "Take away", "Aperti fino all'01"].map((t) => <span key={t} className="pill-label border-2 border-ink">{t}</span>)}
-            </div>
+              {/* in-flow accent where the tag pills were: takes its own space, never overlaps */}
+              <Sticker name="asterisco" spin tilt={0} parallax={0} className="mt-6 hidden w-14 md:block" sizes="56px" />
             </div>
 
             {/* burger side */}

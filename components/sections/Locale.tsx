@@ -2,14 +2,15 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
+import Sticker from "../ui/Sticker";
 import SectionHead from "../ui/SectionHead";
 import Ribbon from "./Ribbon";
 import { BLUR } from "@/lib/blur";
 
 const PICS = [
-  { src: "/assets/locale/esterno-piazza-logo.webp", alt: "L'insegna SBRANO di notte in Piazza Santa Giulia", cap: "La piazza, di notte", cls: "lg:col-span-7 lg:row-span-2 aspect-[3/2] lg:aspect-auto" },
-  { src: "/assets/locale/interno.webp", alt: "Interno con il murale della mascotte e il bancone", cap: "Il bancone", cls: "lg:col-span-5 aspect-[16/9] lg:aspect-auto lg:translate-y-16" },
-  { src: "/assets/locale/tavolo.webp", alt: "Amici che condividono burger e patatine visti dall'alto", cap: "Si divide. Forse.", cls: "lg:col-span-5 aspect-[3/2] lg:aspect-auto lg:translate-y-16" },
+  { src: "/assets/locale/esterno-piazza-logo.webp", alt: "L'insegna SBRANO di notte in Piazza Santa Giulia", cls: "lg:col-span-7 lg:row-span-2 aspect-[3/2] lg:aspect-auto" },
+  { src: "/assets/locale/interno.webp", alt: "Interno con il murale della mascotte e il bancone", cls: "lg:col-span-5 aspect-[16/9] lg:aspect-auto lg:translate-y-16" },
+  { src: "/assets/locale/tavolo.webp", alt: "Amici che condividono burger e patatine visti dall'alto", cls: "lg:col-span-5 aspect-[3/2] lg:aspect-auto lg:translate-y-16" },
 ];
 
 export default function Locale() {
@@ -29,7 +30,7 @@ export default function Locale() {
     });
   }, { scope: root });
   return (
-    <section ref={root} id="locale" className="relative bg-ink pb-10 pt-20 text-cream md:pt-28">
+    <section ref={root} id="locale" className="relative bg-ink pb-20 pt-20 md:pb-28 text-cream md:pt-28">
       <div className="px-4 md:px-10">
         <SectionHead dark label="La tana" icon="mascot" tilt={-3} l1="Vieni a" l2="sporcarti" note="Piazza Santa Giulia, cuore di Vanchiglia. Tavoli fuori, musica dentro, mani unte ovunque." />
       </div>
@@ -38,15 +39,12 @@ export default function Locale() {
           {PICS.map((p) => (
             <figure key={p.src} className={`l-pic group relative overflow-hidden rounded-[28px] ${p.cls}`} style={{ transformStyle: "preserve-3d" }}>
               <div className="l-img absolute inset-x-0 -inset-y-[10%]"><Image src={p.src} alt={p.alt} fill placeholder="blur" blurDataURL={BLUR[p.src]} sizes={p.cls.includes("col-span-7") ? "(min-width:1024px) 58vw, 100vw" : "(min-width:1024px) 42vw, 100vw"} className="object-cover transition-transform duration-700 group-hover:scale-105" /></div>
-              <figcaption className="absolute bottom-4 left-4 rounded-full bg-cream px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink">{p.cap}</figcaption>
             </figure>
           ))}
         </div>
         <Ribbon id="loc-rb" tone="lime" className="absolute left-0 right-0 top-[42%] z-10" text={["Vanchiglia", "✶", "Good mood", "✶", "Mani unte", "✶", "Aperti fino a tardi", "✶"]} path="M-100 180 C 300 60, 600 60, 800 130 S 1200 230, 1540 60" />
       </div>
-      <div className="mx-auto mt-24 flex max-w-[1440px] flex-wrap gap-3 px-4 md:px-10">
-        {["Tavoli in piazza", "Pet friendly", "Musica hip hop", "Asporto in 10 min"].map((t) => <span key={t} className="pill-label border-2 border-cream/30">{t}</span>)}
-      </div>
+      <Sticker name="corona" tilt={-12} parallax={24} className="absolute bottom-4 right-6 w-20 md:bottom-6 md:right-[6%] md:w-28" sizes="(min-width:768px) 112px, 80px" />
     </section>
   );
 }

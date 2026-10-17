@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
+import Sticker from "../ui/Sticker";
 import SectionHead from "../ui/SectionHead";
 import { BLUR } from "@/lib/blur";
 
@@ -49,7 +50,6 @@ export default function Filiera() {
               style={{ zIndex: i + 1, ["--l" as string]: ["0%", "32%", "64%"][i], ["--t" as string]: ["0px", "250px", "500px"][i], ["--r" as string]: ["-3deg", "2deg", "-2deg"][i] } as React.CSSProperties}>
               <div className="flex items-start justify-between">
                 <span className="font-display text-7xl leading-none md:text-8xl">{c.n}</span>
-                <span className={`pill-label ${i === 1 ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{c.t}</span>
               </div>
               <h3 className="font-display text-3xl uppercase leading-none">{c.h}</h3>
               <p className="text-sm opacity-75 md:text-base">{c.d}</p>
@@ -58,7 +58,7 @@ export default function Filiera() {
               </div>
             </article>
           ))}
-          <p className="right-0 top-10 hidden max-w-[260px] rotate-[4deg] font-display text-2xl uppercase leading-none lg:absolute lg:block">Tre fornitori.<br />Zero intermediari.<br /><span className="rounded-full bg-ink px-2 text-lime">Fame onesta.</span></p>
+          <Sticker name="corona" tilt={10} className="absolute right-[3%] top-16 z-0 hidden w-[170px] lg:block" />
         </div>
       </div>
     </section>

@@ -110,8 +110,14 @@ export default function Menu() {
     }
   };
 
+  const [flavor, setFlavor] = useState(DRINKS[0].id);
   const addItem = (i: number) => {
     const m = MENU[i];
+    if (m.id === "bibita") {
+      const d = DRINKS.find((x) => x.id === flavor) ?? DRINKS[0];
+      flyToCart(imgs.current[i], d.img, () => add({ id: `bibita-${d.id}`, name: `Bibita ${d.name}`, price: m.price, img: d.img }));
+      return;
+    }
     flyToCart(imgs.current[i], m.img, () => add({ id: m.id, name: m.name, price: m.price, img: m.img }));
   };
 
@@ -153,6 +159,17 @@ export default function Menu() {
                     <span data-menu-tag className={`pill-label mb-2 h-6 px-3 text-[10px] ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.tag}</span>
                     <h3 className="font-display text-[28px] uppercase leading-none md:text-[34px]">{it.name}</h3>
                     <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
+                    {it.id === "bibita" && (
+                      <div className="mt-3 flex gap-1 md:gap-1.5" role="radiogroup" aria-label="Scegli il gusto" onPointerDown={(e) => e.stopPropagation()}>
+                        {DRINKS.map((d) => (
+                          <button key={d.id} type="button" role="radio" aria-checked={flavor === d.id} data-flavor={d.id} onClick={() => setFlavor(d.id)}
+                            className={`flex h-8 items-center gap-1 rounded-full border-2 px-2.5 text-[10px] font-bold uppercase md:pl-0.5 md:text-[11px] transition-colors ${flavor === d.id ? (isActive ? "border-lime bg-lime text-ink" : "border-ink bg-ink text-lime") : (isActive ? "border-cream/25 text-cream" : "border-ink/20 text-ink")}`}>
+                            <span className="relative hidden h-6 w-6 rounded-full bg-cream md:block"><Image src={d.img} alt="" fill sizes="24px" className="object-contain p-0.5" /></span>
+                            {d.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full px-3 py-1.5 text-sm font-bold tabular-nums ${isActive ? "bg-lime text-ink" : "bg-cream"}`}>{euro(it.price)}</span>
@@ -193,7 +210,7 @@ export default function Menu() {
           <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
             <Badge icon="bolt" tilt={-3} dark className="w-fit">Free refill</Badge>
             <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">Refill gratis.<br /><span className="text-lime">Sete brutta?</span></h3>
-            <p className="text-cream/70">Torna al banco: Pepsi, Fanta, Sprite o la nostra Bibita Sbrano. Il bicchiere lo riempi tu, quante volte vuoi.</p>
+            <p className="text-cream/70">Torna al banco: Pepsi, Fanta o Sprite. Il bicchiere lo riempi tu, quante volte vuoi.</p>
             <div className="flex -space-x-3" aria-hidden>
               {DRINKS.map((d) => <span key={d.id} className="relative h-14 w-14 rounded-full border-2 border-ink bg-cream"><Image src={d.img} alt="" fill sizes="56px" className="object-contain p-1" /></span>)}
             </div>

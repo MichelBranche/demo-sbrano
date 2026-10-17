@@ -15,6 +15,20 @@ type Ctx = {
   setQty: (id: string, qty: number) => void;
   clear: () => void;
 };
+/** old carts: "Bibita Sbrano" was a flavor; it no longer exists, so it becomes Pepsi (the default soda) */
+const PEPSI = { name: "Pepsi", img: "/assets/drinks/pepsi.webp" };
+function migrate(raw: CartLine[]): CartLine[] {
+  const out: CartLine[] = [];
+  for (const l0 of Array.isArray(raw) ? raw : []) {
+    let l = l0;
+    if (l.id === "bibita") l = { ...l, id: "bibita-pepsi", name: `Bibita ${PEPSI.name}`, img: PEPSI.img };
+    if (l.menu && /sbrano/i.test(l.menu.drink + l.menu.drinkImg))
+      l = { ...l, id: l.id.replace(/-menu-sbrano$/, "-menu-pepsi"), menu: { ...l.menu, drink: PEPSI.name, drinkImg: PEPSI.img } };
+    const ex = out.find((o) => o.id === l.id);
+    if (ex) ex.qty += l.qty; else out.push({ ...l });
+  }
+  return out;
+}
 const CartCtx = createContext<Ctx | null>(null);
 const KEY = "sbrano-cart-v1";
 
@@ -25,7 +39,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try { const raw = localStorage.getItem(KEY); if (raw) setLines(JSON.parse(raw)); } catch {}
+    try { const raw = localStorage.getItem(KEY); if (raw) setLines(migrate(JSON.parse(raw))); } catch {}
     setReady(true);
   }, []);
   useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify(lines)); }, [lines, ready]);
