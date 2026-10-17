@@ -120,21 +120,24 @@ export default function Hero() {
           <div className="relative mx-auto grid w-full max-w-[1600px] grid-cols-1 px-5 pb-24 pt-8 md:px-10 md:pb-28 md:pt-12 lg:min-h-[min(820px,calc(100svh-96px))] lg:grid-cols-[1.02fr_1fr] lg:items-center lg:gap-10 lg:pb-28 lg:pt-6 xl:gap-16 2xl:px-16">
             <div className="h-title h-title-par relative z-10 flex flex-col">
               <h1 className="font-display uppercase leading-[0.84] text-ink">
-                {/* L1: solid filled pill */}
+                {/* L1: solid filled pills (copy is longer now, so one pill per line, staggered) */}
                 <span className="block overflow-hidden pb-[0.06em]">
-                  <span className="h-line inline-block whitespace-nowrap rounded-full bg-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[10.4vw] text-lime md:text-[clamp(56px,7vw,112px)] lg:text-[clamp(56px,6.1vw,104px)]">Fame brutta.</span>
+                  <span className="h-line inline-block whitespace-nowrap rounded-full bg-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[10.4vw] text-lime md:text-[clamp(56px,7vw,104px)] lg:text-[clamp(52px,5.6vw,96px)]">Il burger,</span>
+                </span>
+                <span className="mt-1.5 block overflow-hidden pb-[0.06em] pl-[6%] md:mt-2">
+                  <span className="h-line inline-block whitespace-nowrap rounded-full bg-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[10.4vw] text-lime md:text-[clamp(56px,7vw,104px)] lg:text-[clamp(52px,5.6vw,96px)]">fatto bene.</span>
                 </span>
                 {/* L2: offset right, dashed outline pill ending with an arrow */}
-                <span className="mt-2 block overflow-visible pb-[0.06em] pl-[9%] md:mt-3 md:pl-[14%]">
-                  <span className="h-line inline-flex items-center gap-[0.22em] whitespace-nowrap rounded-full border-[3px] border-dashed border-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[9.2vw] md:border-4 md:text-[clamp(48px,6vw,96px)] lg:text-[clamp(48px,5.3vw,90px)]">
-                    Prezzi giusti
+                <span className="mt-2 block overflow-visible pb-[0.06em] pl-[3%] md:mt-3 md:pl-[12%]">
+                  <span className="h-line inline-flex items-center gap-[0.22em] whitespace-nowrap rounded-full border-[3px] border-dashed border-ink px-[0.32em] pb-[0.04em] pt-[0.14em] text-[6.6vw] md:border-4 md:text-[clamp(30px,4.4vw,52px)] lg:text-[clamp(30px,3vw,50px)]">
+                    Prezzi accessibili.
                     <svg viewBox="0 0 60 40" className="h-[0.62em] w-[0.9em] shrink-0" aria-hidden><path d="M4 20 H50 M34 5 L52 20 L34 35" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </span>
                 </span>
               </h1>
               {/* sub / payoff: 2 lines */}
               <p className="h-fade mt-8 max-w-[36rem] text-lg font-medium leading-snug md:text-[19px] lg:max-w-[clamp(34rem,38vw,42rem)] lg:text-[clamp(18px,1.25vw,22px)]">
-                Smash burger, pollo che scrocchia e patatine tagliate a mano.<br className="hidden md:block" /> In Piazza Santa Giulia, Vanchiglia. Zero fronzoli, tanto gusto.
+                Smash burger, pollo croccante e patatine.<br className="hidden md:block" /> A Torino, in Piazza Santa Giulia. Il gusto è al centro.
               </p>
               <div className="h-fade mt-8 flex flex-wrap items-center gap-3">
                 <PillButton href="#menu" variant="dark">Ordina ora</PillButton>
@@ -159,7 +162,7 @@ export default function Hero() {
                 <div className="h-burger absolute inset-x-[-14%] bottom-[12%] top-[4%] will-change-transform">
                   <div className="h-burger-par h-full w-full will-change-transform"><div className="h-burger-tilt h-full w-full">
                     <div className="h-burger-breath relative h-full w-full will-change-transform">
-                      <Image src="/assets/menu/sbranatore.webp" alt="Sbranatore: doppio smash con cheddar, bacon, cetrioli e cipolla rossa" fill priority sizes="(min-width:1024px) min(780px, 46vw), 100vw" className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,.25)]" />
+                      <Image src="/assets/menu/sbranatore.webp" alt="Sbranatore: doppio smash burger con cheddar, bacon, cetrioli e cipolla rossa" fill priority sizes="(min-width:1024px) min(780px, 46vw), 100vw" className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,.25)]" />
                     </div></div>
                   </div>
                 </div>
@@ -168,7 +171,7 @@ export default function Hero() {
                   <div className="relative h-full w-full rounded-full bg-ink">
                     <svg viewBox="0 0 200 200" className="animate-spin-slow absolute inset-0 h-full w-full" aria-hidden>
                       <defs><path id="badgeCircle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" /></defs>
-                      <text className="font-display" fontSize="23" letterSpacing="3" fill="#D6FF4D"><textPath href="#badgeCircle">SMASH • TORINO • VANCHIGLIA • </textPath></text>
+                      <text className="font-display" fontSize="19" letterSpacing="1.5" fill="#D6FF4D"><textPath href="#badgeCircle" textLength="462" lengthAdjust="spacing">SMASH BURGER • TORINO • VANCHIGLIA • </textPath></text>
                     </svg>
                     <span className="absolute inset-0 m-auto flex h-[36%] w-[36%] items-center justify-center rounded-full bg-lime text-[clamp(16px,1.4vw,26px)]">★</span>
                   </div>
@@ -179,7 +182,7 @@ export default function Hero() {
                     <Image src={star.img} alt="" fill sizes="80px" className="object-contain p-1" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] uppercase tracking-wider text-cream/60">Il più sbranato</p>
+                    <p className="text-[11px] uppercase tracking-wider text-cream/60">Il più scelto</p>
                     <p className="truncate font-bold">{star.name}</p>
                     <span className="mt-1 inline-block rounded-full bg-lime px-2.5 py-0.5 text-sm font-bold tabular-nums text-ink">{euro(star.price)}</span>
                   </div>
@@ -189,11 +192,12 @@ export default function Hero() {
             </div>
           </div>
         </section>
-        {/* 03 wavy divider: the frame bottom melts into the page, then the ribbon */}
-        <svg className="pointer-events-none absolute bottom-[-1px] left-0 h-[56px] w-full md:h-[80px]" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 40 C 120 0, 240 0, 360 40 S 600 80, 720 40 S 960 0, 1080 40 S 1320 80, 1440 40 L1440 80 L0 80 Z" fill="#F6EBD7" />
-        </svg>
       </div>
+      {/* 03 wavy divider. It lives OUTSIDE the frame (no grain overlay on it) and also covers the header padding,
+          so it is exactly the page colour: no seam/band between hero and next section */}
+      <svg className="pointer-events-none absolute bottom-[-1px] left-0 z-10 h-[64px] w-full md:h-[92px]" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
+        <path d="M0 40 C 120 0, 240 0, 360 40 S 600 80, 720 40 S 960 0, 1080 40 S 1320 80, 1440 40 L1440 80 L0 80 Z" fill="#F6EBD7" />
+      </svg>
     </header>
   );
 }

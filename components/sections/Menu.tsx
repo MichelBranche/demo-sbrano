@@ -126,7 +126,7 @@ export default function Menu() {
   return (
     <section ref={root} id="menu" className="relative overflow-hidden pb-16 pt-20 md:pt-28">
       <div className="px-5">
-        <SectionHead reveal={false} label="Roba da sbranare" icon="mascot" tilt={-3} l1="Scegli la" l2="tua vittima" note="Trascina il cilindro, filtra, sbrana. Prezzi da piazza, porzioni da tangenziale." />
+        <SectionHead reveal={false} label="Il menu" icon="mascot" tilt={-3} l1="Scegli il" l2="tuo burger" note="Esplora il menu e trova il tuo prossimo burger." />
       </div>
       <div className="m-pills mt-8 flex flex-wrap justify-center gap-2 px-4">
         {FILTERS.map((f) => (
@@ -199,20 +199,20 @@ export default function Menu() {
       <p className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-ink/50" aria-live="polite">← trascina • {m.name} →</p>
       <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 px-5 text-center">
         <span className="pill-label bg-lime text-ink">Combo</span>
-        <p className="text-sm md:text-base">Burger + patatine + bibita a <b>{euro(13.9)}</b>. Lo diciamo piano, sennò finisce.</p>
+        <p className="text-sm md:text-base">Burger + patatine + bibita a <b>{euro(13.9)}</b>.</p>
       </div>
       {/* Free refill band: real fountain photo, fetched early (eager, low priority) with blur placeholder so it never pops in */}
       <div className="relative mx-auto mt-10 max-w-[1100px] px-4 md:px-10" data-refill>
         <Sticker name="asterisco" spin tilt={0} parallax={16} className="absolute -top-9 right-4 z-10 hidden w-[72px] md:block" sizes="72px" />
         <div className="grid overflow-hidden rounded-[28px] bg-ink text-cream md:grid-cols-[1.25fr_1fr] md:rounded-[36px]">
           <div className="relative aspect-[16/9] md:aspect-auto md:min-h-[300px]">
-            <Image src="/assets/locale/free-refill.webp" alt="Il banco bibite SBRANO con la spina e il murale della mascotte" fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
+            <Image src="/assets/locale/free-refill.webp" alt="Banco bibite SBRANO con spillatori e murale" fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
               sizes="(min-width:1100px) 600px, (min-width:768px) 55vw, 100vw" className="object-cover" />
           </div>
           <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
             <Badge icon="bolt" tilt={-3} dark className="w-fit">Free refill</Badge>
-            <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">Refill gratis.<br /><span className="text-lime">Sete brutta?</span></h3>
-            <p className="text-cream/70">Torna al banco: Pepsi, Fanta o Sprite. Il bicchiere lo riempi tu, quante volte vuoi.</p>
+            <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">Refill disponibile.</h3>
+            <p className="text-cream/70">Pepsi, Fanta o Sprite alla spina. Riempi il bicchiere al banco.</p>
             <div className="flex -space-x-3" aria-hidden>
               {DRINKS.map((d) => <span key={d.id} className="relative h-14 w-14 rounded-full border-2 border-ink bg-cream"><Image src={d.img} alt="" fill sizes="56px" className="object-contain p-1" /></span>)}
             </div>

@@ -55,22 +55,22 @@ export default function Spotlight() {
     <section ref={root} className="relative mt-10" aria-labelledby="sp-title">
       <Wave />
       <div className="-my-px flex overflow-hidden items-stretch bg-ink py-10 md:py-16">
-        <SidePanel side="l" text="Del mese" />
+        <SidePanel side="l" text="Edizione del mese" />
         <div className="sp-card relative mx-3 flex-1 rounded-[32px] bg-ink-3 p-4 md:mx-6 md:rounded-[40px] md:p-10">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
             <div ref={img} className="sp-photo relative aspect-[4/3] overflow-hidden rounded-[24px] bg-ink lg:aspect-auto lg:min-h-[520px]">
               <Image src={SHOT.src} alt={SHOT.alt} fill loading="eager" placeholder="blur" blurDataURL={BLUR[SHOT.src]}
                 sizes="(min-width:1280px) 46vw, (min-width:1024px) 50vw, 100vw" className="object-cover object-[70%_50%]" />
-              <span className="pill-label absolute right-4 top-4 z-10 bg-lime text-ink">Solo a ottobre</span>
+              <span className="pill-label absolute right-4 top-4 z-10 bg-lime text-ink">Disponibile a ottobre.</span>
             </div>
             <div className="flex flex-col justify-center text-cream">
-              <Badge icon="fire" tilt={-4} dark className="w-fit">Il boss del mese</Badge>
+              <Badge icon="fire" tilt={-4} dark className="w-fit">La proposta del mese</Badge>
               <h2 id="sp-title" className="mt-4 font-display text-[11vw] uppercase leading-[0.85] md:text-[clamp(44px,4.6vw,76px)]">
                 Il Diavolo<br /><span className="whitespace-nowrap pl-[6%] text-lime">di Vanchiglia</span>
               </h2>
               <div className="mt-4 flex items-center gap-4">
                 <span className="font-display text-5xl text-lime tabular-nums">{euro(12.9)}</span>
-                <span className="text-sm text-cream/60">1.040 kcal di pura cattiveria</span>
+                <span className="text-sm text-cream/60">1.040 kcal.</span>
               </div>
               <div className="mt-6 space-y-3">
                 {ACC.map((a, i) => {

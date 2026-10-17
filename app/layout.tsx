@@ -30,10 +30,10 @@ const excon = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://demo-sbrano.vercel.app"),
-  title: "SBRANO | Fame brutta. Prezzi giusti. | Street burger Torino",
+  title: "SBRANO | Smash burger a Torino",
   description:
-    "SBRANO, street burger in Piazza Santa Giulia, Vanchiglia, Torino. Smash burger, pollo croccante, patatine. Demo concept di Michel Branche.",
-  openGraph: { title: "SBRANO, street burger Torino", images: ["/assets/brand/case-study.webp"] },
+    "SBRANO, concept di street burger ambientato in Piazza Santa Giulia, Vanchiglia, Torino. Smash burger, pollo croccante e patatine. Progetto demo di Michel Branche.",
+  openGraph: { title: "SBRANO | Street burger a Torino", images: ["/assets/brand/case-study.webp"] },
 };
 export const viewport: Viewport = { themeColor: "#111111" };
 

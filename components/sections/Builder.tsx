@@ -15,29 +15,29 @@ const PER = 5;
 const PLACES = ["di Vanchiglia", "del Balon", "della Mole", "di Santa Giulia", "del Po", "di Porta Palazzo"];
 
 function makeName(fill: Ingredient[], closed: boolean) {
-  if (!fill.length) return "Ancora niente. Coraggio.";
+  if (!fill.length) return "Inizia scegliendo gli ingredienti.";
   const n = (id: string) => fill.filter((f) => f.id === id).length;
   const p = n("patty"), c = n("chicken");
-  let base = "Il Vegetariano Arrabbiato";
-  if (p && c) base = "Il Terra-Aria";
-  else if (p >= 5) base = "Il Titano";
-  else if (p >= 4) base = "Il Grattacielo";
-  else if (p >= 3) base = "Il Mostro";
+  let base = "Il Vegetariano";
+  if (p && c) base = "Terra e mare";
+  else if (p >= 5) base = "Il Classico";
+  else if (p >= 4) base = "Il Doppio Piano";
+  else if (p >= 3) base = "Il Burger";
   else if (p === 2) base = "Il Doppio";
   else if (p === 1) base = "Lo Smash";
-  else if (c >= 2) base = "Il Pollaio";
-  else if (c === 1) base = "Il Pollo";
+  else if (c >= 2) base = "Il Pollo";
+  else if (c === 1) base = "Il Croccante";
   const adj: string[] = [];
-  if (fill.some((f) => f.spicy)) adj.push("Infernale");
-  if (n("bacon") >= 2) adj.push("Porcone"); else if (n("bacon")) adj.push("Affumicato");
-  if (n("cheddar") >= 2) adj.push("Filantissimo"); else if (n("cheddar")) adj.push("Filante");
-  if (n("onion-ring")) adj.push("Cerchiato");
-  if (n("lettuce") && n("tomato")) adj.push("Quasi Sano");
+  if (fill.some((f) => f.spicy)) adj.push("Piccante");
+  if (n("bacon") >= 2) adj.push("Con bacon"); else if (n("bacon")) adj.push("Affumicato");
+  if (n("cheddar") >= 2) adj.push("Extra formaggio"); else if (n("cheddar")) adj.push("Filante");
+  if (n("onion-ring")) adj.push("Con onion ring");
+  if (n("lettuce") && n("tomato")) adj.push("Vegetariano");
   if (n("mayo")) adj.push("Cremoso");
-  const teri = n("teriyaki") ? " di Tokyo" : "";
+  const teri = n("teriyaki") ? " Teriyaki" : "";
   const place = teri || " " + PLACES[fill.reduce((a, f) => a + f.id.length, 0) % PLACES.length];
   const L = fill.length;
-  const xl = L >= 35 ? " Apocalittico" : L >= 25 ? " Leggendario" : L >= 18 ? " Mostruoso" : L >= 12 ? " XXXL" : L >= 8 ? " XXL" : "";
+  const xl = L >= 35 ? " Grande" : L >= 25 ? " Doppio" : L >= 18 ? " Extra" : L >= 12 ? " XXXL" : L >= 8 ? " XXL" : "";
   return `${base} ${adj.slice(0, 2).join(" ")}${xl}${place}${closed ? "" : " (senza cappello)"}`.replace(/\s+/g, " ");
 }
 
@@ -72,16 +72,16 @@ export default function Builder() {
 
 
   const mood = useMemo(() => {
-    if (!layers.length) return { img: "/assets/mascot/waving.webp", say: "Ciao! Tocca un ingrediente." };
-    if (fill.length >= MAX) return { img: "/assets/mascot/eating-burger.webp", say: "Basta! Non entra in bocca. Né in cucina." };
-    if (fill.length >= 30) return { img: "/assets/mascot/running.webp", say: "Chiamo i pompieri. E un dentista." };
-    if (fill.length >= 20) return { img: "/assets/mascot/eating-burger.webp", say: "Serve una scala per morderlo." };
-    if (fill.length >= 12) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Ok, questo è un mostro vero. Rispetto." };
-    if (fill.filter((f) => f.id === "patty").length >= 3) return { img: "/assets/mascot/eating-burger.webp", say: "Ma sei serio? Rispetto." };
-    if (spicy) return { img: "/assets/mascot/running.webp", say: "Brucia! Scappo a prendere da bere." };
-    if (closed && fill.length >= 4) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Capolavoro. Roba da re." };
-    if (closed) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Chiuso. Si mangia." };
-    return { img: "/assets/mascot/eating-burger.webp", say: fill.length ? "Mmh. Continua così." : "Base fatta. Ora la ciccia." };
+    if (!layers.length) return { img: "/assets/mascot/waving.webp", say: "Scegli un ingrediente per iniziare." };
+    if (fill.length >= MAX) return { img: "/assets/mascot/eating-burger.webp", say: "Hai raggiunto il numero massimo di strati." };
+    if (fill.length >= 30) return { img: "/assets/mascot/running.webp", say: "Per aggiungere un ingrediente, rimuovine uno." };
+    if (fill.length >= 20) return { img: "/assets/mascot/eating-burger.webp", say: "Il tuo burger prende forma." };
+    if (fill.length >= 12) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Una combinazione generosa." };
+    if (fill.filter((f) => f.id === "patty").length >= 3) return { img: "/assets/mascot/eating-burger.webp", say: "La tua selezione è pronta." };
+    if (spicy) return { img: "/assets/mascot/running.webp", say: "Aggiungi una bibita se vuoi." };
+    if (closed && fill.length >= 4) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Ingredienti selezionati." };
+    if (closed) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Burger completato." };
+    return { img: "/assets/mascot/eating-burger.webp", say: fill.length ? "Continua a comporre il tuo burger." : "Scegli proteine e ingredienti." };
   }, [layers.length, fill, spicy, closed]);
 
   // stack layout (shared with the cart snapshot renderer)
@@ -115,8 +115,8 @@ export default function Builder() {
   });
 
   const addIng = (ing: Ingredient) => {
-    if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati: togline uno (−) per aggiungere ${ing.name}.`); return; }
-    if ((counts[ing.id] ?? 0) >= PER) { setToast(`Massimo ${PER} × ${ing.name}. Varia un po'!`); return; }
+    if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati. Rimuovine uno (−) per aggiungere ${ing.name}.`); return; }
+    if ((counts[ing.id] ?? 0) >= PER) { setToast(`Puoi aggiungere al massimo ${PER} porzioni di ${ing.name}.`); return; }
     setToast("");
     const next = [...layers];
     const newOnes: Layer[] = [];
@@ -127,7 +127,7 @@ export default function Builder() {
     popMascot();
   };
   const closeTop = () => {
-    if (!layers.length) { setToast("Prima il pane sotto. Le basi."); return; }
+    if (!layers.length) { setToast("Aggiungi prima il pane sotto."); return; }
     if (closed) return;
     setClosed(true); dropIn("[data-layer='top']"); popMascot();
   };
@@ -145,7 +145,7 @@ export default function Builder() {
   const reset = () => { setLayers([]); setClosed(false); setToast(""); popMascot(); };
 
   const order = () => {
-    if (!fill.length) { setToast("Un burger senza niente è solo pane triste."); return; }
+    if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
     const ids = [...layers.map((l) => l.ing.id), BUN_TOP.id];
     const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${drinkObj.id}` : "");
     const finalPrice = Math.round((price + (closed ? 0 : BUN_TOP.price)) * 100) / 100;
@@ -155,9 +155,9 @@ export default function Builder() {
       let img = "/assets/menu/sbranatore.webp";
       try { img = await composeBurger(ids); } catch { /* fallback: stacked component in cart */ }
       flyToCart(stackRef.current, img, () => {
-        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames, note: `Tuo: ${fillNames.join(", ")}`,
+        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames, note: `Ingredienti: ${fillNames.join(", ")}`,
           ...(asMenu ? { menu: { fries: MENU_FRIES.name, drink: drinkObj.name, friesImg: MENU_FRIES.img, drinkImg: drinkObj.img } } : {}) });
-        setToast("Aggiunto! Il cassiere ti guarda con stima.");
+        setToast("Aggiunto all’ordine.");
       });
     };
     if (!closed) { closeTop(); setTimeout(go, 700); } else go();
@@ -196,7 +196,7 @@ export default function Builder() {
         <div className="order-2 lg:order-1 lg:sticky lg:top-24">
           <SectionHead label="Fai il mostro" icon="bolt" tilt={-4} l1="Costruisci" l2="il tuo mostro" align="left" />
           <ol className="mt-8 space-y-3">
-            {[["Pane", "Il pane sotto arriva da solo. Siamo gentili."], ["Ciccia e extra", "Scegli dai gruppi qui sotto. Ognuno cade al suo posto."], ["Chiudi e ordina", "Il pane sopra chiude i giochi. Poi dritto in cassa."]].map(([t, d], i) => (
+            {[["Pane", "La base è già inclusa."], ["Ciccia e extra", "Scegli gli ingredienti dai gruppi qui sotto."], ["Chiudi e ordina", "Aggiungi il pane superiore per completare il burger."]].map(([t, d], i) => (
               <li key={t} className="flex items-center gap-4 rounded-[22px] bg-white/60 p-3 pr-5">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-xl text-lime">{i + 1}</span>
                 <div><p className="font-bold uppercase tracking-wider">{t}</p><p className="text-sm text-ink/60">{d}</p></div>
@@ -216,7 +216,7 @@ export default function Builder() {
                 {layers.filter((l) => l.ing.id !== "bun-bottom").map((l) => (
                   <li key={l.uid}><button onClick={() => remove(l.uid)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink" aria-label={`Togli ${l.ing.name}`}>{l.ing.name} ✕</button></li>
                 ))}
-                {closed && <li><button onClick={() => setClosed(false)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink">Pane sopra ✕</button></li>}
+                {closed && <li><button onClick={() => setClosed(false)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink">Pane sopra · rimuovi</button></li>}
               </ul>
             )}
             {/* Fallo menu */}
@@ -224,7 +224,7 @@ export default function Builder() {
               <label className="flex cursor-pointer items-center gap-3">
                 <input type="checkbox" checked={asMenu} onChange={(e) => setAsMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
                 <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`absolute top-1 h-5 w-5 rounded-full transition-transform ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
-                <span className="flex-1"><span className="block font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano + bibita a scelta</span></span>
+                <span className="flex-1"><span className="block font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano e una bibita a scelta.</span></span>
                 <span className="flex -space-x-3" aria-hidden>
                   <span className="relative h-10 w-10 rounded-full bg-cream"><Image src={MENU_FRIES.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
                   <span className="relative h-10 w-10 rounded-full" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
@@ -281,7 +281,7 @@ export default function Builder() {
                     )}
                   </div>
                   {!layers.length && (
-                    <p className="absolute inset-x-0 bottom-10 text-center font-display text-2xl uppercase leading-none text-ink/50">Piatto vuoto.<br />Fame piena.</p>
+                    <p className="absolute inset-x-0 bottom-10 text-center font-display text-2xl uppercase leading-none text-ink/50">Inizia a comporre il tuo burger.<br />Scegli gli ingredienti dal menu.</p>
                   )}
                 </div>
               </div>
@@ -289,7 +289,7 @@ export default function Builder() {
             {/* close button */}
             <button onClick={closeTop} disabled={closed} className="absolute bottom-[12%] left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink py-1 pl-1 pr-4 text-xs font-bold uppercase tracking-wider text-lime transition-transform hover:scale-105 disabled:opacity-40">
               <span className="relative h-8 w-8 rounded-full bg-lime"><Image src={BUN_TOP.img} alt="" fill sizes="32px" className="object-contain p-0.5" /></span>
-              {closed ? "Chiuso" : "Chiudi col pane"}
+              {closed ? "Chiuso" : "Completa con il pane sopra."}
             </button>
             {/* mascot */}
             <div className="absolute right-0 top-0 z-[70] flex flex-col items-end">
@@ -304,7 +304,7 @@ export default function Builder() {
           <div className="b-picker mt-6 rounded-[28px] bg-white/60 p-4 md:p-5">
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-ink/60">Ingredienti</p>
-              <p className={`text-xs font-bold uppercase tracking-wider tabular-nums ${full ? "text-red-600" : "text-ink/60"}`}>{full ? `Stack pieno ${fill.length}/${MAX}` : `${fill.length}/${MAX} strati • max ${PER} per ingrediente`}</p>
+              <p className={`text-xs font-bold uppercase tracking-wider tabular-nums ${full ? "text-red-600" : "text-ink/60"}`}>{full ? `Stack pieno ${fill.length}/${MAX}` : `${fill.length}/${MAX} strati · massimo ${PER} per ingrediente`}</p>
             </div>
             <div className="space-y-4">
               {ING_GROUPS.map((g) => (
@@ -316,7 +316,7 @@ export default function Builder() {
                 </div>
               ))}
             </div>
-            {full && <p className="mt-3 rounded-2xl bg-ink px-4 py-2 text-sm text-lime" role="status">Hai raggiunto {MAX} strati. Togli uno strato (−) per aggiungerne altri.</p>}
+            {full && <p className="mt-3 rounded-2xl bg-ink px-4 py-2 text-sm text-lime" role="status">Hai raggiunto {MAX} strati. Rimuovine uno (−) per aggiungerne altri.</p>}
             {!full && toast && <p className="mt-3 px-1 text-sm text-ink/70" role="status">{toast}</p>}
           </div>
         </div>

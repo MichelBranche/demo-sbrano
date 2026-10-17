@@ -7,11 +7,11 @@ import SectionHead from "../ui/SectionHead";
 import { BLUR } from "@/lib/blur";
 
 const CARDS = [
-  { n: "01", t: "Carne", h: "Piemontese, macinata ogni mattina", d: "Dal macellaio di fiducia, a mezz'ora da qui. Pressata sulla piastra rovente, mai surgelata.", img: "/assets/filiera/carne.webp", alt: "Mani con guanti che formano polpette di manzo", tone: "bg-white text-ink" },
-  { n: "02", t: "Pane", h: "Brioche sfornata ogni alba", d: "Un forno di quartiere ce la porta calda alle 7. Burro vero, sesamo tostato, zero scuse.", img: "/assets/filiera/pane.webp", alt: "Panini brioche al sesamo appena sfornati", tone: "bg-ink text-cream" },
-  { n: "03", t: "Patate", h: "Di montagna, tagliate a mano", d: "Patate piemontesi, buccia lasciata dove serve, doppia frittura. Croccanti fuori, morbide dentro.", img: "/assets/filiera/patate.webp", alt: "Patate e patatine tagliate a mano su tagliere", tone: "bg-lime text-ink" },
+  { n: "01", t: "Carne", h: "Manzo piemontese", d: "Manzo indicato come piemontese e macinato ogni mattina. Cottura alla piastra.", img: "/assets/filiera/carne.webp", alt: "Mani con guanti che formano polpette di manzo", tone: "bg-white text-ink" },
+  { n: "02", t: "Pane", h: "Brioche al sesamo", d: "Brioche consegnata da un forno del quartiere.", img: "/assets/filiera/pane.webp", alt: "Panini brioche al sesamo appena sfornati", tone: "bg-ink text-cream" },
+  { n: "03", t: "Patate", h: "Patate tagliate a mano", d: "Patate tagliate a mano e fritte due volte.", img: "/assets/filiera/patate.webp", alt: "Patate e patatine tagliate a mano su tagliere", tone: "bg-lime text-ink" },
 ];
-const INTRO = "Niente magie da laboratorio. Pochi ingredienti, scelti bene, da gente che conosciamo per nome. Il resto lo fa la piastra.";
+const INTRO = "Ingredienti selezionati e cottura alla piastra. Scopri cosa sta dietro ogni burger.";
 
 export default function Filiera() {
   const root = useRef<HTMLElement>(null);
@@ -36,7 +36,7 @@ export default function Filiera() {
     <section ref={root} id="filiera" className="relative overflow-hidden px-4 pb-24 pt-10 md:px-10 md:pt-24">
       <div className="mx-auto max-w-[1360px]">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end">
-          <SectionHead label="Niente trucchi, solo roba vera" icon="star" tilt={3} l1="Roba buona," l2="gente vera" align="left" />
+          <SectionHead label="Ingredienti, senza giri di parole" icon="star" tilt={3} l1="Scelte curate," l2="gusto diretto" align="left" />
           <p className="f-intro font-display text-2xl uppercase leading-[1.05] md:text-[34px]">
             {INTRO.split(" ").map((w, i) => <span key={i} className="f-word">{w} </span>)}
           </p>

@@ -6,10 +6,10 @@ import PillButton from "../ui/PillButton";
 import Badge from "../ui/Badge";
 
 export const HOURS = [
-  ["Lunedì", "Chiuso (dormiamo)"],
-  ["Mar - Gio", "12:00-15:00 • 19:00-23:30"],
-  ["Ven - Sab", "12:00-15:00 • 19:00-01:00"],
-  ["Domenica", "12:00-23:00"],
+  ["Lunedì", "Chiuso."],
+  ["Mar - Gio", "12:00–15:00 • 19:00–23:30"],
+  ["Ven - Sab", "12:00–15:00 • 19:00–01:00"],
+  ["Domenica", "12:00–23:00"],
 ];
 
 export default function Dove() {
@@ -34,9 +34,9 @@ export default function Dove() {
     <section ref={root} id="dove" className="relative px-4 pb-20 md:px-10">
       <div className="mx-auto grid max-w-[1360px] gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-6">
         <div className="d-info flex flex-col rounded-[32px] bg-ink p-6 text-cream md:p-10">
-          <Badge icon="pin" tilt={-4} dark>Trovaci, se hai fame</Badge>
+          <Badge icon="pin" tilt={-4} dark>Vieni a trovarci</Badge>
           <h2 className="mt-5 font-display text-5xl uppercase leading-[0.88] md:text-7xl">Piazza<br /><span className="pl-[8%] text-lime">Santa Giulia</span></h2>
-          <p className="mt-4 text-cream/70">Piazza Santa Giulia, 10124 Torino. Vanchiglia, a due passi dalla Mole e dal Po. Cerca l&apos;insegna lime, non puoi sbagliare.</p>
+          <p className="mt-4 text-cream/70">Piazza Santa Giulia, 10124 Torino, nel quartiere Vanchiglia.</p>
           <ul className="mt-6 divide-y divide-cream/10">
             {HOURS.map(([d, h], i) => (
               <li key={d} className={`d-row flex items-center justify-between gap-3 py-3 ${i === dayIdx ? "text-lime" : ""}`}>
@@ -46,13 +46,13 @@ export default function Dove() {
             ))}
           </ul>
           <div className="mt-auto flex flex-wrap gap-3 pt-8">
-            <PillButton href="https://www.google.com/maps/search/?api=1&query=Piazza+Santa+Giulia+Torino" variant="lime">Indicazioni</PillButton>
+            <PillButton href="https://www.google.com/maps/search/?api=1&query=Piazza+Santa+Giulia+Torino" variant="lime">Indicazioni stradali</PillButton>
             <a href="tel:+390110000000" className="flex h-12 items-center rounded-full border-2 border-cream/30 px-6 text-[13px] font-bold uppercase tracking-wider hover:border-lime hover:text-lime md:h-14">Chiama</a>
           </div>
         </div>
 
         <div className="d-map relative min-h-[420px] overflow-hidden rounded-[32px] bg-lime md:min-h-[560px]">
-          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-label="Mappa stilizzata di Vanchiglia">
+          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-label="Mappa stilizzata di Vanchiglia con l’indicazione della posizione di SBRANO">
             <rect width="800" height="600" fill="#D6FF4D" />
             {/* river Po */}
             <path d="M560 -20 C 600 120, 700 200, 690 330 S 740 520, 820 620 L 900 620 L 900 -20 Z" fill="#111" opacity=".9" />
@@ -89,10 +89,10 @@ export default function Dove() {
           <div className="absolute right-4 top-4 rounded-full bg-ink px-4 py-2 text-xs font-bold uppercase tracking-wider text-lime">Siamo qui ↙</div>
           {/* running mascot strip */}
           <div className="absolute inset-x-0 bottom-0 h-36 overflow-hidden">
-            <div className="absolute inset-x-4 bottom-3 rounded-full bg-ink px-5 py-3 text-xs font-bold uppercase tracking-wider text-cream">Da Porta Nuova 18 min • Dalla Mole 6 min • Di corsa 2</div>
+            <div className="absolute inset-x-4 bottom-3 rounded-full bg-ink px-5 py-3 text-xs font-bold uppercase tracking-wider text-cream">Da Porta Nuova: 18 min • Dalla Mole: 6 min.</div>
             <div className="d-runner absolute bottom-[60px] left-0 h-20 w-20 will-change-transform">
               <div className="d-runner-bob relative h-full w-full rounded-full bg-cream">
-                <Image src="/assets/mascot/running.webp" alt="Mascotte che corre" fill sizes="80px" className="object-contain p-1" />
+                <Image src="/assets/mascot/running.webp" alt="Mascotte SBRANO in movimento" fill sizes="80px" className="object-contain p-1" />
               </div>
             </div>
           </div>

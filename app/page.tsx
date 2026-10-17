@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main className="relative overflow-x-clip">
       <Hero />
-      <Ribbon id="hero-rb" className="-mt-2 md:-mt-4" />
+      <Ribbon id="hero-rb" className="z-30 -mt-[72px] md:-mt-[128px]" />
       <Menu />
       <Spotlight />
       <Builder />

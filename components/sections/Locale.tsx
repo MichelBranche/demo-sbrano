@@ -32,7 +32,7 @@ export default function Locale() {
   return (
     <section ref={root} id="locale" className="relative bg-ink pb-32 pt-20 md:pb-36 lg:pb-28 text-cream md:pt-28">
       <div className="px-4 md:px-10">
-        <SectionHead dark label="La tana" icon="mascot" tilt={-3} l1="Vieni a" l2="sporcarti" note="Piazza Santa Giulia, cuore di Vanchiglia. Tavoli fuori, musica dentro, mani unte ovunque." />
+        <SectionHead dark label="Il locale" icon="mascot" tilt={-3} l1="Un posto" l2="a Vanchiglia" note="Piazza Santa Giulia, nel cuore di Vanchiglia." />
       </div>
       <div className="relative mt-14">
       <div className="relative mx-auto mt-14 max-w-[1440px] px-4 md:px-10" style={{ perspective: "1200px" }}>
@@ -45,7 +45,7 @@ export default function Locale() {
         </div>
       </div>
       {/* like the hero ribbon: full-bleed (section width = viewport, no container padding), same curve, layered above the photos */}
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2"><Ribbon id="loc-rb" tone="lime" text={["Aperti fino a tardi", "✶", "Vanchiglia", "✶", "Good mood", "✶", "Mani unte", "✶"]} /></div>
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2"><Ribbon id="loc-rb" tone="lime" text={["Orari di apertura", "✶", "Vanchiglia", "✶", "A Torino", "✶", "SBRANO", "✶"]} /></div>
       </div>
       <Sticker name="corona" tilt={-12} parallax={24} className="absolute bottom-4 right-6 w-20 md:bottom-6 md:right-[6%] md:w-28 lg:bottom-auto lg:right-[8%] lg:top-28" sizes="(min-width:768px) 112px, 80px" />
     </section>

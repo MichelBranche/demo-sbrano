@@ -4,14 +4,14 @@ import { useEffect, useRef } from "react";
 import Badge from "../ui/Badge";
 
 const R = [
-  { n: "Giulia, Vanchiglia", t: "Sono venuta per un burger, sono rimasta per il secondo. Lo Sbranatore è illegale.", a: "/assets/mascot/eating-burger.webp" },
-  { n: "Marco T.", t: "Patatine così non le trovi neanche dalla nonna. E la nonna è brava.", a: "/assets/mascot/crown-thumbs-up.webp" },
-  { n: "Fede_skate", t: "Prezzi onesti, musica giusta, servizio veloce. Finalmente.", a: "/assets/mascot/running.webp" },
-  { n: "Sara B.", t: "Il Mordi e Fuggi mi ha fatto piangere. Di gioia, credo.", a: "/assets/mascot/waving.webp" },
-  { n: "Luca da Borgo Po", t: "Attraverso il ponte apposta. Due volte a settimana.", a: "/assets/mascot/eating-burger.webp" },
-  { n: "Ale & Chiara", t: "Primo appuntamento qui. Abbiamo diviso le patatine. Ci sposiamo.", a: "/assets/mascot/crown-thumbs-up.webp" },
-  { n: "Davide R.", t: "Il pollo scrocchia così forte che si gira tutta la piazza.", a: "/assets/mascot/running.webp" },
-  { n: "Elena, studentessa", t: "Con la combo a 13,90 ci esce cena e pure l'autostima.", a: "/assets/mascot/waving.webp" },
+  { n: "Giulia, Vanchiglia", t: "Lo Sbranatore è diventato il mio preferito.", a: "/assets/mascot/eating-burger.webp" },
+  { n: "Marco T.", t: "Patatine croccanti e porzione generosa.", a: "/assets/mascot/crown-thumbs-up.webp" },
+  { n: "Fede_skate", t: "Buon rapporto qualità-prezzo e servizio rapido.", a: "/assets/mascot/running.webp" },
+  { n: "Sara B.", t: "Il Mordi e Fuggi è il mio preferito.", a: "/assets/mascot/waving.webp" },
+  { n: "Luca da Borgo Po", t: "Vengo fin qui apposta, anche più volte a settimana.", a: "/assets/mascot/eating-burger.webp" },
+  { n: "Ale & Chiara", t: "Abbiamo condiviso le patatine al primo appuntamento.", a: "/assets/mascot/crown-thumbs-up.webp" },
+  { n: "Davide R.", t: "Il pollo ha una panatura molto croccante.", a: "/assets/mascot/running.webp" },
+  { n: "Elena, studentessa", t: "La combo a 13,90 € è un’opzione completa.", a: "/assets/mascot/waving.webp" },
 ];
 
 function Card({ r, i }: { r: (typeof R)[number]; i: number }) {
@@ -19,7 +19,7 @@ function Card({ r, i }: { r: (typeof R)[number]; i: number }) {
   return (
     <figure className={`mx-2 flex w-[300px] shrink-0 flex-col gap-4 rounded-[28px] p-5 md:w-[380px] md:p-6 ${dark ? "bg-ink text-cream" : i % 3 === 2 ? "bg-lime text-ink" : "bg-white text-ink"}`}>
       <div className="flex items-center justify-between">
-        <div className="flex gap-0.5 text-lg" aria-label="5 stelle su 5">{"★★★★★"}</div>
+        <div className="flex gap-0.5 text-lg" aria-label="Valutazione: 5 stelle su 5.">{"★★★★★"}</div>
         <span className="font-display text-4xl leading-none opacity-30">“</span>
       </div>
       <blockquote className="text-lg font-medium leading-snug">{r.t}</blockquote>
@@ -43,11 +43,11 @@ export default function Reviews() {
   return (
     <section ref={ref} className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center">
-        <Badge icon="crown" tilt={2}>Dicono di noi (con la bocca piena)</Badge>
+        <Badge icon="crown" tilt={2}>Le recensioni</Badge>
         <h2 id="rv-title" className="font-display text-[13vw] uppercase leading-[0.86] md:text-[clamp(56px,7vw,112px)]">
-          <span className="block md:-translate-x-[8%]">Parlano</span><span className="block md:translate-x-[10%]">a bocca piena</span>
+          <span className="block md:-translate-x-[8%]">Le esperienze</span><span className="block md:translate-x-[10%]">dei clienti</span>
         </h2>
-        <div className="flex items-center gap-3"><span className="font-display text-6xl">4,9</span><span className="text-left text-sm leading-tight">★★★★★<br />su 1.284 recensioni<br />(inventate, ma sentite)</span></div>
+        <div className="flex items-center gap-3"><span className="font-display text-6xl">4,9</span><span className="text-left text-sm leading-tight">★★★★★<br />su 1.284 recensioni</span></div>
       </div>
       {[a, b].map((row, k) => (
         <div key={k} className="marquee mb-4 flex overflow-hidden">

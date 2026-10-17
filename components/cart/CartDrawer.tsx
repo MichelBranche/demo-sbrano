@@ -36,7 +36,7 @@ export default function CartDrawer() {
             <div className="flex items-center justify-between bg-ink px-6 py-5 text-cream">
               <div>
                 <p className="font-display text-3xl uppercase text-lime">Il tuo ordine</p>
-                <p className="text-sm text-cream/60">{count} {count === 1 ? "pezzo" : "pezzi"} nel sacchetto</p>
+                <p className="text-sm text-cream/60">{count} {count === 1 ? "pezzo" : "pezzi"} nel carrello</p>
               </div>
               <button onClick={() => setOpen(false)} aria-label="Chiudi" className="flex h-11 w-11 items-center justify-center rounded-full bg-lime text-xl font-bold text-ink transition-transform hover:rotate-90">✕</button>
             </div>
@@ -46,16 +46,16 @@ export default function CartDrawer() {
                 <div className="relative h-48 w-48 rounded-full bg-lime">
                   <Image src="/assets/mascot/crown-thumbs-up.webp" alt="Mascotte SBRANO col pollice in su" fill sizes="192px" className="object-contain p-4" />
                 </div>
-                <p className="font-display text-4xl uppercase leading-none">Ordine ricevuto. Fame brutta in arrivo.</p>
-                <p className="text-ink/70">Ordine <b>{order}</b>. Passa in Piazza Santa Giulia, ti chiamiamo per nome. È una demo: nessun burger è stato maltrattato.</p>
-                <button onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Torna a sbavare</button>
+                <p className="font-display text-4xl uppercase leading-none">Ordine registrato nella demo.</p>
+                <p className="text-ink/70">Ordine <b>{order}</b>. Il tuo ordine demo è pronto per il ritiro in Piazza Santa Giulia. Nessun ordine reale è stato inviato.</p>
+                <button onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Torna al menu</button>
               </motion.div>
             ) : lines.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
                 <div className="relative h-40 w-40 rounded-full bg-lime">
                   <Image src="/assets/mascot/waving.webp" alt="" fill sizes="160px" className="object-contain p-4" />
                 </div>
-                <p className="font-display text-3xl uppercase">Sacchetto vuoto. Tristezza.</p>
+                <p className="font-display text-3xl uppercase">Il carrello è vuoto.</p>
                 <a href="#menu" onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Vai al menu</a>
               </div>
             ) : (
@@ -104,15 +104,15 @@ export default function CartDrawer() {
                     <form onSubmit={submit} className="space-y-3">
                       <input required placeholder="Come ti chiamiamo?" className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none focus:bg-white" />
                       <select className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none" defaultValue="asap" aria-label="Orario ritiro">
-                        <option value="asap">Ritiro appena pronto (15 min)</option><option>Ritiro alle 20:00</option><option>Ritiro alle 21:00</option>
+                        <option value="asap">Appena pronto (circa 15 min)</option><option>Ritiro alle 20:00</option><option>Ritiro alle 21:00</option>
                       </select>
-                      <button type="submit" className="flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 font-bold uppercase tracking-wider text-lime">Conferma e paga <span className="tabular-nums">{euro(total)}</span></button>
-                      <button type="button" onClick={() => setStep("cart")} className="w-full text-sm underline">Indietro</button>
+                      <button type="submit" className="flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 font-bold uppercase tracking-wider text-lime">Conferma ordine <span className="tabular-nums">{euro(total)}</span></button>
+                      <button type="button" onClick={() => setStep("cart")} className="w-full text-sm underline">Torna al carrello</button>
                     </form>
                   ) : (
                     <>
                       <div className="flex items-end justify-between"><span className="font-bold uppercase tracking-wider text-ink/60">Totale</span><span className="font-display text-4xl tabular-nums">{euro(total)}</span></div>
-                      <button onClick={() => setStep("checkout")} className="flex h-14 w-full items-center justify-center rounded-full bg-ink font-bold uppercase tracking-wider text-lime transition-transform hover:scale-[1.02]">Vai alla cassa ↗</button>
+                      <button onClick={() => setStep("checkout")} className="flex h-14 w-full items-center justify-center rounded-full bg-ink font-bold uppercase tracking-wider text-lime transition-transform hover:scale-[1.02]">Procedi all’ordine</button>
                     </>
                   )}
                 </div>

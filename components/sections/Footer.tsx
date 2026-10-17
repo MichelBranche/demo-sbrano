@@ -30,7 +30,7 @@ export default function Footer() {
             {/* 1. logo + claim */}
             <div className="order-1 md:order-none flex items-center gap-4 md:block">
               <div className="relative aspect-[1550/1015] w-32 shrink-0 rounded-[18px] bg-lime md:w-56 md:rounded-[22px]"><Image src="/assets/brand/logo-mascot.webp" alt="SBRANO" fill sizes="(min-width:768px) 224px, 128px" className="object-contain p-2 md:p-3" /></div>
-              <p className="max-w-xs font-display text-xl uppercase leading-none md:mt-4 md:text-2xl">Fame brutta.<br /><span className="text-lime">Prezzi giusti.</span></p>
+              <p className="max-w-xs font-display text-xl uppercase leading-none md:mt-4 md:text-2xl">Burger e patatine, a Torino.<br /><span className="text-lime">SBRANO · Vanchiglia</span></p>
             </div>
             {/* 5. links */}
             <div className="order-5 md:order-none rounded-[22px] bg-cream/5 p-4 md:rounded-none md:bg-transparent md:p-0">
@@ -48,7 +48,7 @@ export default function Footer() {
               <div className="ft-sticker relative mx-auto aspect-[2/1] w-full max-w-[360px] rotate-[-4deg] rounded-[22px] bg-cream p-2 md:max-w-none">
                 <Image src="/assets/packaging/sticker-kit.webp" alt="Kit di sticker e packaging SBRANO" fill sizes="(min-width:1024px) 30vw, 90vw" className="object-contain p-2" />
               </div>
-              <p className="mt-3 text-sm text-cream/60">Ordina 3 volte, lo sticker kit è tuo. Attaccalo dove vuoi, tranne sulla Mole.</p>
+              <p className="mt-3 text-sm text-cream/60">Dopo 3 ordini ricevi il kit di sticker.</p>
             </div>
           </div>
 
@@ -76,7 +76,7 @@ export default function Footer() {
             <span className="block overflow-hidden whitespace-nowrap font-display text-[12.5vw] uppercase leading-[0.8] text-ink transition-colors md:text-[16.5vw] md:text-lime md:group-hover:text-cream xl:text-[min(16.5vw,250px)]">
               {"ORDINA ORA".split("").map((c, i) => <span key={i} className="ft-char inline-block">{c === " " ? "\u00A0" : c}</span>)}
             </span>
-            <span className="mt-2 block text-xs font-bold uppercase tracking-[0.2em] text-ink/60 md:hidden">Ritiro in 15 min ↗</span>
+            <span className="mt-2 block text-xs font-bold uppercase tracking-[0.2em] text-ink/60 md:hidden">Ritiro in 15 min.</span>
             <span className="ft-mascot absolute right-3 top-[calc(50%-28px)] h-14 w-14 rounded-full border-[3px] border-ink bg-cream md:-top-16 md:right-[4%] md:h-36 md:w-36">
               <Image src="/assets/mascot/waving.webp" alt="" fill sizes="(min-width:768px) 144px, 64px" className="object-contain p-1.5 md:p-2" />
             </span>
@@ -84,8 +84,8 @@ export default function Footer() {
 
           {/* 7. legal */}
           <div className="order-7 md:order-none flex flex-col gap-1 border-t border-cream/10 pt-4 text-[11px] text-cream/50 md:mt-6 md:flex-row md:items-center md:justify-between md:gap-2 md:pt-5 md:text-xs">
-            <p>SBRANO è un brand di fantasia. Piazza Santa Giulia, Torino.</p>
-            <p>Demo concept di <a href="https://michelbranche.it" className="font-bold text-lime hover:underline">Michel Branche, michelbranche.it</a></p>
+            <p>SBRANO è un brand di fantasia. Il sito è un concept demo ambientato in Piazza Santa Giulia, Torino.</p>
+            <p>Concept demo di <a href="https://michelbranche.it" className="font-bold text-lime hover:underline">Michel Branche, michelbranche.it</a></p>
           </div>
         </div>
       </div>
