@@ -8,6 +8,8 @@
   --color-ink-3: #2a2a2a;
   --font-display: var(--font-lunar), "Arial Black", sans-serif;
   --font-body: var(--font-excon), system-ui, sans-serif;
+  --font-tanker: var(--font-tanker-src), Impact, "Arial Narrow", sans-serif;
+  --font-marker: var(--font-marker-src), "Comic Sans MS", cursive;
 }
 
 html { background: var(--color-cream); }
@@ -52,19 +54,28 @@ body {
 
 .is-off .marquee-track { animation-play-state: paused; }
 
-/* branded preloader: removed by <Preloader/> as soon as fonts + hero image are ready; CSS fallback fades it anyway */
+/* sticker-pile preloader (first visit of the session only): stickers slap down one by one, then burst out.
+   Whole sequence ~1.15s; <Preloader/> removes it, CSS fallback hides it anyway at 1.4s. Transforms + opacity only. */
 .sb-preloader {
-  position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
-  background: var(--color-lime); animation: sb-pre-out .45s ease 2.6s forwards;
-  transition: opacity .45s ease, visibility 0s linear .45s;
+  position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: var(--color-lime); cursor: pointer; animation: sb-pre-out .25s ease 1.4s forwards;
+  transition: opacity .25s ease, visibility 0s linear .25s;
 }
-.sb-preloader img { width: min(56vw, 280px); height: auto; animation: sb-pre-pop .9s cubic-bezier(.2,1.4,.4,1) both; }
-.sb-preloader-bar { width: 120px; height: 6px; border-radius: 99px; background: rgba(17,17,17,.15); overflow: hidden; }
-.sb-preloader-bar i { display: block; height: 100%; width: 40%; border-radius: inherit; background: var(--color-ink); animation: sb-pre-bar .9s ease-in-out infinite alternate; }
+html.sb-nopre .sb-preloader { display: none; }
+.sb-pile { position: relative; width: min(64vmin, 460px); aspect-ratio: 1; }
+.sb-pile img { position: absolute; width: 44%; height: auto; translate: -50% -50%;
+  animation: sb-pile-in .22s cubic-bezier(.3,1.6,.5,1) calc(var(--i) * 70ms) backwards, sb-pile-out .32s cubic-bezier(.5,0,.8,.4) .8s forwards;
+  rotate: var(--r); }
+@keyframes sb-pile-in { from { scale: 1.8; opacity: 0; } 60% { opacity: 1; } }
+@keyframes sb-pile-out { to { translate: calc(-50% + var(--x)) calc(-50% + var(--y)); scale: 1.25; rotate: calc(var(--r) * 4); opacity: 0; } }
+.sb-pre-copy { position: relative; height: 1.2em; font: 800 clamp(1.25rem, 1rem + 1vw, 1.75rem)/1.2 var(--font-marker-src), cursive; color: var(--color-ink); text-align: center; }
+.sb-pre-copy span { display: block; white-space: nowrap; animation: sb-copy-a .62s step-end forwards; }
+.sb-pre-copy span + span { position: absolute; inset: 0; opacity: 0; animation: sb-copy-b .62s step-end forwards; }
+@keyframes sb-copy-a { to { opacity: 0; } }
+@keyframes sb-copy-b { to { opacity: 1; } }
+.sb-pre-skip { position: absolute; bottom: 22px; font-size: .75rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: rgba(17,17,17,.55); }
 .sb-preloader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 @keyframes sb-pre-out { to { opacity: 0; visibility: hidden; pointer-events: none; } }
-@keyframes sb-pre-pop { from { transform: scale(.85) rotate(-4deg); opacity: 0; } }
-@keyframes sb-pre-bar { from { transform: translateX(-20%); } to { transform: translateX(170%); } }
 html.no-js .sb-preloader { display: none; }
 
 .orbit-ring { animation: spin 60s linear infinite; }
@@ -111,3 +122,60 @@ label:active .sb-knob { scale: 1.3 .85; }
 .sb-side-r { animation: sb-side-r .6s .08s cubic-bezier(.3,1.5,.5,1) backwards; rotate: 7deg; transition: rotate .3s cubic-bezier(.3,1.6,.5,1); }
 @media (hover: hover) { .sb-side-l:hover { rotate: -12deg; } .sb-side-r:hover { rotate: 13deg; } }
 @media (prefers-reduced-motion: reduce) { .sb-side-l, .sb-side-r { animation: none; } }
+
+/* ---------- VICIO-style character pass ---------- */
+.font-tanker { font-family: var(--font-tanker-src), Impact, "Arial Narrow", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
+.font-marker { font-family: var(--font-marker-src), "Comic Sans MS", cursive; font-weight: 800; letter-spacing: 0; }
+
+/* marker ellipse CTA */
+.sb-ell { perspective: 400px; }
+.sb-ell svg path { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+.sb-ell-t { display: inline-block; transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
+@media (hover: hover) {
+  .sb-ell:hover svg path { animation: sb-ell-draw .42s cubic-bezier(.5,0,.3,1); }
+  .sb-ell:hover .sb-ell-t { transform: rotateX(18deg) translateY(-1px) scale(1.06); }
+}
+@keyframes sb-ell-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* day bar: rotating burger name, all names stacked in one grid cell (width = longest, no layout shift) */
+.sb-day-rot { display: inline-grid; }
+.sb-day-rot > span { grid-area: 1 / 1; transition: transform .45s cubic-bezier(.3,1.4,.5,1), opacity .3s ease; }
+.sb-day-rot > span[data-on="0"] { opacity: 0; transform: translateY(70%) rotate(4deg); }
+.sb-day-rot > span[data-on="-1"] { opacity: 0; transform: translateY(-70%) rotate(-4deg); }
+
+/* draggable stickers */
+[data-drag] { touch-action: auto; }
+[data-drag].is-draggable { cursor: grab; }
+[data-drag].is-grab { cursor: grabbing; }
+[data-drag] .sb-stk { transition: transform .3s cubic-bezier(.3,1.6,.5,1), filter .3s ease; }
+@media (hover: hover) { [data-drag]:hover .sb-stk { transform: rotate(var(--r, 0deg)) scale(1.05); } }
+[data-drag].is-grab .sb-stk { transform: rotate(var(--r, 0deg)) scale(1.1); filter: drop-shadow(6px 10px 0 rgba(17,17,17,.22)); }
+.sb-stk { transform: rotate(var(--r, 0deg)); }
+
+/* text sticker (HTML, so the copy stays real text) */
+@layer components { .sb-tag { display: inline-flex; align-items: center; gap: .4em; border: 3px solid #111; border-radius: 14px; padding: .5em .8em .42em; box-shadow: 0 0 0 4px #fff, 5px 6px 0 4px rgba(17,17,17,.2); line-height: .95; white-space: nowrap; } }
+
+/* stamp sticker (filiera) */
+@layer components { .sb-stamp { display: inline-block; border: 3px solid currentColor; border-radius: 10px; padding: .45em .7em .35em; box-shadow: inset 0 0 0 2px var(--stamp-bg, #f6ebd7), inset 0 0 0 4px currentColor; } }
+
+/* builder sharpie note */
+@keyframes sb-note-in { from { opacity: 0; transform: translateY(6px) rotate(var(--r, -3deg)) scale(.9); } }
+.sb-note { transform: rotate(var(--r, -3deg)); animation: sb-note-in .35s cubic-bezier(.3,1.6,.5,1) backwards; }
+
+/* menu best-seller mascot sticker */
+.sb-best { transition: transform .35s cubic-bezier(.3,1.6,.5,1); transform: rotate(-10deg); }
+@media (hover: hover) { .sb-best:hover { transform: rotate(4deg) scale(1.12); } }
+
+/* footer: tanker links with a marker underline that draws in */
+.sb-tline { position: relative; display: inline-block; }
+.sb-tline::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: .02em; height: .14em; border-radius: 99px; background: var(--color-lime); scale: 0 1; transform-origin: 0 50%; transition: scale .35s cubic-bezier(.3,.8,.3,1); }
+@media (hover: hover) { .sb-tline:hover::after { scale: 1 1; } }
+
+@media (prefers-reduced-motion: reduce) { .sb-ell:hover svg path { animation: none; } .sb-day-rot > span, .sb-note, .sb-best, .sb-tline::after { transition: none; animation: none; } }
+
+/* hero claim: ~22-24vh tall letters, capped by the container width so "PREZZI GIUSTI." always fits one line from md up */
+.h-claim { line-height: .84; letter-spacing: -0.015em; font-size: min(25vw, 22svh); }
+@media (min-width: 768px) { .h-claim { font-size: max(64px, min(22svh, calc((min(100vw, 1600px) - 80px) / 5.8))); } }
+@media (min-width: 1024px) { .h-claim { font-size: max(72px, min(24svh, calc((min(100vw, 1600px) - 128px) / 5.8))); } }
+@keyframes sb-cookie-in { from { transform: translateY(24px) rotate(-2deg); opacity: 0; } }
+.sb-cookie { animation: sb-cookie-in .45s cubic-bezier(.3,1.5,.5,1) backwards; }

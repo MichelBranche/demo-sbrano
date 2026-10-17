@@ -56,7 +56,8 @@ export default function CartDrawer() {
                 <div className="relative h-40 w-40 rounded-full bg-lime">
                   <Image src="/assets/mascot/waving.webp" alt="" fill sizes="160px" className="object-contain p-4" />
                 </div>
-                <p className="font-display text-3xl uppercase">Il carrello è vuoto.</p>
+                <p className="max-w-[16ch] text-center font-display text-3xl uppercase leading-[0.95]">Carrello vuoto, pancia vuota.</p>
+                <p className="-mt-2 rotate-[-3deg] font-marker text-2xl">Rimediamo?</p>
                 <a href="#menu" onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Vai al menu</a>
               </div>
             ) : (

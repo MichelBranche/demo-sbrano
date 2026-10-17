@@ -59,8 +59,10 @@ const STEPS = [
   { t: "Aggiungi il resto", d: "Formaggi, verdure, salse, extra." },
   { t: "Chiudi il tuo burger", d: "Aggiungi il pane superiore e completa il tuo mostro." },
 ];
-/** handwritten hint on the stage, per step (Lunar: no apostrophes) */
-const HINTS = ["Scegli il primo ingrediente", "Ora scegli la carne", "Aggiungi il resto", "Chiudi il tuo burger"];
+/** Sharpie notes: next to the active step on desktop, on the stage on mobile */
+const NOTES = ["Parti dal pane, campione.", "Qui si decide chi sei.", "Ora sporcalo per bene.", "Chiudilo e sbranalo."];
+/** short stage hint on desktop (the step note already sits next to the steps there) */
+const HINTS = ["Scegli il pane", "Ora la carne", "Aggiungi il resto", "Chiudi il burger"];
 const PRELOAD = [...INGREDIENTS.map((i) => i.img), ...BREADS.flatMap((b) => [b.bottom.img, b.top.img]),
   ...FRIES.map((f) => f.img), ...DRINKS.map((d) => d.img), ...["waving", "eating-burger", "running", "crown-thumbs-up"].map((m) => `/assets/mascot/${m}.webp`)];
 
@@ -122,6 +124,29 @@ export default function Builder() {
     return { img: "/assets/mascot/eating-burger.webp", say: fill.length ? "Continua a comporre il tuo burger." : "Scegli proteine e ingredienti." };
   }, [fill, spicy, closed]);
   const hint = closed ? "Pronto da ordinare" : full ? "Stack pieno" : active === 0 && fill.length ? "Scegli il pane" : HINTS[active];
+  const note = closed ? "Pronto. Sbranalo." : full ? "La piastra è piena." : NOTES[active];
+
+  // milestone stickers slapped on the summary card (20 layers, the 40 limit, burger closed)
+  const [slap, setSlap] = useState<{ k: number; t: string; r: number } | null>(null);
+  const prevLen = useRef(0);
+  const prevClosed = useRef(false);
+  useEffect(() => {
+    const n = fill.length, p = prevLen.current, pc = prevClosed.current;
+    prevLen.current = n; prevClosed.current = closed;
+    const put = (t: string) => setSlap({ k: Date.now(), t, r: Math.round(Math.random() * 16 - 8) });
+    if (!n) setSlap(null);
+    else if (closed && !pc) put("Mostro completo. Prezzo giusto, come promesso.");
+    else if (!closed && pc) setSlap(null);
+    else if (n >= MAX && p < MAX) put("Basta. La piastra si rifiuta.");
+    else if (n >= 20 && p < 20) put("Ok, ora fai paura.");
+    else if (n < 20 && p >= 20 && !closed) setSlap(null);
+  }, [fill.length, closed]);
+  useEffect(() => {
+    if (!slap || reduced()) return;
+    gsap.fromTo(root.current!.querySelectorAll(".b-slap"), { scale: 1.6, opacity: 0, rotate: slap.r * 2 }, { scale: 1, opacity: 1, rotate: slap.r, duration: 0.5, ease: "elastic.out(1, 0.5)", overwrite: true });
+    // mascot reacts: a hop and a head tilt, like the glasses just flew up
+    if (mascotRef.current) gsap.fromTo(mascotRef.current, { y: 0, rotate: 0 }, { y: -18, rotate: -10, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 3, overwrite: true });
+  }, [slap]);
 
   // stack layout (shared with the cart snapshot renderer): bottom bun is always on the plate
   const stackIngs = [bread.bottom, ...fill];
@@ -380,6 +405,7 @@ export default function Builder() {
                     <span className="hidden text-sm text-ink/60 lg:block">{s.d}</span>
                   </span>
                 </button>
+                {on && <span key={note} aria-hidden className="sb-note pointer-events-none absolute -bottom-3.5 right-4 z-10 hidden rounded-md bg-cream px-2 pt-1 font-marker text-[15px] leading-none text-ink shadow-[0_0_0_2px_#111] lg:block xl:text-[17px]" style={{ ["--r" as string]: i % 2 ? "2deg" : "-3deg" } as React.CSSProperties}>{note}</span>}
               </li>
             );
           })}
@@ -446,10 +472,11 @@ export default function Builder() {
               <span className="relative h-7 w-7 rounded-full bg-lime md:h-8 md:w-8"><Image src={bread.top.img} alt="" fill sizes="32px" className="object-contain p-0.5" /></span>
               {closed ? "Chiuso" : "Completa con il pane sopra."}
             </button>
+            {slap && <span key={slap.k} role="status" className="b-slap sb-tag pointer-events-none absolute left-0 top-[34%] z-[70] max-w-[46%] whitespace-normal bg-lime font-marker text-[15px] text-ink md:text-[18px] lg:hidden" style={{ transform: `rotate(${slap.r}deg)` }}>{slap.t}</span>}
             {/* handwritten hint + waving mascot */}
             <div className="pointer-events-none absolute right-0 top-0 z-[70] flex w-[34%] max-w-[230px] flex-col items-end text-right">
               <div className="flex items-start gap-1">
-                <p className="mt-1 rotate-[-5deg] font-display text-[12px] uppercase leading-[1.05] md:text-[17px] lg:text-[clamp(14px,1.25vw,20px)]" aria-live="polite"><span key={hint} className="sb-pop-in inline-block">{hint}</span></p>
+                <p className="mt-1 rotate-[-5deg] font-marker text-[14px] leading-[1.05] md:text-[19px] lg:text-[clamp(17px,1.4vw,23px)]" aria-live="polite"><span key={note} className="sb-pop-in inline-block lg:hidden">{note}</span><span key={hint} className="sb-pop-in hidden lg:inline-block">{hint}</span></p>
                 <div className="relative h-12 w-12 shrink-0 md:h-16 md:w-16"><Image src="/assets/mascot/waving.webp" alt="" fill sizes="64px" className="object-contain" /></div>
               </div>
               <svg aria-hidden viewBox="0 0 120 70" className="mr-[30%] mt-0.5 h-auto w-[52%] text-ink">
@@ -492,7 +519,8 @@ export default function Builder() {
         </div>
 
         {/* 5. summary: sticky compact bar on mobile, full card on desktop */}
-        <div className="sticky bottom-3 z-[80] lg:static lg:col-start-1 lg:row-start-3">
+        <div className="sticky bottom-3 z-[80] lg:relative lg:col-start-1 lg:row-start-3">
+          {slap && <span key={slap.k} aria-hidden className="b-slap sb-tag pointer-events-none absolute -right-7 top-[30%] z-10 hidden max-w-[260px] whitespace-normal bg-lime font-marker text-[clamp(17px,1.35vw,22px)] text-ink lg:inline-flex" style={{ transform: `rotate(${slap.r}deg)` }}>{slap.t}</span>}
           <div className="max-h-[78svh] overflow-y-auto rounded-[28px] bg-ink p-3 text-cream shadow-[0_18px_40px_-12px_rgba(0,0,0,.45)] md:p-5 lg:max-h-none lg:overflow-visible lg:p-6 lg:shadow-none">
             {/* mobile header */}
             <div className="flex items-center gap-2 lg:hidden">
@@ -558,7 +586,7 @@ export default function Builder() {
                 </button>
                 <button onClick={reset} className="flex h-12 items-center gap-2 rounded-full border-2 border-cream/30 px-5 text-xs font-bold uppercase tracking-wider transition-colors hover:border-lime hover:text-lime">
                   <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 3.5v3.2h3.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Ricomincia
+                  Butta tutto e riparti
                 </button>
               </div>
               <p className="mt-3 hidden min-h-5 text-sm text-lime/80 lg:block" aria-live="polite">{toast}</p>

@@ -59,6 +59,12 @@ export default function Menu() {
     tween.current = gsap.to(state.current, { rot: cur + delta, duration: reduced() ? 0 : dur, ease: "expo.out", onUpdate: render });
   }, [render]);
 
+  // day bar / other links can ask the carousel to bring a burger to the front
+  useEffect(() => {
+    const on = (e: Event) => { const i = MENU.findIndex((m) => m.id === (e as CustomEvent<string>).detail); if (i >= 0) setTimeout(() => goTo(i, 1.4), 450); };
+    addEventListener("sbrano:menu-goto", on); return () => removeEventListener("sbrano:menu-goto", on);
+  }, [goTo]);
+
   useEffect(() => { measure(); addEventListener("resize", measure); return () => removeEventListener("resize", measure); }, [measure]);
 
   // drag with inertia
@@ -149,7 +155,13 @@ export default function Menu() {
             return (
               <div key={it.id} ref={(el) => { cards.current[i] = el; }} className="absolute left-0 top-0 will-change-transform" style={{ backfaceVisibility: "hidden", padding: "112px 48px 16px", marginTop: -48 }}>
                 {/* padding = headroom: the 3D-transformed wrapper clips its painted bounds, so the popped-out burger and the scaled active card must stay inside it */}
-                <article className={`relative w-[230px] rounded-[28px] p-3 transition-[transform,background-color,filter] duration-500 ease-[cubic-bezier(.2,1.4,.4,1)] md:w-[290px] ${isActive ? "scale-[1.08] bg-ink text-cream shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]" : "bg-white text-ink"} ${dim ? "grayscale opacity-40" : ""}`}>
+                <article data-menu-card={it.id} className={`relative w-[230px] rounded-[28px] p-3 transition-[transform,background-color,filter] duration-500 ease-[cubic-bezier(.2,1.4,.4,1)] md:w-[290px] ${isActive ? "scale-[1.08] bg-ink text-cream shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]" : "bg-white text-ink"} ${dim ? "grayscale opacity-40" : ""}`}>
+                  {it.tag === "Il più scelto" && (
+                    <span className="sb-best absolute -left-7 -top-10 z-20 block w-[86px] md:-left-9 md:w-[104px]" data-best>
+                      <Image src="/assets/stickers/mascot-crown.webp" alt="" width={300} height={344} sizes="104px" draggable={false} className="h-auto w-full" />
+                      <span className="absolute -bottom-3 left-[58%] whitespace-nowrap rounded-md border-2 border-ink bg-lime px-1.5 pb-0.5 pt-1 font-marker text-[13px] leading-none text-ink shadow-[0_0_0_3px_#fff] md:text-[15px]">Il più scelto ↘</span>
+                    </span>
+                  )}
                   <div className={`relative h-[200px] rounded-[20px] md:h-[250px] ${it.cutout ? (isActive ? "bg-lime" : "bg-cream") : "overflow-hidden"}`}>
                     <div ref={(el) => { imgs.current[i] = el; }}
                       className={`absolute transition-transform duration-700 ease-[cubic-bezier(.2,1.6,.4,1)] ${it.cutout ? "-inset-2" : "inset-0"} ${isActive && it.cutout ? "-translate-y-10 scale-[1.22] md:-translate-y-14" : ""} ${isActive && !it.cutout ? "scale-110" : ""}`}>
@@ -157,8 +169,8 @@ export default function Menu() {
                     </div>
                   </div>
                   <div className="px-2 pb-1 pt-4">
-                    <span data-menu-tag className={`pill-label mb-2 h-6 px-3 text-[10px] ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.tag}</span>
-                    <h3 className="font-display text-[28px] uppercase leading-none md:text-[34px]">{it.name}</h3>
+                    {it.tag !== "Il più scelto" && <span data-menu-tag className={`pill-label mb-2 h-6 px-3 text-[10px] ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.tag}</span>}
+                    <h3 className={`font-tanker uppercase leading-[0.9] text-[42px] md:text-[54px] ${isActive ? "text-lime" : ""}`}>{it.name}</h3>
                     <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
                     {it.id === "bibita" && (
                       <div className="mt-3 flex gap-1 md:gap-1.5" role="radiogroup" aria-label="Scegli il gusto" onPointerDown={(e) => e.stopPropagation()}>

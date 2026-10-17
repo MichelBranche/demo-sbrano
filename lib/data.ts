@@ -6,12 +6,12 @@ export type MenuItem = {
 };
 
 export const MENU: MenuItem[] = [
-  { id: "sbranatore", name: "Sbranatore", price: 12.5, img: "/assets/menu/sbranatore.webp", cutout: true, cats: ["manzo"], tag: "Il più scelto", desc: "Doppio smash, cheddar fuso, bacon, cetrioli e cipolla rossa.", kcal: 980 },
-  { id: "mordi-e-fuggi", name: "Mordi e Fuggi", price: 11.9, img: "/assets/menu/mordi-e-fuggi.webp", cutout: true, cats: ["manzo", "piccante"], tag: "Piccante", desc: "Smash burger con bacon, jalapeño e salsa piccante.", kcal: 890 },
-  { id: "pollo-ruggente", name: "Pollo Ruggente", price: 10.9, img: "/assets/menu/pollo-ruggente.webp", cutout: true, cats: ["pollo"], tag: "Croccante", desc: "Pollo fritto, cheddar, bacon e cetrioli.", kcal: 860 },
+  { id: "sbranatore", name: "Sbranatore", price: 12.5, img: "/assets/menu/sbranatore.webp", cutout: true, cats: ["manzo"], tag: "Il più scelto", desc: "Doppio smash, cheddar che cola, bacon. Per chi ha fame brutta davvero.", kcal: 980 },
+  { id: "mordi-e-fuggi", name: "Mordi e Fuggi", price: 11.9, img: "/assets/menu/mordi-e-fuggi.webp", cutout: true, cats: ["manzo", "piccante"], tag: "Piccante", desc: "Piccante. Mordi, piangi, ritorna.", kcal: 890 },
+  { id: "pollo-ruggente", name: "Pollo Ruggente", price: 10.9, img: "/assets/menu/pollo-ruggente.webp", cutout: true, cats: ["pollo"], tag: "Croccante", desc: "Croccante come un beat old school.", kcal: 860 },
   { id: "pollo-teriyaki", name: "Pollo Teriyaki", price: 11.5, img: "/assets/menu/pollo-teriyaki-extra.webp", cutout: true, cats: ["pollo"], tag: "Novità", desc: "Pollo con salsa teriyaki, bacon, pomodoro e cetrioli.", kcal: 910 },
   { id: "patatine", name: "Patatine Sbrano", price: 4.5, img: "/assets/packaging/fries.webp", cutout: true, cats: ["contorni"], tag: "Tagliate a mano", desc: "Patatine con sale grosso.", kcal: 420 },
-  { id: "bibita", name: "Bibita", price: 3.5, img: "/assets/drinks/sbrano.webp", cutout: true, cats: ["bibite"], tag: "Bibite", desc: "Pepsi, Fanta o Sprite alla spina. Refill disponibile.", kcal: 180 },
+  { id: "bibita", name: "Bibita", price: 3.5, img: "/assets/drinks/sbrano.webp", cutout: true, cats: ["bibite"], tag: "Bibite", desc: "Refill libero. Sì, puoi tornare al banco.", kcal: 180 },
 ];
 
 export const FILTERS: { id: Cat; label: string }[] = [

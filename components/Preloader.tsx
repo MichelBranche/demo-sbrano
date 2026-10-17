@@ -3,17 +3,20 @@ import { useEffect } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 
 /**
- * Removes the server-rendered branded preloader once the critical assets are ready
- * (fonts + above-the-fold priority images), capped so it never blocks for long.
- * A pure-CSS fallback fades it out anyway if JS is slow.
+ * Sticker-pile intro (first visit of the session only, never with reduced motion: the inline head
+ * script adds html.sb-nopre). It lasts ~1.15s max, is skippable (tap, click, Esc/Enter/Space), and
+ * the page reveal never waits longer than that. On later visits the site is revealed as soon as
+ * fonts are in (short cap), with no overlay at all.
  */
 export default function Preloader() {
   useEffect(() => {
     const el = document.getElementById("sb-preloader");
-    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[fetchpriority="high"]'));
-    const imgReady = Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise<void>((r) => { im.addEventListener("load", () => r(), { once: true }); im.addEventListener("error", () => r(), { once: true }); }))));
+    const skip = document.documentElement.classList.contains("sb-nopre");
     const fontsReady = document.fonts?.ready ?? Promise.resolve();
-    const cap = new Promise<void>((r) => setTimeout(r, 1500));
+    // timed from navigation start (the CSS sequence starts at first paint), never more than ~1.2s
+    const t0 = performance.now();
+    const minShow = new Promise<void>((r) => setTimeout(r, skip ? 0 : Math.max(0, 1120 - t0)));
+    const cap = new Promise<void>((r) => setTimeout(r, skip ? 350 : Math.max(0, 1220 - t0)));
     let done = false;
     const finish = () => {
       if (done) return; done = true;
@@ -24,10 +27,13 @@ export default function Preloader() {
         el?.classList.add("done");
         window.__sbReady = true;
         window.dispatchEvent(new Event("sbrano:ready"));
-        setTimeout(() => el?.remove(), 600);
+        setTimeout(() => el?.remove(), 300);
       });
     };
-    Promise.race([Promise.all([imgReady, fontsReady]), cap]).then(finish);
+    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", " "].includes(e.key)) finish(); };
+    if (el && !skip) { el.addEventListener("pointerdown", finish, { once: true }); addEventListener("keydown", onKey); }
+    Promise.race([Promise.all([fontsReady, minShow]), cap]).then(finish);
+    return () => removeEventListener("keydown", onKey);
   }, []);
   return null;
 }

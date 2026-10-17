@@ -52,7 +52,7 @@ export default function Spotlight() {
   const addIt = () => flyToCart(img.current, "/assets/promo/burger-mese.webp", () => add({ id: "diavolo", name: "Il Diavolo di Vanchiglia", price: 12.9, img: "/assets/promo/burger-mese.webp", note: "Burger del mese" }));
 
   return (
-    <section ref={root} className="relative mt-10" aria-labelledby="sp-title">
+    <section ref={root} id="proposta" className="relative mt-10 scroll-mt-20" aria-labelledby="sp-title">
       <Wave />
       <div className="-my-px flex overflow-hidden items-stretch bg-ink py-10 md:py-16">
         <SidePanel side="l" text="Edizione del mese" />
@@ -61,7 +61,8 @@ export default function Spotlight() {
             <div ref={img} className="sp-photo relative aspect-[4/3] overflow-hidden rounded-[24px] bg-ink lg:aspect-auto lg:min-h-[520px]">
               <Image src={SHOT.src} alt={SHOT.alt} fill loading="eager" placeholder="blur" blurDataURL={BLUR[SHOT.src]}
                 sizes="(min-width:1280px) 46vw, (min-width:1024px) 50vw, 100vw" className="object-cover object-[70%_50%]" />
-              <span className="pill-label absolute right-4 top-4 z-10 bg-lime text-ink">Disponibile a ottobre.</span>
+              <span aria-hidden className="pointer-events-none absolute left-4 top-3 z-10 hidden font-tanker text-[clamp(84px,7.4vw,140px)] uppercase leading-[0.8] text-cream mix-blend-difference lg:block">Diavolo</span>
+              <span className="sb-tag absolute bottom-5 right-4 z-10 rotate-[-4deg] bg-lime font-marker text-[clamp(15px,1.2vw,20px)] text-ink">Solo a ottobre, poi sparisce.</span>
             </div>
             <div className="flex flex-col justify-center text-cream">
               <Badge icon="fire" tilt={-4} dark className="w-fit">La proposta del mese</Badge>
@@ -83,7 +84,7 @@ export default function Spotlight() {
                       </button>
                       <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${on ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                         <div className="min-h-0 overflow-hidden">
-                          <p className="px-5 pb-5 text-[15px] font-medium leading-snug">{a.chips.join(", ")}.</p>
+                          <p className="px-5 pb-5 text-[15px] font-medium leading-snug">{a.chips.join(", ")}.{a.t === "Allergeni" && <span className="mt-1.5 block font-marker text-[17px]">Leggili, così il 112 resta tranquillo.</span>}</p>
                         </div>
                       </div>
                     </div>

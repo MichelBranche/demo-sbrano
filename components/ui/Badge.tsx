@@ -19,22 +19,24 @@ const Fire = () => (
 );
 
 /**
- * Sticker-style section eyebrow: tilted lime badge, black outline, hard offset shadow,
- * small icon or mascot head. Copy should avoid apostrophes and em dashes (Lunar Blob).
+ * Section eyebrow as a plain Tanker text line (no pill): small icon or mascot head, condensed
+ * uppercase label, short marker swoosh underneath. Tanker carries apostrophes fine.
  */
 export default function Badge({ children, icon = "bolt", tilt = -3, dark = false, className = "" }: {
   children: React.ReactNode; icon?: BadgeIcon; tilt?: number; dark?: boolean; className?: string;
 }) {
   return (
     <span className={`sb-badge inline-block ${className}`}>
-      <span
-        className={`inline-flex items-center gap-2 rounded-full border-[2.5px] border-ink bg-lime py-1 pl-1 pr-4 font-display text-[15px] uppercase leading-none text-ink md:text-[17px] ${dark ? "shadow-[3px_3px_0_#F6EBD7]" : "shadow-[3px_3px_0_#111]"}`}
-        style={{ transform: `rotate(${tilt}deg)` }}>
-        <span className={`relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full ${icon === "mascot" ? "border-2 border-ink bg-cream" : "bg-ink text-lime"}`}>
-          {icon === "mascot" ? <Image src="/assets/mascot/eating-burger-filled.webp" alt="" width={40} height={27} className="h-auto w-[30px] max-w-none" /> :
+      <span className={`relative inline-flex items-center gap-2 font-tanker text-[clamp(1.2rem,1rem+0.6vw,1.6rem)] uppercase leading-none ${dark ? "text-cream" : "text-ink"}`}
+        style={{ transform: `rotate(${tilt * 0.4}deg)` }}>
+        <span className={`relative flex h-7 w-7 shrink-0 items-center justify-center ${icon === "mascot" ? "" : dark ? "text-lime" : "text-ink"}`}>
+          {icon === "mascot" ? <Image src="/assets/mascot/eating-burger-filled.webp" alt="" width={40} height={27} className={`h-auto w-[30px] max-w-none ${dark ? "invert" : ""}`} /> :
             icon === "crown" ? <Crown /> : icon === "pin" ? <Pin /> : icon === "star" ? <Star /> : icon === "fire" ? <Fire /> : <Bolt />}
         </span>
-        <span className="pt-[3px] sm:whitespace-nowrap">{children}</span>
+        <span className="pt-[0.1em] sm:whitespace-nowrap">{children}</span>
+        <svg aria-hidden viewBox="0 0 120 10" preserveAspectRatio="none" className={`absolute -bottom-2 left-9 h-[7px] w-[min(70%,120px)] ${dark ? "text-lime" : "text-ink"}`}>
+          <path d="M2 7 C 30 2, 60 9, 118 3" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+        </svg>
       </span>
     </span>
   );
