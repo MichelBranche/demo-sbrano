@@ -164,8 +164,24 @@ export default function Menu() {
                   )}
                   <div className={`relative h-[200px] rounded-[20px] md:h-[250px] ${it.cutout ? (isActive ? "bg-lime" : "bg-cream") : "overflow-hidden"}`}>
                     <div ref={(el) => { imgs.current[i] = el; }}
-                      className={`absolute transition-transform duration-700 ease-[cubic-bezier(.2,1.6,.4,1)] ${it.cutout ? "-inset-2" : "inset-0"} ${isActive && it.cutout ? "-translate-y-10 scale-[1.22] md:-translate-y-14" : ""} ${isActive && !it.cutout ? "scale-110" : ""}`}>
-                      <Image src={it.img} alt={it.name} fill sizes="320px" draggable={false} className={`${it.cutout ? "object-contain p-3 drop-shadow-[0_20px_20px_rgba(0,0,0,.3)]" : "rounded-[20px] object-cover"}`} />
+                      className={`absolute transition-transform duration-700 ease-[cubic-bezier(.2,1.6,.4,1)] ${it.cutout ? "-inset-2" : "inset-0"} ${isActive && it.cutout ? (it.id === "bibita" ? "-translate-y-4 scale-[1.06] md:-translate-y-6" : "-translate-y-10 scale-[1.22] md:-translate-y-14") : ""} ${isActive && !it.cutout ? "scale-110" : ""}`}>
+                      {it.id === "bibita" ? (
+                        /* all three cups together, large: tap one to pick the flavour, the picked one lifts to the front */
+                        <div className="absolute inset-0" role="radiogroup" aria-label="Scegli il gusto" onPointerDown={(e) => e.stopPropagation()}>
+                          {DRINKS.map((d, k) => {
+                            const on = flavor === d.id;
+                            return (
+                              <button key={d.id} type="button" role="radio" aria-checked={on} aria-label={d.name} data-flavor={d.id} onClick={() => setFlavor(d.id)}
+                                className={`absolute bottom-[4%] top-[6%] w-[44%] transition-[transform,opacity,filter] duration-500 ease-[cubic-bezier(.3,1.6,.5,1)] ${on ? "z-20 -translate-y-[6%] scale-110 opacity-100" : "z-10 scale-[.86] opacity-80 hover:opacity-100 hover:-translate-y-[3%]"}`}
+                                style={{ left: `${[2, 28, 54][k]}%` }}>
+                                <Image src={d.img} alt="" fill sizes="160px" draggable={false} className="object-contain object-bottom drop-shadow-[0_16px_14px_rgba(0,0,0,.3)]" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <Image src={it.img} alt={it.name} fill sizes="320px" draggable={false} className={`${it.cutout ? "object-contain p-3 drop-shadow-[0_20px_20px_rgba(0,0,0,.3)]" : "rounded-[20px] object-cover"}`} />
+                      )}
                     </div>
                   </div>
                   <div className="px-2 pb-1 pt-4">
@@ -179,20 +195,12 @@ export default function Menu() {
                     <h3 className={`font-tanker uppercase leading-[0.9] text-[42px] md:text-[54px] ${isActive ? "text-lime" : ""}`}>{it.name}</h3>
                     <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
                     {it.id === "bibita" && (
-                      <div className="mt-3 flex gap-1 md:gap-1.5" role="radiogroup" aria-label="Scegli il gusto" onPointerDown={(e) => e.stopPropagation()}>
-                        {DRINKS.map((d) => (
-                          <button key={d.id} type="button" role="radio" aria-checked={flavor === d.id} data-flavor={d.id} onClick={() => setFlavor(d.id)}
-                            className={`flex h-8 items-center gap-1 rounded-full border-2 px-2.5 text-[10px] font-bold uppercase md:pl-0.5 md:text-[11px] transition-colors ${flavor === d.id ? (isActive ? "border-lime bg-lime text-ink" : "border-ink bg-ink text-lime") : (isActive ? "border-cream/25 text-cream" : "border-ink/20 text-ink")}`}>
-                            <span className="relative hidden h-6 w-6 rounded-full bg-cream md:block"><Image src={d.img} alt="" fill sizes="24px" className="object-contain p-0.5" /></span>
-                            {d.name}
-                          </button>
-                        ))}
-                      </div>
+                      <p className={`mt-2 text-xs font-bold uppercase tracking-[0.18em] ${isActive ? "text-lime" : "text-ink/60"}`} aria-live="polite">Gusto: {DRINKS.find((d) => d.id === flavor)?.name}. Tocca un bicchiere.</p>
                     )}
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full px-3 py-1.5 text-sm font-bold tabular-nums ${isActive ? "bg-lime text-ink" : "bg-cream"}`}>{euro(it.price)}</span>
-                        {it.kcal ? <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span> : it.special && <span className={`hidden text-xs font-bold uppercase tracking-wider md:inline ${isActive ? "text-lime" : "text-ink/60"}`}>Edizione limitata</span>}
+                        {it.kcal ? <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span> : it.special && <span className={`hidden whitespace-nowrap text-[11px] font-bold uppercase tracking-wider md:inline ${isActive ? "text-lime" : "text-ink/60"}`}>Edizione limitata</span>}
                       </div>
                       <button onClick={() => addItem(i)} aria-label={`Aggiungi ${it.name} al carrello`}
                         className={`flex h-12 w-12 items-center justify-center rounded-full text-3xl leading-none transition-transform duration-300 hover:rotate-90 active:scale-90 ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>+</button>

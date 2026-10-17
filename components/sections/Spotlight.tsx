@@ -99,10 +99,23 @@ export default function Spotlight() {
             <div ref={img} className="sp-photo relative aspect-[16/9] overflow-hidden rounded-[24px] bg-ink">
               {SPECIALS.map((x, i) => (
                 <div key={x.id} aria-hidden={sel !== i} data-sp-photo={x.id} className={`absolute inset-0 transition-opacity duration-500 ${sel === i ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-                  {/* both shots are 16:9, shown whole: the poster carries its own lettering */}
-                  <Image src={x.photo} alt={x.alt} fill loading={i === 0 ? "eager" : "lazy"} placeholder={BLUR[x.photo] ? "blur" : "empty"} blurDataURL={BLUR[x.photo]}
-                    sizes="(min-width:1280px) 1100px, 100vw" className="object-cover" />
-                  {x.overlay && <span aria-hidden className="pointer-events-none absolute left-4 top-3 z-10 hidden font-tanker text-[clamp(84px,7.4vw,140px)] uppercase leading-[0.8] text-cream mix-blend-difference lg:block">{x.overlay}</span>}
+                  {x.cutout ? (
+                    <>
+                      {/* composed cutout on the brand lime, same treatment as the menu burgers */}
+                      <div aria-hidden className="grain absolute inset-0 bg-lime" />
+                      <Image src={x.photo} alt={x.alt} fill sizes="(min-width:1280px) 900px, 100vw" className="object-contain object-[50%_70%] p-[4%] pt-[9%] drop-shadow-[0_30px_30px_rgba(0,0,0,.35)]" />
+                      {x.poster && (
+                        <a href={x.poster} target="_blank" rel="noopener" aria-label="Apri il poster di TonyPTony"
+                          className="sb-lift-tilt absolute bottom-[6%] right-[4%] z-10 hidden w-[24%] rotate-[4deg] overflow-hidden rounded-xl border-[5px] border-white shadow-[0_18px_30px_-10px_rgba(0,0,0,.5)] md:block">
+                          <Image src={x.poster} alt="Poster di TonyPTony" width={1672} height={941} sizes="280px" className="block h-auto w-full" />
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <Image src={x.photo} alt={x.alt} fill loading={i === 0 ? "eager" : "lazy"} placeholder={BLUR[x.photo] ? "blur" : "empty"} blurDataURL={BLUR[x.photo]}
+                      sizes="(min-width:1280px) 1100px, 100vw" className="object-cover" />
+                  )}
+                  {x.overlay && <span aria-hidden className={`pointer-events-none absolute left-4 top-3 hidden font-tanker text-[clamp(84px,7.4vw,140px)] uppercase leading-[0.8] lg:block ${x.cutout ? "z-0 text-ink" : "z-10 text-cream mix-blend-difference"}`}>{x.overlay}</span>}
                   {x.sticker && <span className="sb-tag absolute bottom-5 right-4 z-10 rotate-[-4deg] bg-lime font-marker text-[clamp(15px,1.2vw,20px)] text-ink">{x.sticker}</span>}
                 </div>
               ))}

@@ -11,7 +11,7 @@ export type MenuItem = {
 
 export const MENU: MenuItem[] = [
   { id: "sbranatore", name: "Sbranatore", price: 12.5, img: "/assets/menu/sbranatore.webp", cutout: true, cats: ["manzo"], tag: "Il più scelto", desc: "Doppio smash, cheddar che cola, bacon. Per chi ha fame brutta davvero.", kcal: 980 },
-  { id: "tonyptony", name: "TonyPTony", price: 15.9, img: "/assets/menu/tonyptony.webp", cutout: false, cats: ["manzo"], tag: "Special edition", tags: ["Novità"], special: true, desc: "Il Fuorilegge. Il panino che non chiede permesso.", },
+  { id: "tonyptony", name: "TonyPTony", price: 15.9, img: "/assets/menu/tonyptony-burger.webp", cutout: true, cats: ["manzo"], tag: "Special edition", tags: ["Novità"], special: true, desc: "Il Fuorilegge. Il panino che non chiede permesso.", },
   { id: "mordi-e-fuggi", name: "Mordi e Fuggi", price: 11.9, img: "/assets/menu/mordi-e-fuggi.webp", cutout: true, cats: ["manzo", "piccante"], tag: "Piccante", desc: "Piccante. Mordi, piangi, ritorna.", kcal: 890 },
   { id: "pollo-ruggente", name: "Pollo Ruggente", price: 10.9, img: "/assets/menu/pollo-ruggente.webp", cutout: true, cats: ["pollo"], tag: "Croccante", desc: "Croccante come un beat old school.", kcal: 860 },
   { id: "pollo-teriyaki", name: "Pollo Teriyaki", price: 11.5, img: "/assets/menu/pollo-teriyaki-extra.webp", cutout: true, cats: ["pollo"], tag: "Novità", desc: "Pollo con salsa teriyaki, bacon, pomodoro e cetrioli.", kcal: 910 },
@@ -21,7 +21,7 @@ export const MENU: MenuItem[] = [
 
 /** the two specials sharing the "burger del mese" section: one photo each, a clean switch between them */
 export type Special = {
-  id: string; name: string; l1: string; l2: string; price: number; kcal?: number; img: string; photo: string; poster?: boolean;
+  id: string; name: string; l1: string; l2: string; price: number; kcal?: number; img: string; photo: string; cutout?: boolean; poster?: string;
   alt: string; eyebrow: string; tab: string; tagline?: string; tags?: string[]; note: string; sticker?: string; overlay?: string;
   acc: { t: string; chips: string[] }[];
 };
@@ -30,8 +30,8 @@ export const SPECIALS: Special[] = [
     alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño", eyebrow: "La proposta del mese", tab: "Burger del mese", note: "Burger del mese",
     sticker: "Solo a ottobre, poi sparisce.", overlay: "Diavolo",
     acc: [{ t: "Ingredienti", chips: ["Doppio smash", "Cheddar", "Bacon croccante", "Jalapeño", "Salsa spicy", "Brioche al sesamo"] }, { t: "Allergeni", chips: ["Glutine", "Latte", "Uova", "Sesamo", "Senape"] }] },
-  { id: "tonyptony", name: "TonyPTony", l1: "TonyPTony", l2: "Il Fuorilegge", price: 15.9, img: "/assets/menu/tonyptony.webp", photo: "/assets/promo/tonyptony.webp", poster: true,
-    alt: "Poster di TonyPTony, il Fuorilegge: burger di manzo con Taleggio, cialda di polenta, radicchio e cipolla caramellata", eyebrow: "Special edition", tab: "Special edition",
+  { id: "tonyptony", name: "TonyPTony", l1: "TonyPTony", l2: "Il Fuorilegge", price: 15.9, img: "/assets/menu/tonyptony-burger.webp", photo: "/assets/menu/tonyptony-burger.webp", cutout: true, poster: "/assets/promo/tonyptony.webp", overlay: "Fuorilegge",
+    alt: "TonyPTony, il Fuorilegge: burger di manzo con Taleggio fuso, cialda di polenta, radicchio, cipolla caramellata e BBQ al vino rosso", eyebrow: "Special edition", tab: "Special edition",
     tagline: "Il panino che non chiede permesso.", tags: ["Novità"], note: "Special edition",
     acc: [{ t: "Ingredienti", chips: ["Potato bun tostato al burro", "180 g di manzo alla griglia", "35 g di Taleggio DOP fuso", "Cialda croccante di polenta", "Cipolla rossa caramellata", "Radicchio fresco", "Salsa BBQ artigianale al vino rosso, miele e aceto balsamico"] },
       { t: "Allergeni", chips: ["Glutine", "Latte", "Solfiti"] }] },
@@ -77,6 +77,11 @@ export const INGREDIENTS: Ingredient[] = [
   { id: "jalapeno", name: "Jalapeño", img: "/assets/ingredients/jalapeno.webp", price: 0.6, kcal: 10, h: 14, w: 84, ratio: 2, spicy: true, group: "verdure", desc: "Rondelle piccanti." },
   { id: "mayo", name: "Maionese", img: "/assets/ingredients/mayo.webp", price: 0.5, kcal: 90, h: 10, w: 86, ratio: 3, group: "salse", desc: "Cremosa e delicata." },
   { id: "sauce-spicy", name: "Salsa spicy", img: "/assets/ingredients/sauce-spicy.webp", price: 0.6, kcal: 80, h: 10, w: 86, ratio: 3, spicy: true, group: "salse", desc: "Salsa cremosa piccante." },
+  { id: "taleggio", name: "Taleggio DOP", img: "/assets/ingredients/taleggio.webp", price: 1.5, kcal: 120, h: 14, w: 98, ratio: 2, group: "formaggi", desc: "Fuso e cremoso. Ha carattere, come te." },
+  { id: "radicchio", name: "Radicchio", img: "/assets/ingredients/radicchio.webp", price: 0.4, kcal: 10, h: 16, w: 98, ratio: 2, group: "verdure", desc: "Fresco e amaro quanto basta." },
+  { id: "cipolla-caramellata", name: "Cipolla caramellata", img: "/assets/ingredients/cipolla-caramellata.webp", price: 0.6, kcal: 45, h: 16, w: 88, ratio: 2, group: "verdure", desc: "Rossa, cotta piano. Dolce senza fretta." },
+  { id: "polenta", name: "Cialda di polenta", img: "/assets/ingredients/polenta.webp", price: 1.2, kcal: 130, h: 22, w: 84, ratio: 2, group: "croccanti", desc: "Croccante fuori, la nonna approva." },
+  { id: "bbq-vino", name: "BBQ al vino rosso", img: "/assets/ingredients/bbq-vino.webp", price: 0.7, kcal: 85, h: 10, w: 88, ratio: 3, group: "salse", desc: "Vino rosso, miele e balsamico. Da fuorilegge." },
   { id: "teriyaki", name: "Teriyaki", img: "/assets/ingredients/teriyaki.webp", price: 0.6, kcal: 70, h: 10, w: 86, ratio: 3, group: "salse", desc: "Dolce, salata e lucida." },
 ];
 
@@ -91,6 +96,7 @@ export const BREADS: Bread[] = [
   { id: "classico", name: "Brioche classico", desc: "Soffice e dorato, incluso.", extra: 0, bottom: bun(BUN_BOTTOM, "bun-bottom-classico", B + "bun-bottom-classico.webp"), top: bun(BUN_TOP, "bun-top-classico", B + "bun-top-classico.webp") },
   { id: "sesamo", name: "Brioche al sesamo", desc: "Brioche con semi di sesamo.", extra: 0.5, bottom: bun(BUN_BOTTOM, "bun-bottom-sesamo", B + "bun-bottom-classico.webp", 0.5), top: bun(BUN_TOP, "bun-top-sesamo", B + "bun-top-sesamo.webp") },
   { id: "carbone", name: "Brioche al carbone", desc: "Impasto nero al carbone vegetale.", extra: 0.5, bottom: bun(BUN_BOTTOM, "bun-bottom-carbone", B + "bun-bottom-carbone.webp", 0.5), top: bun(BUN_TOP, "bun-top-carbone", B + "bun-top-carbone.webp") },
+  { id: "potato", name: "Potato bun al burro", desc: "Soffice, tostato al burro. Quello di Tony.", extra: 0.5, bottom: bun(BUN_BOTTOM, "bun-bottom-potato", B + "bun-bottom-potato.webp", 0.5, 30), top: bun(BUN_TOP, "bun-top-potato", B + "bun-top-potato.webp") },
   { id: "rustico", name: "Pane rustico", desc: "Crosta piena, mollica soffice.", extra: 0.5, bottom: bun(BUN_BOTTOM, "bun-bottom-rustico", B + "bun-bottom-rustico.webp", 0.5, 20), top: bun(BUN_TOP, "bun-top-rustico", B + "bun-top-rustico.webp", 0, 20) },
 ];
 /** every bun the cart can meet, including the legacy ids of carts saved before the bread choice */
