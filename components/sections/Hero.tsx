@@ -26,14 +26,16 @@ const DELIVERY = [
   { id: "justeat", name: "Just Eat", src: "/assets/delivery/justeat.svg", w: 190, h: 47, cls: "h-[18px] md:h-[21px]" },
 ];
 
-/** day bar: rotates three burgers every 4s, each links to its spot (menu carousel or the monthly special) */
+/** day bar: rotates four burgers every 4s, each links to its spot (menu carousel or the monthly special) */
 const DAY = [
-  { n: "Il Diavolo di Vanchiglia", href: "#proposta", id: "" },
-  { n: "Sbranatore", href: "#menu", id: "sbranatore" },
-  { n: "Mordi e Fuggi", href: "#menu", id: "mordi-e-fuggi" },
+  { n: "Il Diavolo di Vanchiglia", href: "#proposta", id: "", sp: "diavolo" },
+  { n: "TonyPTony, il Fuorilegge", href: "#proposta", id: "", sp: "tonyptony" },
+  { n: "Sbranatore", href: "#menu", id: "sbranatore", sp: "" },
+  { n: "Mordi e Fuggi", href: "#menu", id: "mordi-e-fuggi", sp: "" },
 ];
-export function goMenuItem(id: string) {
+export function goMenuItem(id: string, sp = "") {
   if (id) window.dispatchEvent(new CustomEvent("sbrano:menu-goto", { detail: id }));
+  if (sp) window.dispatchEvent(new CustomEvent("sbrano:special", { detail: sp }));
 }
 
 function DayBar() {
@@ -45,7 +47,7 @@ function DayBar() {
   }, []);
   const d = DAY[i];
   return (
-    <a href={d.href} onClick={() => goMenuItem(d.id)} data-daybar
+    <a href={d.href} onClick={() => goMenuItem(d.id, d.sp)} data-daybar
       className="group relative z-20 flex h-8 items-center justify-center gap-[0.35em] overflow-hidden whitespace-nowrap px-3 font-tanker text-[clamp(0.8rem,0.7rem+0.5vw,1.05rem)] uppercase leading-none text-ink md:h-9">
       <span className="pt-[0.12em]">Oggi sbrana di brutto:</span>
       <span className="sb-day-rot pt-[0.12em]" aria-live="polite">

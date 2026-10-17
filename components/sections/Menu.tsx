@@ -125,7 +125,7 @@ export default function Menu() {
       flyToCart(imgs.current[i], d.img, () => add({ id: `bibita-${d.id}`, name: `Bibita ${d.name}`, price: m.price, img: d.img }));
       return;
     }
-    flyToCart(imgs.current[i], m.img, () => add({ id: m.id, name: m.name, price: m.price, img: m.img }));
+    flyToCart(imgs.current[i], m.img, () => add({ id: m.id, name: m.name, price: m.price, img: m.img, ...(m.special ? { note: "Special edition" } : {}) }));
   };
 
   const m = MENU[active];
@@ -169,7 +169,13 @@ export default function Menu() {
                     </div>
                   </div>
                   <div className="px-2 pb-1 pt-4">
-                    {it.tag !== "Il più scelto" && <span data-menu-tag className={`pill-label mb-2 h-6 px-3 text-[10px] ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.tag}</span>}
+                    {it.tag !== "Il più scelto" && (
+                      <div className="mb-2 flex flex-wrap gap-1 md:gap-1.5">
+                        {[it.tag, ...(it.tags ?? [])].map((t, k) => (
+                          <span key={t} data-menu-tag={k === 0 ? "" : undefined} className={`${it.special ? "inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.08em] md:h-7 md:px-3 md:text-[11px] md:tracking-[0.1em]" : "pill-label h-6 px-3 text-[10px]"} ${it.special && k === 0 ? (isActive ? "bg-cream text-ink" : "bg-lime text-ink ring-2 ring-ink") : isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.special && k === 0 ? "✶ " : ""}{t}</span>
+                        ))}
+                      </div>
+                    )}
                     <h3 className={`font-tanker uppercase leading-[0.9] text-[42px] md:text-[54px] ${isActive ? "text-lime" : ""}`}>{it.name}</h3>
                     <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
                     {it.id === "bibita" && (
@@ -186,7 +192,7 @@ export default function Menu() {
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full px-3 py-1.5 text-sm font-bold tabular-nums ${isActive ? "bg-lime text-ink" : "bg-cream"}`}>{euro(it.price)}</span>
-                        <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span>
+                        {it.kcal ? <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span> : it.special && <span className={`hidden text-xs font-bold uppercase tracking-wider md:inline ${isActive ? "text-lime" : "text-ink/60"}`}>Edizione limitata</span>}
                       </div>
                       <button onClick={() => addItem(i)} aria-label={`Aggiungi ${it.name} al carrello`}
                         className={`flex h-12 w-12 items-center justify-center rounded-full text-3xl leading-none transition-transform duration-300 hover:rotate-90 active:scale-90 ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>+</button>
