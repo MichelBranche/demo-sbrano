@@ -1,5 +1,6 @@
 // Auto-generated tiny blur placeholders for opaque photos (16px WebP).
 export const BLUR: Record<string, string> = {
+ "/assets/locale/free-refill.webp": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADwAQCdASoQAAkAA4BaJbACdAERAvyjBKAA/StJZNaw56J23hZV1zJKhRq/Ozy05+Tr5bx+wup3j+9kgGqwvOykU4zwYJR9x5+rKVtt64JpVgAA",
  "/assets/brand/brand-sheet.webp": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADwAQCdASoQAAsAA4BaJQBOgCLKOW5rGwAA/LTccryrEO2sXgVQ2fH1yE2qF6K/zyDqXIZcgXp/itTLq6vvwpLIO8f8y/9TsvO3JAdxi9B8Zfu4gAA=",
  "/assets/brand/case-study.webp": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAABwAgCdASoQAAsAA4BaJbACdAYv/mxGSzX13kgAAPfeovB6ctE0MwKmoFhO/n8YgLPOic428mOzaDMwLkU2wtvk3BSVUthswV74fdJvxERDYgWzplvjG59NZG4yVQX0dfckRxuVLQvZiIc/g8AAAA==",
  "/assets/filiera/carne.webp": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAAAQAgCdASoQABAAA4BaJbACdADIQjwC/fOAAP7pqSrA7DZExBFe7EoLfsKa+vJgenDcglYqnipWOuMsph1VkqYE50TWdjmD15dRTGkJkP1WrKb84v8aljr5MR7B2nyM89yBYKcANcAPeUCI3M5iJt57NJraWSKgAAA=",

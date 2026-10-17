@@ -2,8 +2,10 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { MENU, FILTERS, euro, type Cat } from "@/lib/data";
+import { MENU, FILTERS, DRINKS, euro, type Cat } from "@/lib/data";
 import SectionHead from "../ui/SectionHead";
+import Badge from "../ui/Badge";
+import { BLUR } from "@/lib/blur";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 
@@ -180,6 +182,23 @@ export default function Menu() {
       <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 px-5 text-center">
         <span className="pill-label bg-lime text-ink">Combo</span>
         <p className="text-sm md:text-base">Burger + patatine + bibita a <b>{euro(13.9)}</b>. Lo diciamo piano, sennò finisce.</p>
+      </div>
+      {/* Free refill band: real fountain photo, fetched early (eager, low priority) with blur placeholder so it never pops in */}
+      <div className="mx-auto mt-10 max-w-[1100px] px-4 md:px-10" data-refill>
+        <div className="grid overflow-hidden rounded-[28px] bg-ink text-cream md:grid-cols-[1.25fr_1fr] md:rounded-[36px]">
+          <div className="relative aspect-[16/9] md:aspect-auto md:min-h-[300px]">
+            <Image src="/assets/locale/free-refill.webp" alt="Il banco bibite SBRANO con la spina e il murale della mascotte" fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
+              sizes="(min-width:1100px) 600px, (min-width:768px) 55vw, 100vw" className="object-cover" />
+          </div>
+          <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
+            <Badge icon="bolt" tilt={-3} dark className="w-fit">Free refill</Badge>
+            <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">Refill gratis.<br /><span className="text-lime">Sete brutta?</span></h3>
+            <p className="text-cream/70">Torna al banco: Pepsi, Fanta, Sprite o la nostra Bibita Sbrano. Il bicchiere lo riempi tu, quante volte vuoi.</p>
+            <div className="flex -space-x-3" aria-hidden>
+              {DRINKS.map((d) => <span key={d.id} className="relative h-14 w-14 rounded-full border-2 border-ink bg-cream"><Image src={d.img} alt="" fill sizes="56px" className="object-contain p-1" /></span>)}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

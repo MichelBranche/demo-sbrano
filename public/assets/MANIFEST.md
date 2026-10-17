@@ -41,7 +41,7 @@
 | menu/pollo-ruggente.webp | 1448x1086 | yes | Pollo Ruggente: crispy fried chicken burger with cheddar, bacon, pickles, cut-out |
 | menu/pollo-teriyaki-extra.webp | 1536x1024 | yes | EXTRA (source misnamed "mordi-e-fuggi"): glazed crispy chicken burger with bacon, tomato, pickles, cut-out |
 | menu/sbranatore.webp | 1536x1024 | yes | Sbranatore: double cheeseburger, bacon, cheddar, pickles, red onion, cut-out |
-| drinks/sbrano.webp | - | yes | Bibita Sbrano, default lidded cup (Michel, replaces old packaging/cup.webp) |
+| drinks/sbrano.webp | see file | yes | Bibita Sbrano, default lidded cup (new photo from Michel) |
 | drinks/pepsi.webp | - | yes | Pepsi, dark cola open cup |
 | drinks/fanta.webp | - | yes | Fanta, orange |
 | drinks/sprite.webp | - | yes | Sprite, clear |
@@ -51,3 +51,4 @@
 | promo/combo.webp | 1672x941 | no | Combo: burger, fries and drink in SBRANO packaging on lime background |
 | promo/sacchetto.webp | 1254x1254 | yes | Lime SBRANO paper bag with burger and fries, cut-out |
 | promo/spotlight-pollo.webp | 1536x1024 | no | Spotlit crispy chicken burger, dark background |
+| locale/free-refill.webp | 1672x941 | no | Sbrano soda fountain with mascot mural (free refill band) |
