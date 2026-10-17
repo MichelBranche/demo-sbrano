@@ -7,6 +7,7 @@
 | brand/logo-mascot.webp | 1550x1015 | yes | SBRANO wordmark with mascot head as O, crown and sparks |
 | brand/logo.png | 1800x673 | yes | SBRANO wordmark, transparent PNG |
 | brand/logo.svg | 1200x449 (viewBox) | yes | SBRANO wordmark, potrace vector trace (black fill) |
+| brand/logo-compact.webp | 720x250 | yes | Plain bold SBRANO wordmark, no tagline (compact nav / preloader) |
 | brand/logo.webp | 1800x673 | yes | SBRANO wordmark, black, tagline BURGER • FRIES • GOOD MOOD |
 | filiera/carne.webp | 1254x1254 | no | Gloved hands forming raw beef patties |
 | filiera/pane.webp | 1254x1254 | no | Freshly baked sesame brioche buns on a tray |
@@ -36,7 +37,7 @@
 | mascot/eating-burger.webp | 1000x1000 | yes | Mascot eating a burger (line art, transparent fill) |
 | mascot/running.webp | 1000x951 | yes | Mascot running with sunglasses (line art, transparent fill) |
 | mascot/waving.webp | 1000x833 | yes | Mascot waving (line art, transparent fill) |
-| menu/mordi-e-fuggi.webp | 1672x941 | no | Mordi e Fuggi: spicy cheeseburger with bacon & jalapeños in mascot paper, dark moody photo |
+| menu/mordi-e-fuggi.webp | 1113x926 | yes | Mordi e Fuggi: spicy cheeseburger with bacon & jalapeños in mascot paper, cut-out (rembg isnet on the original photo; original kept as promo/burger-mese.webp) |
 | menu/pollo-ruggente.webp | 1448x1086 | yes | Pollo Ruggente: crispy fried chicken burger with cheddar, bacon, pickles, cut-out |
 | menu/pollo-teriyaki-extra.webp | 1536x1024 | yes | EXTRA (source misnamed "mordi-e-fuggi"): glazed crispy chicken burger with bacon, tomato, pickles, cut-out |
 | menu/sbranatore.webp | 1536x1024 | yes | Sbranatore: double cheeseburger, bacon, cheddar, pickles, red onion, cut-out |

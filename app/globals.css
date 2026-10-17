@@ -29,7 +29,8 @@ body {
 .grain::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: .28; mix-blend-mode: multiply;
+  /* plain alpha noise (no mix-blend-mode: blending over animated content forced a full re-composite every frame) */
+  opacity: .2; transform: translateZ(0);
 }
 
 .pill-label {
@@ -48,6 +49,23 @@ body {
 .marquee-track { animation: marquee var(--dur, 40s) linear infinite; }
 .marquee-track.rev { animation-name: marquee-rev; }
 .marquee:hover .marquee-track { animation-play-state: paused; }
+
+.is-off .marquee-track { animation-play-state: paused; }
+
+/* branded preloader: removed by <Preloader/> as soon as fonts + hero image are ready; CSS fallback fades it anyway */
+.sb-preloader {
+  position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  background: var(--color-lime); animation: sb-pre-out .45s ease 2.6s forwards;
+  transition: opacity .45s ease, visibility 0s linear .45s;
+}
+.sb-preloader img { width: min(56vw, 280px); height: auto; animation: sb-pre-pop .9s cubic-bezier(.2,1.4,.4,1) both; }
+.sb-preloader-bar { width: 120px; height: 6px; border-radius: 99px; background: rgba(17,17,17,.15); overflow: hidden; }
+.sb-preloader-bar i { display: block; height: 100%; width: 40%; border-radius: inherit; background: var(--color-ink); animation: sb-pre-bar .9s ease-in-out infinite alternate; }
+.sb-preloader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes sb-pre-out { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+@keyframes sb-pre-pop { from { transform: scale(.85) rotate(-4deg); opacity: 0; } }
+@keyframes sb-pre-bar { from { transform: translateX(-20%); } to { transform: translateX(170%); } }
+html.no-js .sb-preloader { display: none; }
 
 .orbit-ring { animation: spin 60s linear infinite; }
 .orbit-ring .orbit-counter { animation: spin-rev 60s linear infinite; }

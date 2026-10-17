@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import SectionHead from "../ui/SectionHead";
 import Ribbon from "./Ribbon";
+import { BLUR } from "@/lib/blur";
 
 const PICS = [
   { src: "/assets/locale/esterno-piazza-logo.webp", alt: "L'insegna SBRANO di notte in Piazza Santa Giulia", cap: "La piazza, di notte", cls: "lg:col-span-7 lg:row-span-2 aspect-[3/2] lg:aspect-auto" },
@@ -36,7 +37,7 @@ export default function Locale() {
         <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[300px_300px] lg:gap-6">
           {PICS.map((p) => (
             <figure key={p.src} className={`l-pic group relative overflow-hidden rounded-[28px] ${p.cls}`} style={{ transformStyle: "preserve-3d" }}>
-              <div className="l-img absolute inset-x-0 -inset-y-[10%]"><Image src={p.src} alt={p.alt} fill sizes="(min-width:1024px) 60vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /></div>
+              <div className="l-img absolute inset-x-0 -inset-y-[10%]"><Image src={p.src} alt={p.alt} fill placeholder="blur" blurDataURL={BLUR[p.src]} sizes={p.cls.includes("col-span-7") ? "(min-width:1024px) 58vw, 100vw" : "(min-width:1024px) 42vw, 100vw"} className="object-cover transition-transform duration-700 group-hover:scale-105" /></div>
               <figcaption className="absolute bottom-4 left-4 rounded-full bg-cream px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink">{p.cap}</figcaption>
             </figure>
           ))}

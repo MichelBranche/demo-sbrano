@@ -10,30 +10,35 @@ export default function Ribbon({ id = "rb", text = WORDS, tone = "dark", classNa
 }) {
   const root = useRef<HTMLDivElement>(null);
   const d = path ?? "M-100 140 C 200 40, 420 40, 720 120 S 1240 220, 1540 90";
-  const str = Array(6).fill(text.join("  ")).join("  ");
+  const str = Array(4).fill(text.join("  ")).join("  ");
   useGSAP(() => {
     if (reduced()) return;
     const tps = root.current!.querySelectorAll<SVGTextPathElement>("textPath");
     const st = { off: 0, boost: 0 };
     let dir = 1;
     const textEl = root.current!.querySelector("text")!;
-    const cycle = Math.max(600, textEl.getComputedTextLength() / 6);
+    const cycle = Math.max(600, textEl.getComputedTextLength() / 4);
+    let visible = false;
+    const tick = () => {
+      if (!visible) return; // offscreen ribbons cost nothing
+      st.boost *= 0.92;
+      st.off -= (0.6 + st.boost) * dir;
+      // keep offset within one repeat cycle
+      if (st.off < -cycle) st.off += cycle;
+      if (st.off > 0) st.off -= cycle;
+      const v = st.off.toFixed(1);
+      tps.forEach((t) => t.setAttribute("startOffset", v));
+    };
     const trig = ScrollTrigger.create({
       trigger: root.current, start: "top bottom", end: "bottom top",
+      onToggle: (self) => { visible = self.isActive; },
       onUpdate: (self) => {
         const v = self.getVelocity();
         dir = v < 0 ? -1 : 1;
         st.boost = Math.min(Math.abs(v) / 120, 18);
       },
     });
-    const tick = () => {
-      st.boost *= 0.92;
-      st.off -= (0.6 + st.boost) * dir;
-      // keep offset within one repeat cycle
-      if (st.off < -cycle) st.off += cycle;
-      if (st.off > 0) st.off -= cycle;
-      tps.forEach((t) => t.setAttribute("startOffset", String(st.off)));
-    };
+    visible = trig.isActive;
     gsap.ticker.add(tick);
     gsap.from(root.current!.querySelector(".rb-band"), {
       strokeDashoffset: 1, duration: 1.4, ease: "power3.out", scrollTrigger: { trigger: root.current, start: "top 85%" },

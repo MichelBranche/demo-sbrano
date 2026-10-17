@@ -143,9 +143,9 @@ export default function Menu() {
                       className={`absolute transition-transform duration-700 ease-[cubic-bezier(.2,1.6,.4,1)] ${it.cutout ? "-inset-2" : "inset-0"} ${isActive && it.cutout ? "-translate-y-10 scale-[1.22] md:-translate-y-14" : ""} ${isActive && !it.cutout ? "scale-110" : ""}`}>
                       <Image src={it.img} alt={it.name} fill sizes="320px" draggable={false} className={`${it.cutout ? "object-contain p-3 drop-shadow-[0_20px_20px_rgba(0,0,0,.3)]" : "rounded-[20px] object-cover"}`} />
                     </div>
-                    <span className={`pill-label absolute left-3 top-3 h-7 ${isActive ? "bg-ink text-lime" : "bg-ink text-cream"}`}>{it.tag}</span>
                   </div>
                   <div className="px-2 pb-1 pt-4">
+                    <span data-menu-tag className={`pill-label mb-2 h-6 px-3 text-[10px] ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.tag}</span>
                     <h3 className="font-display text-[28px] uppercase leading-none md:text-[34px]">{it.name}</h3>
                     <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
                     <div className="mt-4 flex items-center justify-between">

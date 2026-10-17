@@ -1,7 +1,11 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type CartLine = { id: string; name: string; price: number; img: string; qty: number; note?: string };
+export type CartLine = {
+  id: string; name: string; price: number; img: string; qty: number; note?: string;
+  /** custom builder burger: layer ids bottom→top (incl. buns) and readable ingredient names */
+  layers?: string[]; ingredients?: string[];
+};
 type Ctx = {
   lines: CartLine[]; count: number; total: number; open: boolean; bump: number;
   setOpen: (o: boolean) => void;

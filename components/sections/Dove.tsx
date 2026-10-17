@@ -1,10 +1,10 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { gsap, useGSAP, reduced } from "@/lib/gsap";
+import { gsap, useGSAP, ScrollTrigger, reduced } from "@/lib/gsap";
 import PillButton from "../ui/PillButton";
 
-const HOURS = [
+export const HOURS = [
   ["Lunedì", "Chiuso (dormiamo)"],
   ["Mar - Gio", "12:00-15:00 • 19:00-23:30"],
   ["Ven - Sab", "12:00-15:00 • 19:00-01:00"],
@@ -20,9 +20,12 @@ export default function Dove() {
     gsap.from(".d-pin", { y: -120, opacity: 0, duration: 1.2, ease: "bounce.out", scrollTrigger: { trigger: ".d-map", start: "top 75%" } });
     gsap.fromTo(".d-route", { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: "none", scrollTrigger: { trigger: ".d-map", start: "top 80%", end: "bottom 50%", scrub: true } });
     // mascot runs along the route
-    const tl = gsap.timeline({ repeat: -1, defaults: { ease: "none" } });
-    tl.fromTo(".d-runner", { xPercent: -120, left: "0%" }, { left: "100%", xPercent: 20, duration: 9 })
+    // transform-only (no `left` layout animation), paused while offscreen
+    const strip = root.current!.querySelector<HTMLElement>(".d-runner")!.parentElement!;
+    const tl = gsap.timeline({ repeat: -1, paused: true, defaults: { ease: "none" } });
+    tl.fromTo(".d-runner", { x: -100 }, { x: () => strip.offsetWidth + 20, duration: 9 })
       .to(".d-runner-bob", { y: -8, duration: 0.18, repeat: 49, yoyo: true, ease: "sine.inOut" }, 0);
+    ScrollTrigger.create({ trigger: strip, start: "top bottom", end: "bottom top", onToggle: (self) => (self.isActive ? tl.play() : tl.pause()), onRefresh: () => tl.invalidate() });
     gsap.from(".d-row", { x: -30, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power3.out", scrollTrigger: { trigger: ".d-info", start: "top 80%" } });
   }, { scope: root });
   const dayIdx = today === 1 ? 0 : today >= 2 && today <= 4 ? 1 : today === 5 || today === 6 ? 2 : today === 0 ? 3 : -1;
@@ -86,7 +89,7 @@ export default function Dove() {
           {/* running mascot strip */}
           <div className="absolute inset-x-0 bottom-0 h-36 overflow-hidden">
             <div className="absolute inset-x-4 bottom-3 rounded-full bg-ink px-5 py-3 text-xs font-bold uppercase tracking-wider text-cream">Da Porta Nuova 18 min • Dalla Mole 6 min • Di corsa 2</div>
-            <div className="d-runner absolute bottom-[60px] left-0 h-20 w-20">
+            <div className="d-runner absolute bottom-[60px] left-0 h-20 w-20 will-change-transform">
               <div className="d-runner-bob relative h-full w-full rounded-full bg-cream">
                 <Image src="/assets/mascot/running.webp" alt="Mascotte che corre" fill sizes="80px" className="object-contain p-1" />
               </div>

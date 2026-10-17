@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import SectionHead from "../ui/SectionHead";
+import { BLUR } from "@/lib/blur";
 
 const CARDS = [
   { n: "01", t: "Carne", h: "Piemontese, macinata ogni mattina", d: "Dal macellaio di fiducia, a mezz'ora da qui. Pressata sulla piastra rovente, mai surgelata.", img: "/assets/filiera/carne.webp", alt: "Mani con guanti che formano polpette di manzo", tone: "bg-white text-ink" },
@@ -16,7 +17,7 @@ export default function Filiera() {
   useGSAP(() => {
     if (reduced()) return;
     // scroll-coloured text reveal
-    gsap.fromTo(".f-word", { color: "rgba(17,17,17,.15)" }, { color: "rgba(17,17,17,1)", stagger: 0.1, ease: "none", scrollTrigger: { trigger: ".f-intro", start: "top 80%", end: "bottom 45%", scrub: true } });
+    gsap.fromTo(".f-word", { opacity: 0.15 }, { opacity: 1, stagger: 0.1, ease: "none", scrollTrigger: { trigger: ".f-intro", start: "top 80%", end: "bottom 45%", scrub: true } });
     const mm = gsap.matchMedia();
     mm.add("(min-width: 1024px)", () => {
       gsap.utils.toArray<HTMLElement>(".f-card").forEach((c, i) => {
@@ -53,7 +54,7 @@ export default function Filiera() {
               <h3 className="font-display text-3xl uppercase leading-none">{c.h}</h3>
               <p className="text-sm opacity-75 md:text-base">{c.d}</p>
               <div className="relative aspect-square overflow-hidden rounded-[22px]">
-                <div className="f-img absolute inset-x-0 -bottom-[12%] top-0"><Image src={c.img} alt={c.alt} fill sizes="(min-width:1024px) 480px, 100vw" className="object-cover" /></div>
+                <div className="f-img absolute inset-x-0 -bottom-[12%] top-0"><Image src={c.img} alt={c.alt} fill placeholder="blur" blurDataURL={BLUR[c.img]} sizes="(min-width:1024px) 480px, (min-width:768px) 90vw, 100vw" className="object-cover" /></div>
               </div>
             </article>
           ))}

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 const R = [
   { n: "Giulia, Vanchiglia", t: "Sono venuta per un burger, sono rimasta per il secondo. Lo Sbranatore è illegale.", a: "/assets/mascot/eating-burger.webp" },
@@ -31,8 +32,15 @@ function Card({ r, i }: { r: (typeof R)[number]; i: number }) {
 
 export default function Reviews() {
   const a = R.slice(0, 4), b = R.slice(4);
+  const ref = useRef<HTMLElement>(null);
+  // pause the CSS marquees while the section is offscreen
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => el.classList.toggle("is-off", !e.isIntersecting), { rootMargin: "200px 0px" });
+    io.observe(el); return () => io.disconnect();
+  }, []);
   return (
-    <section className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
+    <section ref={ref} className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center">
         <span className="pill-label bg-ink text-lime">Recensioni</span>
         <h2 id="rv-title" className="font-display text-[13vw] uppercase leading-[0.86] md:text-[clamp(56px,7vw,112px)]">
@@ -42,7 +50,7 @@ export default function Reviews() {
       </div>
       {[a, b].map((row, k) => (
         <div key={k} className="marquee mb-4 flex overflow-hidden">
-          <div className={`marquee-track flex w-max ${k ? "rev" : ""}`} style={{ ["--dur" as string]: k ? "55s" : "45s" }}>
+          <div className={`marquee-track flex w-max will-change-transform ${k ? "rev" : ""}`} style={{ ["--dur" as string]: k ? "55s" : "45s" }}>
             {[...row, ...row, ...row, ...row].map((r, i) => <Card key={i} r={r} i={i + k} />)}
           </div>
         </div>

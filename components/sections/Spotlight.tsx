@@ -1,17 +1,14 @@
 "use client";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 import { euro } from "@/lib/data";
+import { BLUR } from "@/lib/blur";
 
-const SHOTS = [
-  { src: "/assets/promo/burger-mese.webp", alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño" },
-  { src: "/assets/promo/spotlight-pollo.webp", alt: "Burger di pollo croccante sotto i riflettori" },
-  { src: "/assets/promo/combo.webp", alt: "Combo burger, patatine e bibita nel packaging SBRANO" },
-];
+/** One photo only: the real Diavolo di Vanchiglia (spicy bacon & jalapeño smash). */
+const SHOT = { src: "/assets/promo/burger-mese.webp", alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño" };
 const ACC = [
   { t: "Ingredienti", chips: ["Doppio smash", "Cheddar", "Bacon croccante", "Jalapeño", "Salsa spicy", "Brioche al sesamo"] },
   { t: "Allergeni", chips: ["Glutine", "Latte", "Uova", "Sesamo", "Senape"] },
@@ -41,18 +38,18 @@ function SidePanel({ side, text }: { side: "l" | "r"; text: string }) {
 export default function Spotlight() {
   const root = useRef<HTMLElement>(null);
   const img = useRef<HTMLDivElement>(null);
-  const [shot, setShot] = useState(0);
   const [open, setOpen] = useState(0);
   const { add } = useCart();
 
   useGSAP(() => {
     if (reduced()) return;
-    gsap.from(".sp-card", { y: 120, rotate: -2, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".sp-card", start: "top 85%" } });
-    gsap.fromTo(".sp-img-inner", { scale: 1.25 }, { scale: 1, ease: "none", scrollTrigger: { trigger: root.current, start: "top bottom", end: "bottom top", scrub: true } });
-    gsap.from(".sp-side", { xPercent: (i) => (i ? 100 : -100), duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: root.current, start: "top 70%" } });
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" }, scrollTrigger: { trigger: root.current, start: "top 80%", once: true } });
+    tl.from(".sp-card", { y: 60, opacity: 0, duration: 0.9 })
+      .from(".sp-photo", { scale: 0.96, opacity: 0, duration: 0.9 }, 0.1)
+      .from(".sp-side", { xPercent: (i) => (i ? 100 : -100), duration: 0.9 }, 0);
   }, { scope: root });
 
-  const addIt = () => flyToCart(img.current, "/assets/promo/burger-mese.webp", () => add({ id: "diavolo", name: "Il Diavolo di Vanchiglia", price: 12.9, img: "/assets/menu/sbranatore.webp", note: "Burger del mese" }));
+  const addIt = () => flyToCart(img.current, "/assets/promo/burger-mese.webp", () => add({ id: "diavolo", name: "Il Diavolo di Vanchiglia", price: 12.9, img: "/assets/promo/burger-mese.webp", note: "Burger del mese" }));
 
   return (
     <section ref={root} className="relative mt-10" aria-labelledby="sp-title">
@@ -61,20 +58,10 @@ export default function Spotlight() {
         <SidePanel side="l" text="Del mese" />
         <div className="sp-card relative mx-3 flex-1 rounded-[32px] bg-ink-3 p-4 md:mx-6 md:rounded-[40px] md:p-10">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
-            <div ref={img} className="relative aspect-[4/3] overflow-hidden rounded-[24px] bg-lime lg:aspect-auto lg:min-h-[520px]">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={shot} className="absolute inset-0" initial={{ clipPath: "circle(0% at 50% 50%)" }} animate={{ clipPath: "circle(75% at 50% 50%)" }} exit={{ opacity: 0.99 }} transition={{ duration: 0.8, ease: [0.7, 0, 0.2, 1] }}>
-                  <div className="sp-img-inner absolute inset-0"><Image src={SHOTS[shot].src} alt={SHOTS[shot].alt} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" /></div>
-                </motion.div>
-              </AnimatePresence>
+            <div ref={img} className="sp-photo relative aspect-[4/3] overflow-hidden rounded-[24px] bg-ink lg:aspect-auto lg:min-h-[520px]">
+              <Image src={SHOT.src} alt={SHOT.alt} fill loading="eager" placeholder="blur" blurDataURL={BLUR[SHOT.src]}
+                sizes="(min-width:1280px) 46vw, (min-width:1024px) 50vw, 100vw" className="object-cover object-[70%_50%]" />
               <span className="pill-label absolute right-4 top-4 z-10 bg-lime text-ink">Solo a ottobre</span>
-              <div className="absolute bottom-4 left-4 z-10 flex gap-2">
-                {SHOTS.map((s, i) => (
-                  <button key={s.src} onClick={() => setShot(i)} aria-label={`Foto ${i + 1}`} className={`relative h-14 w-14 overflow-hidden rounded-2xl border-[3px] transition-transform hover:-translate-y-1 md:h-16 md:w-16 ${i === shot ? "border-lime" : "border-cream/60"}`}>
-                    <Image src={s.src} alt="" fill sizes="64px" className="object-cover" />
-                  </button>
-                ))}
-              </div>
             </div>
             <div className="flex flex-col justify-center text-cream">
               <span className="pill-label w-fit bg-lime text-ink">🔥 Burger del mese</span>

@@ -6,6 +6,7 @@ import PillButton from "../ui/PillButton";
 import CartButton from "../cart/CartButton";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
+import { onSiteReady } from "../Preloader";
 import { MENU, euro } from "@/lib/data";
 
 export const LINKS = [
@@ -26,7 +27,8 @@ export default function Hero() {
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+      // intro waits for the preloader (fonts + hero image ready) so nothing pops in half-loaded
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "expo.out" } });
       tl.from(".h-nav > *", { y: -30, opacity: 0, duration: 0.8, stagger: 0.06 })
         .from(".h-line", { yPercent: 115, rotate: 4, duration: 1.1, stagger: 0.12 }, 0.1)
         .from(".h-logo", { scale: 0.6, rotate: -8, opacity: 0, duration: 1, ease: "back.out(2)" }, 0.15)
@@ -37,6 +39,7 @@ export default function Hero() {
         .fromTo(".h-arrow-path", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut", stagger: 0.25 }, 1.0)
         .from(".h-note", { opacity: 0, rotate: -12, scale: 0.7, duration: 0.6, ease: "back.out(2)" }, 1.0)
         .from(".h-mini", { y: 60, opacity: 0, duration: 0.8 }, 1.1);
+      const off = onSiteReady(() => tl.play());
       // breathing
       gsap.to(".h-burger-breath", { scale: 1.035, y: -10, rotate: -1.2, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
       gsap.to(".h-shadow-breath", { scaleX: 0.92, opacity: 0.55, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
@@ -47,8 +50,10 @@ export default function Hero() {
       const qx = gsap.quickTo(".h-burger-tilt", "x", { duration: 0.8, ease: "power3" });
       const qy = gsap.quickTo(".h-burger-tilt", "y", { duration: 0.8, ease: "power3" });
       const move = (e: PointerEvent) => { qx((e.clientX / innerWidth - 0.5) * 30); qy((e.clientY / innerHeight - 0.5) * 20); };
-      window.addEventListener("pointermove", move);
-      return () => window.removeEventListener("pointermove", move);
+      // pointer tilt only on real mouse devices
+      const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (fine) window.addEventListener("pointermove", move, { passive: true });
+      return () => { off(); window.removeEventListener("pointermove", move); };
     });
     gsap.set(".float-bar", { yPercent: -160 });
     // floating bar shows after hero
@@ -65,8 +70,9 @@ export default function Hero() {
     <header ref={root} className="relative p-2 md:p-3">
       {/* floating bar (fixed) */}
       <div data-cart-wrap className="float-bar invisible fixed left-1/2 top-3 z-50 flex w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 items-center justify-between rounded-full bg-ink p-1.5 pl-3 opacity-0 shadow-2xl ring-1 ring-cream/15">
-        <a href="#top" className="relative block h-9 w-28 rounded-full bg-lime" aria-label="Torna su">
-          <Image src="/assets/brand/logo-mascot.webp" alt="SBRANO" fill sizes="112px" className="object-contain p-1" />
+        <a href="#top" className="relative flex h-10 items-center rounded-full bg-lime px-4 md:h-11 md:px-5" aria-label="SBRANO, torna su">
+          {/* compact state: bold plain wordmark (no tagline / mascot) so it stays legible at pill height */}
+          <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} sizes="120px" className="h-6 w-auto md:h-7" />
         </a>
         <nav className="hidden gap-1 md:flex">{LINKS.slice(0, 4).map((l) => <a key={l.href} href={l.href} className="rounded-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-cream/80 transition-colors hover:bg-cream/10 hover:text-lime">{l.label}</a>)}</nav>
         <CartButton />
@@ -132,9 +138,9 @@ export default function Hero() {
               <div className="h-shadow absolute bottom-[8%] left-1/2 h-10 w-[70%] -translate-x-1/2 lg:bottom-[14%]">
                 <div className="h-shadow-breath h-full w-full rounded-[50%] bg-ink/30 blur-md" />
               </div>
-              <div className="h-burger absolute inset-x-[-6%] bottom-[10%] top-0 lg:inset-x-[-12%] lg:bottom-[16%] lg:top-[4%]">
+              <div className="h-burger absolute will-change-transform inset-x-[-6%] bottom-[10%] top-0 lg:inset-x-[-12%] lg:bottom-[16%] lg:top-[4%]">
                 <div className="h-burger-tilt h-full w-full">
-                  <div className="h-burger-breath relative h-full w-full">
+                  <div className="h-burger-breath relative h-full w-full will-change-transform">
                     <Image src="/assets/menu/sbranatore.webp" alt="Sbranatore: doppio smash con cheddar, bacon, cetrioli e cipolla rossa" fill priority sizes="(min-width:1024px) 55vw, 100vw" className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,.25)]" />
                   </div>
                 </div>

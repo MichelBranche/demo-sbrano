@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCart } from "./CartProvider";
 import { euro } from "@/lib/data";
+import BurgerStack from "./BurgerStack";
 
 export default function CartDrawer() {
   const { lines, total, open, setOpen, setQty, clear, count } = useCart();
@@ -63,12 +64,23 @@ export default function CartDrawer() {
                   <AnimatePresence initial={false}>
                     {lines.map((l) => (
                       <motion.li key={l.id} layout initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex items-center gap-3 rounded-3xl bg-white/70 p-3">
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-lime">
-                          <Image src={l.img} alt="" fill sizes="64px" className="object-contain p-1" />
+                        <div className={`relative shrink-0 self-start overflow-hidden rounded-2xl bg-lime ${l.layers ? "h-24 w-24" : "h-16 w-16"}`} data-cart-thumb={l.layers ? "custom" : "menu"}>
+                          {l.img.startsWith("data:") ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={l.img} alt={`Anteprima del tuo burger: ${(l.ingredients ?? []).join(", ")}`} className="absolute inset-0 h-full w-full object-contain p-1" />
+                          ) : l.layers ? (
+                            <div className="absolute inset-0 flex items-end justify-center p-1"><BurgerStack ids={l.layers} size={88} /></div>
+                          ) : (
+                            <Image src={l.img} alt="" fill sizes="64px" className="object-contain p-1" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-bold">{l.name}</p>
-                          {l.note && <p className="truncate text-xs text-ink/60">{l.note}</p>}
+                          <p className={`font-bold ${l.layers ? "leading-tight" : "truncate"}`}>{l.name}</p>
+                          {l.ingredients?.length ? (
+                            <ul className="mt-1 flex flex-wrap gap-1" aria-label="Ingredienti">
+                              {l.ingredients.map((n, k) => <li key={k} className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px] leading-tight text-ink/70">{n}</li>)}
+                            </ul>
+                          ) : l.note && <p className="truncate text-xs text-ink/60">{l.note}</p>}
                           <p className="text-sm tabular-nums">{euro(l.price)}</p>
                         </div>
                         <div className="flex items-center gap-1 rounded-full bg-ink p-1 text-lime">
