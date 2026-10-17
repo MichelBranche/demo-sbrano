@@ -81,3 +81,11 @@ html.no-js .sb-preloader { display: none; }
 @keyframes sb-wiggle { 0%,100% { rotate: 0deg; } 25% { rotate: -7deg; } 75% { rotate: 7deg; } }
 .sb-sticker-spin { animation: spin 26s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .sb-sticker-spin, .sb-sticker-in, .sb-sticker-in:hover { animation: none; transition: none; } }
+
+/* builder: floating top bun + orbit dot */
+@keyframes sb-bob { 0%,100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+.sb-bob { animation: sb-bob 2.6s ease-in-out infinite; }
+@keyframes sb-orbit { to { rotate: 360deg; } }
+.sb-orbit { animation: sb-orbit 38s linear infinite; }
+.no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) { .sb-bob, .sb-orbit { animation: none; } }

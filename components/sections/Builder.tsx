@@ -2,9 +2,8 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { INGREDIENTS, ING_GROUPS, BUN_BOTTOM, BUN_TOP, DRINKS, MENU_FRIES, MENU_UPGRADE, euro, type Ingredient } from "@/lib/data";
+import { INGREDIENTS, BREADS, DRINKS, MENU_FRIES, MENU_UPGRADE, euro, type Ingredient, type IngGroup } from "@/lib/data";
 import { stackLayout, composeBurger } from "@/lib/stack";
-import SectionHead from "../ui/SectionHead";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 
@@ -12,6 +11,8 @@ type Layer = { uid: number; ing: Ingredient };
 /** total filling layers (buns excluded) and max copies of the same ingredient */
 const MAX = 40;
 const PER = 5;
+/** logical px between the stack and the floating (open) top bun */
+const GAP = 64;
 const PLACES = ["di Vanchiglia", "del Balon", "della Mole", "di Santa Giulia", "del Po", "di Porta Palazzo"];
 
 function makeName(fill: Ingredient[], closed: boolean) {
@@ -41,26 +42,57 @@ function makeName(fill: Ingredient[], closed: boolean) {
   return `${base} ${adj.slice(0, 2).join(" ")}${xl}${place}${closed ? "" : " (senza cappello)"}`.replace(/\s+/g, " ");
 }
 
+type Tab = "pane" | IngGroup;
+const TABS: { id: Tab; label: string; step: number }[] = [
+  { id: "pane", label: "Pane", step: 0 },
+  { id: "base", label: "Carne", step: 1 },
+  { id: "formaggi", label: "Formaggi", step: 2 },
+  { id: "verdure", label: "Verdure", step: 2 },
+  { id: "salse", label: "Salse", step: 2 },
+  { id: "croccanti", label: "Extra", step: 2 },
+];
+const STEPS = [
+  { t: "Pane", d: "La base di tutto." },
+  { t: "Carne e proteine", d: "Scegli la tua fonte di potere." },
+  { t: "Aggiungi il resto", d: "Formaggi, verdure, salse, extra." },
+  { t: "Chiudi il tuo burger", d: "Aggiungi il pane superiore e completa il tuo mostro." },
+];
+/** handwritten hint on the stage, per step (Lunar: no apostrophes) */
+const HINTS = ["Scegli il primo ingrediente", "Ora scegli la carne", "Aggiungi il resto", "Chiudi il tuo burger"];
+const PRELOAD = [...INGREDIENTS.map((i) => i.img), ...BREADS.flatMap((b) => [b.bottom.img, b.top.img]),
+  ...["waving", "eating-burger", "running", "crown-thumbs-up"].map((m) => `/assets/mascot/${m}.webp`)];
+
+const Check = ({ className = "" }: { className?: string }) => (
+  <svg viewBox="0 0 20 20" className={className} aria-hidden><path d="M4.5 10.5l3.6 3.6L15.5 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
 
 export default function Builder() {
   const root = useRef<HTMLElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
   const mascotRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
   const uid = useRef(1);
-  const [layers, setLayers] = useState<Layer[]>([]); // includes bun-bottom as first
+  const [fillLayers, setFill] = useState<Layer[]>([]);
+  const [breadId, setBreadId] = useState(BREADS[0].id);
+  const [breadPicked, setBreadPicked] = useState(false);
   const [closed, setClosed] = useState(false);
   const [toast, setToast] = useState("");
   const [asMenu, setAsMenu] = useState(false);
   const [drink, setDrink] = useState(DRINKS[0].id);
+  const [tab, setTab] = useState<Tab>("pane");
+  const [step, setStep] = useState(0);
+  const [open, setOpen] = useState(false); // mobile summary expanded
+  const [warm, setWarm] = useState(false);
   const drinkObj = DRINKS.find((d) => d.id === drink) ?? DRINKS[0];
+  const bread = BREADS.find((b) => b.id === breadId) ?? BREADS[0];
   const { add } = useCart();
   const { contextSafe } = useGSAP({ scope: root });
 
-  const fill = layers.filter((l) => l.ing.id !== "bun-bottom").map((l) => l.ing);
-  const all = [...layers.map((l) => l.ing), ...(closed ? [BUN_TOP] : [])];
-  const burgerPrice = all.reduce((a, i) => a + i.price, 0) + (all.length ? 2.0 : 0); // +2€ mano d'opera & amore
-  const price = burgerPrice + (asMenu && all.length ? MENU_UPGRADE : 0);
-  const kcal = all.reduce((a, i) => a + i.kcal, 0);
+  const fill = fillLayers.map((l) => l.ing);
+  const all = [bread.bottom, ...fill, ...(closed ? [bread.top] : [])];
+  const burgerPrice = fill.length ? all.reduce((a, i) => a + i.price, 0) + 2.0 : 0; // +2€ mano d'opera & amore
+  const price = burgerPrice + (asMenu && fill.length ? MENU_UPGRADE : 0);
+  const kcal = fill.length ? all.reduce((a, i) => a + i.kcal, 0) : 0;
   const name = makeName(fill, closed);
   const spicy = fill.some((f) => f.spicy);
   const full = fill.length >= MAX;
@@ -69,10 +101,12 @@ export default function Builder() {
     fill.forEach((f) => { m[f.id] = (m[f.id] ?? 0) + 1; });
     return m;
   }, [fill]);
-
+  const hasProtein = fill.some((f) => f.group === "base");
+  const done = [breadPicked || fill.length > 0, hasProtein, fill.some((f) => f.group !== "base"), closed];
+  const active = closed ? 3 : step;
 
   const mood = useMemo(() => {
-    if (!layers.length) return { img: "/assets/mascot/waving.webp", say: "Scegli un ingrediente per iniziare." };
+    if (!fill.length && !closed) return { img: "/assets/mascot/waving.webp", say: "Scegli un ingrediente per iniziare." };
     if (fill.length >= MAX) return { img: "/assets/mascot/eating-burger.webp", say: "Hai raggiunto il numero massimo di strati." };
     if (fill.length >= 30) return { img: "/assets/mascot/running.webp", say: "Per aggiungere un ingrediente, rimuovine uno." };
     if (fill.length >= 20) return { img: "/assets/mascot/eating-burger.webp", say: "Il tuo burger prende forma." };
@@ -82,13 +116,15 @@ export default function Builder() {
     if (closed && fill.length >= 4) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Ingredienti selezionati." };
     if (closed) return { img: "/assets/mascot/crown-thumbs-up.webp", say: "Burger completato." };
     return { img: "/assets/mascot/eating-burger.webp", say: fill.length ? "Continua a comporre il tuo burger." : "Scegli proteine e ingredienti." };
-  }, [layers.length, fill, spicy, closed]);
+  }, [fill, spicy, closed]);
+  const hint = closed ? "Pronto da ordinare" : full ? "Stack pieno" : active === 0 && fill.length ? "Scegli il pane" : HINTS[active];
 
-  // stack layout (shared with the cart snapshot renderer)
-  const { offsets, top: topOffset, height: stackH } = stackLayout(layers.map((l) => l.ing));
-  // the burger grows freely, then auto-scales so it always fits the plate AND the viewport
+  // stack layout (shared with the cart snapshot renderer): bottom bun is always on the plate
+  const stackIngs = [bread.bottom, ...fill];
+  const { offsets, top: topOffset, height: stackH } = stackLayout(stackIngs);
+  // auto-scale: the burger (plus the floating top bun while open) always fits the stage and the viewport
   const plateRef = useRef<HTMLDivElement>(null);
-  const [box, setBox] = useState({ w: 520, h: 520, vh: 900 });
+  const [box, setBox] = useState({ w: 560, h: 500, vh: 900 });
   useEffect(() => {
     const el = plateRef.current; if (!el) return;
     const upd = () => setBox({ w: el.offsetWidth, h: el.offsetHeight, vh: window.innerHeight });
@@ -96,13 +132,29 @@ export default function Builder() {
     const ro = new ResizeObserver(upd); ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const widthFit = Math.min(1, (box.w * 0.62) / 260);
-  const availH = Math.max(200, Math.min(box.h * 0.72, box.vh * 0.6)); // stays inside the plate, clear of the fixed navbar
-  const fit = Math.min(widthFit, availH / Math.max(1, stackH));
+  const widthFit = Math.min(1, (box.w * 0.5) / 260, (box.h * 0.6) / 260);
+  const availH = Math.max(160, Math.min(box.h * 0.66, box.vh * 0.55));
+  const fit = Math.min(widthFit, availH / Math.max(1, stackH + (closed ? 0 : GAP)));
+
+  // warm the image cache before the section is reached: stage + card images never pop in
+  useEffect(() => {
+    const el = root.current; if (!el) return;
+    const io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) { setWarm(true); io.disconnect(); } }, { rootMargin: "1600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!warm) return;
+    PRELOAD.forEach((src) => { const im = new window.Image(); im.decoding = "async"; im.src = src; });
+  }, [warm]);
 
   const popMascot = contextSafe(() => {
     if (reduced()) return;
     gsap.fromTo(mascotRef.current, { scale: 0.8, rotate: -8 }, { scale: 1, rotate: 0, duration: 0.6, ease: "elastic.out(1,0.4)" });
+  });
+  const squash = contextSafe((delay = 0.3) => {
+    if (reduced()) return;
+    gsap.fromTo(stackRef.current, { scaleY: 1 }, { scaleY: 0.94, scaleX: 1.03, duration: 0.12, delay, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "50% 100%", overwrite: true });
   });
   const dropIn = contextSafe((sel: string) => {
     if (reduced()) return;
@@ -110,217 +162,355 @@ export default function Builder() {
       const el = root.current?.querySelector(sel);
       if (!el) return;
       gsap.fromTo(el, { y: -320, opacity: 0, rotate: gsap.utils.random(-14, 14) }, { y: 0, opacity: 1, rotate: 0, duration: 0.8, ease: "bounce.out", overwrite: true });
-      gsap.fromTo(stackRef.current, { scaleY: 1 }, { scaleY: 0.94, scaleX: 1.03, duration: 0.12, delay: 0.3, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "50% 100%", overwrite: true });
+      squash();
     });
   });
+
+  const goTab = (t: Tab) => { setOpen(false); setTab(t); setStep(TABS.find((x) => x.id === t)!.step); };
+  const goStep = (i: number) => {
+    if (i === 3) { setStep(3); closeTop(); return; }
+    setStep(i);
+    if (i === 0) setTab("pane");
+    else if (i === 1) setTab("base");
+    else if (TABS.find((x) => x.id === tab)?.step !== 2) setTab("formaggi");
+  };
+  const pickBread = (id: string) => {
+    setBreadPicked(true);
+    if (id !== breadId) { setBreadId(id); dropIn("[data-layer='bottom']"); popMascot(); }
+    setToast("");
+    if (!fill.length) setTimeout(() => goTab("base"), 450); // first time: move on to the protein
+  };
 
   const addIng = (ing: Ingredient) => {
     if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati. Rimuovine uno (−) per aggiungere ${ing.name}.`); return; }
     if ((counts[ing.id] ?? 0) >= PER) { setToast(`Puoi aggiungere al massimo ${PER} porzioni di ${ing.name}.`); return; }
-    setToast("");
-    const next = [...layers];
-    const newOnes: Layer[] = [];
-    if (!next.length) { const b = { uid: uid.current++, ing: BUN_BOTTOM }; next.push(b); newOnes.push(b); }
-    const l = { uid: uid.current++, ing }; next.push(l); newOnes.push(l);
-    setLayers(next);
-    newOnes.forEach((n, i) => setTimeout(() => dropIn(`[data-layer="${n.uid}"]`), i * 160));
+    setToast(""); setOpen(false);
+    const l = { uid: uid.current++, ing };
+    setFill((f) => [...f, l]);
+    setTimeout(() => dropIn(`[data-layer="${l.uid}"]`), 0);
     popMascot();
   };
   const closeTop = () => {
-    if (!layers.length) { setToast("Aggiungi prima il pane sotto."); return; }
+    if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
     if (closed) return;
-    setClosed(true); dropIn("[data-layer='top']"); popMascot();
+    setClosed(true); setStep(3); squash(0.45); popMascot();
   };
   const remove = contextSafe((u: number) => {
     const el = root.current?.querySelector(`[data-layer="${u}"]`);
-    const doIt = () => { setLayers((ls) => ls.filter((l) => l.uid !== u)); setToast(""); };
+    const doIt = () => { setFill((ls) => ls.filter((l) => l.uid !== u)); setToast(""); };
     if (el && !reduced()) gsap.to(el, { x: 260, rotate: 40, opacity: 0, duration: 0.4, ease: "power2.in", onComplete: doIt });
     else doIt();
     popMascot();
   });
   const removeOne = (ing: Ingredient) => {
-    const last = [...layers].reverse().find((l) => l.ing.id === ing.id);
+    const last = [...fillLayers].reverse().find((l) => l.ing.id === ing.id);
     if (last) remove(last.uid);
   };
-  const reset = () => { setLayers([]); setClosed(false); setToast(""); popMascot(); };
+  const reset = () => { setOpen(false); setFill([]); setClosed(false); setToast(""); setBreadId(BREADS[0].id); setBreadPicked(false); setAsMenu(false); goTab("pane"); popMascot(); };
 
   const order = () => {
     if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
-    const ids = [...layers.map((l) => l.ing.id), BUN_TOP.id];
+    const ids = [bread.bottom.id, ...fill.map((f) => f.id), bread.top.id];
     const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${drinkObj.id}` : "");
-    const finalPrice = Math.round((price + (closed ? 0 : BUN_TOP.price)) * 100) / 100;
+    const finalPrice = Math.round((price + (closed ? 0 : bread.top.price)) * 100) / 100;
     const fillNames = fill.map((f) => f.name);
     const finalName = makeName(fill, true); // the order always closes the bun first
     const go = async () => {
       let img = "/assets/menu/sbranatore.webp";
       try { img = await composeBurger(ids); } catch { /* fallback: stacked component in cart */ }
       flyToCart(stackRef.current, img, () => {
-        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames, note: `Ingredienti: ${fillNames.join(", ")}`,
+        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames,
+          note: `Pane: ${bread.name}. Ingredienti: ${fillNames.join(", ")}`,
           ...(asMenu ? { menu: { fries: MENU_FRIES.name, drink: drinkObj.name, friesImg: MENU_FRIES.img, drinkImg: drinkObj.img } } : {}) });
-        setToast("Aggiunto all’ordine.");
+        setToast("Aggiunto all’ordine."); setOpen(false);
       });
     };
-    if (!closed) { closeTop(); setTimeout(go, 700); } else go();
+    if (!closed) { closeTop(); setTimeout(go, 750); } else go();
   };
 
   useGSAP(() => {
     if (reduced()) return;
-    gsap.from(".b-group", { y: 30, opacity: 0, duration: 0.7, ease: "power3.out", stagger: 0.08, scrollTrigger: { trigger: ".b-picker", start: "top 85%", once: true } });
-    gsap.from(".b-ringline", { scale: 0.6, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.15, scrollTrigger: { trigger: ".b-orbit", start: "top 80%", once: true } });
+    gsap.from(".b-line", { yPercent: 110, rotate: 3, duration: 1, ease: "expo.out", stagger: 0.12, scrollTrigger: { trigger: ".b-head", start: "top 90%", once: true } });
+    gsap.from(".b-ringline", { scale: 0.7, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.12, transformOrigin: "50% 50%", scrollTrigger: { trigger: ".b-orbit", start: "top 80%", once: true } });
   }, { scope: root });
+  // cards of the new tab fade in (opacity/transform only: no layout shift)
+  useGSAP(() => {
+    if (reduced() || !cardsRef.current) return;
+    cardsRef.current.scrollTo({ left: 0 });
+    gsap.fromTo(cardsRef.current.querySelectorAll(`[data-panel="${tab}"] .b-card`), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.04, overwrite: true });
+  }, { dependencies: [tab], scope: root });
 
-
-  const Chip = ({ ing }: { ing: Ingredient }) => {
+  /* ---------- pieces ---------- */
+  const card = (opts: { key: string; img: string; name: string; desc?: string; priceLabel: string; selected: boolean; badge?: React.ReactNode; spicy?: boolean;
+    main: React.ReactNode; foot: React.ReactNode }) => (
+    <div key={opts.key} data-ing={opts.key}
+      className={`b-card relative flex w-[164px] shrink-0 snap-start flex-col rounded-[22px] border-2 bg-white p-2 transition-[border-color,box-shadow] duration-200 md:w-[172px] lg:w-[clamp(140px,11vw,172px)] ${opts.selected ? "border-lime shadow-[0_0_0_3px_#d6ff4d]" : "border-ink/10"}`}>
+      <span aria-hidden className={`absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${opts.selected ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
+      {opts.main}
+      <p className="mt-2 truncate px-1 text-[14px] font-bold leading-tight">{opts.name}{opts.spicy && <span aria-label="piccante"> 🌶</span>}</p>
+      <p className="mt-0.5 line-clamp-2 h-[2.7em] px-1 text-[11.5px] leading-[1.35] text-ink/55">{opts.desc}</p>
+      <div className="mt-1.5 flex h-8 items-center justify-between gap-1 pl-1">
+        <span className={`text-[12.5px] font-bold tabular-nums ${opts.priceLabel === "Gratis" ? "uppercase tracking-wider text-ink/50" : ""}`}>{opts.priceLabel}</span>
+        {opts.foot}
+      </div>
+    </div>
+  );
+  const thumb = (img: string, alt: string, sizes = "160px") => (
+    <span className="relative block h-[92px] w-full overflow-hidden rounded-[16px] bg-cream">
+      <Image src={img} alt={alt} fill sizes={sizes} loading="eager" className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105" />
+    </span>
+  );
+  const ingCard = (ing: Ingredient) => {
     const count = counts[ing.id] ?? 0;
     const maxed = full || count >= PER;
-    return (
-      <div data-ing={ing.id} className={`b-chip flex items-center gap-1 rounded-full border-2 p-1 text-[13px] font-bold transition-colors duration-200 ${count ? "border-ink bg-ink text-lime" : "border-ink/10 bg-white text-ink"}`}>
+    return card({
+      key: ing.id, img: ing.img, name: ing.name, desc: ing.desc, priceLabel: `+${euro(ing.price)}`, selected: count > 0, spicy: ing.spicy,
+      main: (
         <button type="button" onClick={() => addIng(ing)} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={maxed}
-          className={`flex min-w-0 flex-1 items-center gap-2 rounded-full pr-1 text-left transition-transform active:scale-95 ${maxed ? "opacity-60" : ""}`}>
-          <span className={`relative h-9 w-9 shrink-0 rounded-full ${count ? "bg-lime" : "bg-cream"}`}><Image src={ing.img} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
-          <span className="min-w-0 flex-1 leading-tight">{ing.name}{ing.spicy && <span aria-label="piccante"> 🌶</span>}<span className={`block text-[11px] font-medium ${count ? "text-lime/60" : "text-ink/50"}`}>+{euro(ing.price)}</span></span>
-        </button>
-        <div className="flex shrink-0 items-center gap-0.5">
-          {count > 0 && <button type="button" onClick={() => removeOne(ing)} aria-label={`Togli un ${ing.name}`} className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 text-base leading-none hover:bg-cream/30">−</button>}
-          {count > 0 && <span className="w-5 text-center text-xs tabular-nums" data-count>{count}</span>}
-          <button type="button" onClick={() => addIng(ing)} tabIndex={-1} aria-hidden className={`flex h-7 w-7 items-center justify-center rounded-full text-base leading-none ${count ? "bg-lime text-ink" : "bg-ink text-lime"} ${maxed ? "opacity-40" : ""}`}>+</button>
-        </div>
-      </div>
-    );
+          className={`group block w-full text-left transition-transform active:scale-[0.97] ${maxed ? "opacity-60" : ""}`}>{thumb(ing.img, "")}</button>
+      ),
+      foot: (
+        <span className="flex h-8 items-center rounded-full bg-ink p-0.5 text-lime">
+          <button type="button" onClick={() => removeOne(ing)} disabled={!count} aria-label={`Togli un ${ing.name}`} className="flex h-7 w-7 items-center justify-center rounded-full text-base leading-none hover:bg-cream/15 disabled:opacity-30">−</button>
+          <span className="w-4 text-center text-xs font-bold tabular-nums" data-count>{count}</span>
+          <button type="button" onClick={() => addIng(ing)} tabIndex={-1} aria-hidden className={`flex h-7 w-7 items-center justify-center rounded-full bg-lime text-base leading-none text-ink ${maxed ? "opacity-40" : ""}`}>+</button>
+        </span>
+      ),
+    });
+  };
+  const breadCard = (b: (typeof BREADS)[number]) => {
+    const sel = b.id === breadId;
+    return card({
+      key: "bread-" + b.id, img: b.top.img, name: b.name, desc: b.desc, priceLabel: b.extra ? `+${euro(b.extra)}` : "Gratis", selected: sel,
+      main: (
+        <button type="button" role="radio" aria-checked={sel} onClick={() => pickBread(b.id)} aria-label={`${b.name}, ${b.extra ? "+" + euro(b.extra) : "gratis"}`} data-bread={b.id}
+          className="group block w-full text-left transition-transform active:scale-[0.97]">{thumb(b.top.img, "")}</button>
+      ),
+      foot: (
+        <button type="button" tabIndex={-1} aria-hidden onClick={() => pickBread(b.id)}
+          className={`flex h-8 items-center rounded-full px-3 text-[11px] font-bold uppercase tracking-wider ${sel ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{sel ? "Scelto" : "Scegli"}</button>
+      ),
+    });
   };
 
   return (
-    <section ref={root} id="builder" className="relative overflow-x-clip px-4 py-20 md:px-10 md:py-28">
-      <div className="mx-auto grid max-w-[1360px] items-start gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        {/* left: copy + live info */}
-        <div className="order-2 lg:order-1 lg:sticky lg:top-24">
-          <SectionHead label="Fai il mostro" icon="bolt" tilt={-4} l1="Costruisci" l2="il tuo mostro" align="left" />
-          <ol className="mt-8 space-y-3">
-            {[["Pane", "La base è già inclusa."], ["Ciccia e extra", "Scegli gli ingredienti dai gruppi qui sotto."], ["Chiudi e ordina", "Aggiungi il pane superiore per completare il burger."]].map(([t, d], i) => (
-              <li key={t} className="flex items-center gap-4 rounded-[22px] bg-white/60 p-3 pr-5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-xl text-lime">{i + 1}</span>
-                <div><p className="font-bold uppercase tracking-wider">{t}</p><p className="text-sm text-ink/60">{d}</p></div>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-6 rounded-[28px] bg-ink p-5 text-cream md:p-6">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-cream/50">Il suo nome è</p>
-            <p className="mt-1 min-h-[2.1em] font-display text-3xl uppercase leading-[1] text-lime md:text-4xl" aria-live="polite">{name}</p>
-            <div className="mt-4 flex flex-wrap items-end gap-6">
-              <div><p className="text-xs uppercase tracking-wider text-cream/50">Prezzo</p><p className="font-display text-4xl tabular-nums">{euro(price)}</p></div>
-              <div><p className="text-xs uppercase tracking-wider text-cream/50">Energia</p><p className="font-display text-4xl tabular-nums">{kcal} <span className="text-lg">kcal</span></p></div>
-              <div><p className="text-xs uppercase tracking-wider text-cream/50">Strati</p><p className="font-display text-4xl tabular-nums">{fill.length}<span className="text-lg text-cream/50">/{MAX}</span></p></div>
-            </div>
-            {layers.length > 0 && (
-              <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Strati, tocca per togliere">
-                {layers.filter((l) => l.ing.id !== "bun-bottom").map((l) => (
-                  <li key={l.uid}><button onClick={() => remove(l.uid)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink" aria-label={`Togli ${l.ing.name}`}>{l.ing.name} ✕</button></li>
-                ))}
-                {closed && <li><button onClick={() => setClosed(false)} className="rounded-full bg-cream/10 px-3 py-1 text-xs hover:bg-lime hover:text-ink">Pane sopra · rimuovi</button></li>}
-              </ul>
-            )}
-            {/* Fallo menu */}
-            <div className={`mt-5 rounded-[22px] p-3 transition-colors ${asMenu ? "bg-lime text-ink" : "bg-cream/10"}`}>
-              <label className="flex cursor-pointer items-center gap-3">
-                <input type="checkbox" checked={asMenu} onChange={(e) => setAsMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
-                <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`absolute top-1 h-5 w-5 rounded-full transition-transform ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
-                <span className="flex-1"><span className="block font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano e una bibita a scelta.</span></span>
-                <span className="flex -space-x-3" aria-hidden>
-                  <span className="relative h-10 w-10 rounded-full bg-cream"><Image src={MENU_FRIES.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
-                  <span className="relative h-10 w-10 rounded-full" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
-                </span>
-              </label>
-              {asMenu && (
-                <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Scegli la bibita">
-                  {DRINKS.map((d) => (
-                    <button key={d.id} type="button" role="radio" aria-checked={drink === d.id} onClick={() => setDrink(d.id)} data-drink={d.id}
-                      className={`flex items-center gap-1.5 rounded-full border-2 py-0.5 pl-0.5 pr-3 text-xs font-bold ${drink === d.id ? "border-ink bg-ink text-lime" : "border-ink/20 bg-white/60 text-ink"}`}>
-                      <span className="relative h-7 w-7 overflow-hidden rounded-full border border-ink/20" style={{ background: d.tint }}><Image src={d.img} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>{d.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button onClick={order} className="group flex items-center gap-1" data-builder-order>
-                <span className="flex h-12 items-center rounded-full bg-lime px-6 text-[13px] font-bold uppercase tracking-[0.08em] text-ink">Aggiungi all&apos;ordine</span>
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime text-xl text-ink transition-transform duration-500 group-hover:rotate-90">+</span>
-              </button>
-              <button onClick={reset} className="h-12 rounded-full border-2 border-cream/30 px-5 text-xs font-bold uppercase tracking-wider hover:border-lime hover:text-lime">Ricomincia</button>
-            </div>
-            <p className="mt-3 min-h-5 text-sm text-lime/80" aria-live="polite">{toast}</p>
-          </div>
+    <section ref={root} id="builder" aria-labelledby="b-title" className="relative overflow-x-clip px-4 pb-10 pt-20 md:px-10 md:pb-28 md:pt-28">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] lg:gap-x-12 lg:gap-y-8 xl:gap-x-16">
+        {/* 1. head */}
+        <div className="b-head lg:col-start-1 lg:row-start-1">
+          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/70"><span>01 / Builder</span><span aria-hidden className="h-px w-16 bg-ink/40" /></p>
+          <h2 id="b-title" className="mt-4 font-display text-[12.4vw] uppercase leading-[0.86] md:text-[clamp(52px,7vw,84px)] lg:text-[clamp(48px,4.7vw,84px)]">
+            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">Costruisci</span></span>
+            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">il tuo mostro</span></span>
+          </h2>
+          <p className="mt-4 max-w-[25rem] text-base text-ink/70 md:text-lg">Scegli gli ingredienti, strato dopo strato. Il tuo burger prende forma qui.</p>
         </div>
 
-        {/* right: plate + grouped picker */}
-        <div className="b-orbit relative order-1 lg:order-2">
-          <div ref={plateRef} className="relative mx-auto aspect-square w-full max-w-[520px]">
-            <div className="b-ringline absolute inset-[6%] rounded-full border-2 border-dashed border-ink/25" />
-            <div className="b-ringline absolute inset-0 hidden rounded-full border-2 border-ink/10 md:block" />
-            <div className="absolute inset-[14%] rounded-full bg-lime" />
+        {/* 2. steps: compact horizontal stepper on mobile, cards on desktop */}
+        <ol className="relative grid grid-cols-4 gap-1 lg:col-start-1 lg:row-start-2 lg:grid-cols-1 lg:gap-2.5" aria-label="Passaggi">
+          <span aria-hidden className="absolute left-[12.5%] right-[12.5%] top-5 h-0.5 bg-ink/15 lg:hidden" />
+          {STEPS.map((s, i) => {
+            const on = active === i;
+            return (
+              <li key={s.t} className="relative">
+                <button type="button" onClick={() => goStep(i)} aria-current={on ? "step" : undefined} data-step={i + 1}
+                  className={`flex w-full flex-col items-center gap-1.5 text-center transition-colors lg:flex-row lg:items-center lg:gap-4 lg:rounded-[22px] lg:border-2 lg:p-3 lg:pr-5 lg:text-left ${on ? "lg:border-ink lg:bg-white" : "lg:border-transparent lg:bg-white/55 lg:hover:bg-white/80"}`}>
+                  <span className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink font-display text-lg text-lime transition-shadow duration-300 lg:h-11 lg:w-11 lg:text-xl ${on ? "shadow-[0_0_0_3px_#f6ebd7,0_0_0_6px_#d6ff4d]" : ""}`}>
+                    {i + 1}
+                    {done[i] && !on && <span aria-label="completato" className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-ink bg-lime text-ink"><Check className="h-3 w-3" /></span>}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-[10px] font-bold uppercase leading-tight tracking-wider lg:text-[15px] ${on ? "text-ink" : "text-ink/70"}`}>{s.t}</span>
+                    <span className="hidden text-sm text-ink/60 lg:block">{s.d}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+
+        {/* 3. stage */}
+        <div className="b-orbit relative isolate lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-end">
+          <div ref={plateRef} className="relative mx-auto aspect-[1.12/1] w-full max-w-[680px] lg:aspect-auto lg:h-[clamp(400px,calc(100svh-400px),600px)]">
+            <svg aria-hidden viewBox="0 0 112 100" className="absolute left-1/2 top-0 h-full w-auto max-w-none -translate-x-1/2 overflow-visible" style={{ aspectRatio: "1.12" }}>
+              <circle className="b-ringline" cx="56" cy="51" r="49.5" fill="none" stroke="#111" strokeOpacity=".14" strokeWidth=".25" />
+              <circle className="b-ringline" cx="56" cy="51" r="46.5" fill="none" stroke="#111" strokeOpacity=".28" strokeWidth=".3" strokeDasharray="1 1.4" />
+            </svg>
+            <div className="absolute left-1/2 top-[51%] aspect-square h-[86%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime" />
+            <svg aria-hidden viewBox="0 0 112 100" className="absolute left-1/2 top-0 h-full w-auto max-w-none -translate-x-1/2" style={{ aspectRatio: "1.12" }}>
+              <circle cx="56" cy="51" r="35" fill="none" stroke="#111" strokeOpacity=".1" strokeWidth=".25" />
+              <circle cx="56" cy="51" r="26" fill="none" stroke="#111" strokeOpacity=".08" strokeWidth=".25" />
+              <g className="sb-orbit" style={{ transformOrigin: "56px 51px" }}><circle cx="56" cy="4.5" r="1.1" fill="#111" /></g>
+            </svg>
             {/* stack */}
-            <div className="absolute inset-x-0 bottom-[26%] flex justify-center">
+            <div className="absolute inset-x-0 bottom-[19%] flex justify-center">
               <div className="relative h-[300px] w-[260px]">
                 <div ref={stackRef} className="absolute inset-0" aria-label="Il tuo burger">
                   <div className="absolute -bottom-3 left-1/2 h-6 w-[90%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-sm" />
                   <div className="absolute inset-0 origin-bottom transition-transform duration-500" style={{ transform: `scale(${fit})` }}>
-                    {layers.map((l, i) => (
-                      <div key={l.uid} className="absolute bottom-0 left-1/2 transition-transform duration-500 ease-[cubic-bezier(.3,1.5,.5,1)]"
-                        style={{ width: `${l.ing.w}%`, transform: `translate(-50%, ${-offsets[i]}px)`, zIndex: i + 1 }}>
-                        <div data-layer={l.uid} onClick={() => l.ing.id !== "bun-bottom" && remove(l.uid)} className={`relative w-full ${l.ing.id !== "bun-bottom" ? "cursor-pointer" : ""}`} style={{ aspectRatio: l.ing.ratio }}>
-                          <Image src={l.ing.img} alt={l.ing.name} fill sizes="280px" className="object-contain object-bottom" />
+                    {stackIngs.map((ing, i) => {
+                      const l = i ? fillLayers[i - 1] : null;
+                      return (
+                        <div key={l ? l.uid : "bottom-" + bread.id} className="absolute bottom-0 left-1/2 transition-transform duration-500 ease-[cubic-bezier(.3,1.5,.5,1)]"
+                          style={{ width: `${ing.w}%`, transform: `translate(-50%, ${-offsets[i]}px)`, zIndex: i + 1 }}>
+                          <div data-layer={l ? l.uid : "bottom"} onClick={() => l && remove(l.uid)} className={`relative w-full ${l ? "cursor-pointer" : ""}`} style={{ aspectRatio: ing.ratio }}>
+                            <Image src={ing.img} alt={ing.name} fill sizes="280px" priority={!l} className="object-contain object-bottom" />
+                          </div>
                         </div>
+                      );
+                    })}
+                    {/* top bun: floats above while open, drops on as the closing step */}
+                    <div className="absolute bottom-0 left-1/2 transition-transform duration-[650ms] ease-[cubic-bezier(.34,1.5,.6,1)]"
+                      style={{ width: `${bread.top.w}%`, transform: `translate(-50%, ${-(topOffset + (closed ? 0 : GAP))}px)`, zIndex: 50 }}>
+                      <div data-layer="top" role="button" tabIndex={0} aria-label={closed ? "Togli il pane sopra" : "Chiudi con il pane sopra"}
+                        onClick={() => (closed ? setClosed(false) : closeTop())} onKeyDown={(e) => e.key === "Enter" && (closed ? setClosed(false) : closeTop())}
+                        className={`relative w-full cursor-pointer ${closed ? "" : "sb-bob"}`} style={{ aspectRatio: bread.top.ratio }}>
+                        <Image key={bread.top.id} src={bread.top.img} alt="Pane sopra" fill sizes="280px" priority className="object-contain object-bottom" />
                       </div>
-                    ))}
-                    {closed && (
-                      <div className="absolute bottom-0 left-1/2 transition-transform duration-500" style={{ width: `${BUN_TOP.w}%`, transform: `translate(-50%, ${-topOffset}px)`, zIndex: 50 }}>
-                        <div data-layer="top" onClick={() => setClosed(false)} className="relative w-full cursor-pointer" style={{ aspectRatio: BUN_TOP.ratio }}>
-                          <Image src={BUN_TOP.img} alt="Pane sopra" fill sizes="280px" className="object-contain object-bottom" />
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                  {!layers.length && (
-                    <p className="absolute inset-x-0 bottom-10 text-center font-display text-2xl uppercase leading-none text-ink/50">Inizia a comporre il tuo burger.<br />Scegli gli ingredienti dal menu.</p>
-                  )}
                 </div>
               </div>
             </div>
             {/* close button */}
-            <button onClick={closeTop} disabled={closed} className="absolute bottom-[12%] left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink py-1 pl-1 pr-4 text-xs font-bold uppercase tracking-wider text-lime transition-transform hover:scale-105 disabled:opacity-40">
-              <span className="relative h-8 w-8 rounded-full bg-lime"><Image src={BUN_TOP.img} alt="" fill sizes="32px" className="object-contain p-0.5" /></span>
+            <button onClick={closeTop} disabled={closed} className="absolute bottom-[2%] left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-ink py-1 pl-1 pr-4 text-[11px] font-bold uppercase tracking-wider text-lime transition-transform hover:scale-105 disabled:opacity-40 md:text-xs">
+              <span className="relative h-7 w-7 rounded-full bg-lime md:h-8 md:w-8"><Image src={bread.top.img} alt="" fill sizes="32px" className="object-contain p-0.5" /></span>
               {closed ? "Chiuso" : "Completa con il pane sopra."}
             </button>
-            {/* mascot */}
-            <div className="absolute right-0 top-0 z-[70] flex flex-col items-end">
-              <div className="relative max-w-[180px] rounded-[18px] rounded-br-none bg-ink px-3 py-2 text-xs font-bold text-cream md:max-w-[200px] md:text-sm" aria-live="polite">{mood.say}</div>
-              <div ref={mascotRef} className="relative mt-1 h-20 w-20 rounded-full border-[3px] border-ink bg-cream md:h-24 md:w-24">
-                <Image key={mood.img} src={mood.img} alt="Mascotte SBRANO" fill sizes="96px" className="object-contain p-1.5" />
+            {/* handwritten hint + waving mascot */}
+            <div className="pointer-events-none absolute right-0 top-0 z-[70] flex w-[34%] max-w-[230px] flex-col items-end text-right">
+              <div className="flex items-start gap-1">
+                <p className="mt-1 rotate-[-5deg] font-display text-[12px] uppercase leading-[1.05] md:text-[17px] lg:text-[clamp(14px,1.25vw,20px)]" aria-live="polite">{hint}</p>
+                <div className="relative h-12 w-12 shrink-0 md:h-16 md:w-16"><Image src="/assets/mascot/waving.webp" alt="" fill sizes="64px" className="object-contain" /></div>
               </div>
+              <svg aria-hidden viewBox="0 0 120 70" className="mr-[30%] mt-0.5 h-auto w-[52%] text-ink">
+                <path d="M112 6 C 96 40, 62 58, 14 58" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+                <path d="M26 47 L 12 58 L 27 66" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
+        </div>
 
-          {/* grouped ingredient picker */}
-          <div className="b-picker mt-6 rounded-[28px] bg-white/60 p-4 md:p-5">
-            <div className="mb-3 flex items-center justify-between gap-3 px-1">
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-ink/60">Ingredienti</p>
-              <p className={`text-xs font-bold uppercase tracking-wider tabular-nums ${full ? "text-red-600" : "text-ink/60"}`}>{full ? `Stack pieno ${fill.length}/${MAX}` : `${fill.length}/${MAX} strati · massimo ${PER} per ingrediente`}</p>
+        {/* 4. ingredient panel */}
+        <div className="rounded-[28px] border border-ink/10 bg-[#fbf4e6] p-3 md:p-5 lg:col-start-2 lg:row-start-3 lg:self-start">
+          <div className="flex flex-col-reverse gap-3">
+            <div role="tablist" aria-label="Categorie" className="no-scrollbar -mx-3 flex min-w-0 gap-1.5 overflow-x-auto px-3 md:mx-0 md:px-0">
+              {TABS.map((t) => {
+                const n = t.id === "pane" ? 0 : fill.filter((f) => f.group === t.id).length;
+                const on = tab === t.id;
+                return (
+                  <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => goTab(t.id)} data-tab={t.id}
+                    className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-[12px] lg:h-9 lg:px-3.5 lg:text-[11px] font-bold uppercase tracking-wider transition-colors ${on ? "border-ink bg-lime text-ink" : "border-ink/12 bg-white text-ink/80 hover:border-ink/40"}`}>
+                    {t.label}
+                    {n > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] tabular-nums text-lime">{n}</span>}
+                  </button>
+                );
+              })}
             </div>
-            <div className="space-y-4">
-              {ING_GROUPS.map((g) => (
-                <div key={g.id} className="b-group" role="group" aria-label={g.label}>
-                  <p className="mb-2 flex items-baseline gap-2 px-1"><span className="font-display text-xl uppercase leading-none">{g.label}</span><span className="text-xs text-ink/50">{g.hint}</span></p>
-                  <div className="grid grid-cols-1 gap-2 min-[460px]:grid-cols-2">
-                    {INGREDIENTS.filter((i) => i.group === g.id).map((ing) => <Chip key={ing.id} ing={ing} />)}
-                  </div>
+            <p className="flex items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:justify-end">
+              <span className={`tabular-nums ${full ? "text-red-600" : ""}`}>{fill.length}/{MAX} strati</span>
+              <span className="text-ink/50">Massimo {PER} per ingrediente</span>
+            </p>
+          </div>
+          <div ref={cardsRef} className="no-scrollbar -mx-3 mt-4 snap-x snap-mandatory overflow-x-auto scroll-pl-3 px-3 pb-2 pt-2 md:-mx-5 md:px-5">
+            {TABS.filter((t) => warm || t.id === tab).map((t) => (
+              <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-3">
+                {t.id === "pane" ? BREADS.map(breadCard) : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
+              </div>
+            ))}
+          </div>
+          <p className={`mt-2 min-h-5 px-1 text-sm ${full ? "text-red-600" : "text-ink/70"}`} role="status">{full ? `Hai raggiunto ${MAX} strati. Rimuovine uno (−) per aggiungerne altri.` : toast}</p>
+        </div>
+
+        {/* 5. summary: sticky compact bar on mobile, full card on desktop */}
+        <div className="sticky bottom-3 z-[80] lg:static lg:col-start-1 lg:row-start-3">
+          <div className="max-h-[78svh] overflow-y-auto rounded-[28px] bg-ink p-3 text-cream shadow-[0_18px_40px_-12px_rgba(0,0,0,.45)] md:p-5 lg:max-h-none lg:overflow-visible lg:p-6 lg:shadow-none">
+            {/* mobile header */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2 pl-1 text-left">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cream/10 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden>
+                  <svg viewBox="0 0 20 20" className="h-4 w-4"><path d="M5 12.5l5-5 5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-display text-[17px] uppercase leading-tight text-lime">{fill.length ? name : "Il tuo Sbrano"}</span>
+                  <span className="block truncate text-[11px] text-cream/60">{toast || `${fill.length}/${MAX} strati · ${kcal} kcal`}</span>
+                </span>
+              </button>
+              <button onClick={order} className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink" data-builder-order-mobile aria-label={`Aggiungi all’ordine, ${euro(price)}`}>
+                <span className="tabular-nums">{euro(price)}</span><span aria-hidden className="text-lg leading-none">+</span>
+              </button>
+            </div>
+
+            <div className={`${open ? "mt-4 block" : "hidden"} lg:mt-0 lg:block`}>
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cream/50">Il tuo Sbrano</p>
+                  <p className={`mt-1.5 min-h-[2em] font-display uppercase leading-[1] text-lime ${name.length > 44 && fill.length ? "text-[22px] md:text-[clamp(22px,1.9vw,30px)]" : "text-[26px] md:text-[clamp(26px,2.3vw,38px)]"}`} aria-live="polite">{fill.length ? name : "Il tuo burger, come lo vuoi tu."}</p>
+                  <p className="mt-2 min-h-5 text-sm text-cream/60">{mood.say}</p>
                 </div>
-              ))}
+                <div className="relative hidden w-[30%] max-w-[132px] shrink-0 sm:block">
+                  <div ref={mascotRef} className="relative aspect-square w-full">
+                    <Image key={mood.img} src={mood.img} alt="Mascotte SBRANO" fill sizes="132px" className="object-contain invert" />
+                  </div>
+                  <p aria-hidden className="absolute -left-5 bottom-1 rotate-[-9deg] font-display text-[15px] uppercase leading-none text-lime md:text-[17px]">Zero<br />limiti.</p>
+                  <svg aria-hidden viewBox="0 0 60 10" className="absolute -left-6 -bottom-2 w-14 rotate-[-9deg] text-lime"><path d="M2 6 C 15 2, 30 9, 58 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 divide-x divide-cream/15 rounded-[20px] border border-cream/15">
+                {[["Prezzo", euro(price), ""], ["Energia", String(kcal), "kcal"], ["Strati", String(fill.length), `/${MAX}`]].map(([l, v, u]) => (
+                  <div key={l} className="px-3 py-2.5 md:px-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-cream/50">{l}</p>
+                    <p className="whitespace-nowrap font-display text-[22px] leading-tight tabular-nums md:text-[clamp(22px,2vw,30px)]">{v}{u && <span className="text-[0.55em] text-cream/50"> {u}</span>}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Fallo menu */}
+              <div className={`mt-3 rounded-[22px] p-3 transition-colors ${asMenu ? "bg-lime text-ink" : "bg-cream/10"}`}>
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input type="checkbox" checked={asMenu} onChange={(e) => setAsMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
+                  <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`absolute top-1 h-5 w-5 rounded-full transition-transform ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>Patatine Sbrano e una bibita a scelta.</span></span>
+                  <span className="flex shrink-0 -space-x-3" aria-hidden>
+                    <span className="relative h-10 w-10 rounded-full bg-cream ring-2 ring-ink"><Image src={MENU_FRIES.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                    <span className="relative h-10 w-10 rounded-full ring-2 ring-ink" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
+                  </span>
+                </label>
+                {asMenu && (
+                  <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Scegli la bibita">
+                    {DRINKS.map((d) => (
+                      <button key={d.id} type="button" role="radio" aria-checked={drink === d.id} onClick={() => setDrink(d.id)} data-drink={d.id}
+                        className={`flex items-center gap-1.5 rounded-full border-2 py-0.5 pl-0.5 pr-3 text-xs font-bold ${drink === d.id ? "border-ink bg-ink text-lime" : "border-ink/20 bg-white/60 text-ink"}`}>
+                        <span className="relative h-7 w-7 overflow-hidden rounded-full border border-ink/20" style={{ background: d.tint }}><Image src={d.img} alt="" fill sizes="28px" className="object-contain p-0.5" /></span>{d.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button onClick={order} className="group hidden h-12 items-center justify-between gap-3 rounded-full bg-lime pl-6 pr-2 text-ink lg:flex" data-builder-order>
+                  <span className="whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.08em]">Aggiungi all&apos;ordine</span>
+                  <span className="flex h-9 items-center gap-2 border-l-2 border-ink/20 pl-3 pr-3 font-bold tabular-nums">{euro(price)}</span>
+                </button>
+                <button onClick={reset} className="flex h-12 items-center gap-2 rounded-full border-2 border-cream/30 px-5 text-xs font-bold uppercase tracking-wider transition-colors hover:border-lime hover:text-lime">
+                  <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 3.5v3.2h3.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  Ricomincia
+                </button>
+              </div>
+              <p className="mt-3 hidden min-h-5 text-sm text-lime/80 lg:block" aria-live="polite">{toast}</p>
             </div>
-            {full && <p className="mt-3 rounded-2xl bg-ink px-4 py-2 text-sm text-lime" role="status">Hai raggiunto {MAX} strati. Rimuovine uno (−) per aggiungerne altri.</p>}
-            {!full && toast && <p className="mt-3 px-1 text-sm text-ink/70" role="status">{toast}</p>}
           </div>
         </div>
       </div>
+      {/* hidden warm-up of the stage-size bun variants (same URLs the stage requests) */}
+      {warm && (
+        <div aria-hidden className="hidden">
+          {BREADS.flatMap((b) => [b.bottom, b.top]).map((i) => <span key={i.id} className="relative block h-10 w-10"><Image src={i.img} alt="" fill sizes="280px" loading="eager" /></span>)}
+          {INGREDIENTS.map((i) => <span key={i.id} className="relative block h-10 w-10"><Image src={i.img} alt="" fill sizes="280px" loading="eager" /></span>)}
+        </div>
+      )}
     </section>
   );
 }
