@@ -476,7 +476,7 @@ export default function Builder() {
             {/* handwritten hint + waving mascot */}
             <div className="pointer-events-none absolute right-0 top-0 z-[70] flex w-[34%] max-w-[230px] flex-col items-end text-right">
               <div className="flex items-start gap-1">
-                <p className="mt-1 rotate-[-5deg] font-marker text-[14px] leading-[1.05] md:text-[19px] lg:text-[clamp(17px,1.4vw,23px)]" aria-live="polite"><span key={note} className="sb-pop-in inline-block lg:hidden">{note}</span><span key={hint} className="sb-pop-in hidden lg:inline-block">{hint}</span></p>
+                <p className="mt-1 rotate-[-5deg] font-marker text-[14px] leading-[1.12] md:text-[19px] lg:text-[clamp(17px,1.4vw,23px)]" aria-live="polite"><span key={note} className="sb-pop-in inline-block lg:hidden">{note}</span><span key={hint} className="sb-pop-in hidden lg:inline-block">{hint}</span></p>
                 <div className="relative h-12 w-12 shrink-0 md:h-16 md:w-16"><Image src="/assets/mascot/waving.webp" alt="" fill sizes="64px" className="object-contain" /></div>
               </div>
               <svg aria-hidden viewBox="0 0 120 70" className="mr-[30%] mt-0.5 h-auto w-[52%] text-ink">

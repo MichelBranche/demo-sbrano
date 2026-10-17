@@ -126,6 +126,7 @@ label:active .sb-knob { scale: 1.3 .85; }
 /* ---------- VICIO-style character pass ---------- */
 .font-tanker { font-family: var(--font-tanker-src), Impact, "Arial Narrow", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
 .font-marker { font-family: var(--font-marker-src), "Comic Sans MS", cursive; font-weight: 400; letter-spacing: 0.01em; -webkit-text-stroke: 0.022em currentColor; paint-order: stroke fill; }
+.sb-tag.font-marker { line-height: 1.1; }
 
 /* marker ellipse CTA */
 .sb-ell { perspective: 400px; }
