@@ -60,3 +60,6 @@ next-env.d.ts
 /public/assets/hero/hero-burger.webp
 /public/assets/hero/fly-*.webp
 /public/assets/locale/locale-night.webp
+/public/assets/hero/hero-main.webp
+/public/assets/hero/hp-*.webp
+/public/assets/hero/tl-*.webp

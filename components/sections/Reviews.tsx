@@ -40,7 +40,7 @@ export default function Reviews() {
     io.observe(el); return () => io.disconnect();
   }, []);
   return (
-    <section ref={ref} className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
+    <section ref={ref} id="recensioni" className="relative overflow-hidden py-20 md:py-28" aria-labelledby="rv-title">
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center">
         <Badge icon="crown" tilt={2}>Le recensioni</Badge>
         <h2 id="rv-title" className="font-display text-[13vw] uppercase leading-[0.86] md:text-[clamp(56px,7vw,112px)]">
