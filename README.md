@@ -1,3 +1,5 @@
+![Hero](preview.png)
+
 # SBRANO, street burger Torino (demo concept)
 
 Portfolio demo by Michel Branche (michelbranche.it). Fictional brand.
