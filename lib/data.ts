@@ -11,7 +11,7 @@ export type MenuItem = {
 
 export const MENU: MenuItem[] = [
   { id: "sbranatore", name: "Sbranatore", price: 12.5, img: "/assets/menu/sbranatore.webp", cutout: true, cats: ["manzo"], tag: "Il più scelto", desc: "Doppio smash, cheddar che cola, bacon. Per chi ha fame brutta davvero.", kcal: 980 },
-  { id: "tonyptony", name: "TonyPTony", price: 15.9, img: "/assets/menu/tonyptony-burger.webp", cutout: true, cats: ["manzo"], tag: "Special edition", tags: ["Novità"], special: true, desc: "Il Fuorilegge. Il panino che non chiede permesso.", },
+  { id: "tonyptony", name: "TonyPTony", price: 15.9, img: "/assets/menu/tonyptony-burger-v2.webp", cutout: true, cats: ["manzo"], tag: "Special edition", tags: ["Novità"], special: true, desc: "Il Fuorilegge. Il panino che non chiede permesso.", },
   { id: "mordi-e-fuggi", name: "Mordi e Fuggi", price: 11.9, img: "/assets/menu/mordi-e-fuggi.webp", cutout: true, cats: ["manzo", "piccante"], tag: "Piccante", desc: "Piccante. Mordi, piangi, ritorna.", kcal: 890 },
   { id: "pollo-ruggente", name: "Pollo Ruggente", price: 10.9, img: "/assets/menu/pollo-ruggente.webp", cutout: true, cats: ["pollo"], tag: "Croccante", desc: "Croccante come un beat old school.", kcal: 860 },
   { id: "pollo-teriyaki", name: "Pollo Teriyaki", price: 11.5, img: "/assets/menu/pollo-teriyaki-extra.webp", cutout: true, cats: ["pollo"], tag: "Novità", desc: "Pollo con salsa teriyaki, bacon, pomodoro e cetrioli.", kcal: 910 },
@@ -19,22 +19,30 @@ export const MENU: MenuItem[] = [
   { id: "bibita", name: "Bibita", price: 3.5, img: "/assets/drinks/sbrano.webp", cutout: true, cats: ["bibite"], tag: "Bibite", desc: "Refill libero. Sì, puoi tornare al banco.", kcal: 180 },
 ];
 
-/** the two specials sharing the "burger del mese" section: one photo each, a clean switch between them */
+/** the drops showcase ("burger del mese / edizioni speciali"): one cutout per drop over a torn lime paper panel */
 export type Special = {
-  id: string; name: string; l1: string; l2: string; price: number; kcal?: number; img: string; photo: string; cutout?: boolean; poster?: string;
-  alt: string; eyebrow: string; tab: string; tagline?: string; tags?: string[]; note: string; sticker?: string; overlay?: string;
+  id: string; name: string; price: number; kcal?: number;
+  /** product image that travels to the cart */ img: string;
+  /** transparent cutout shown in the showcase */ cut: string;
+  alt: string; pill: string; d1: string; d2: string; thumb: [string, string]; tagline: string;
+  /** widest title line in em (Lunar Blob), used to fit the title to its column */ fit: number; /** first line width in em, places the crown doodle */ w1: number;
+  /** round sticker (two lines) and torn paper label */ stamp: [string, string]; torn: string; note?: string;
   acc: { t: string; chips: string[] }[];
 };
 export const SPECIALS: Special[] = [
-  { id: "diavolo", name: "Il Diavolo di Vanchiglia", l1: "Il Diavolo", l2: "di Vanchiglia", price: 12.9, kcal: 1040, img: "/assets/promo/burger-mese.webp", photo: "/assets/promo/burger-mese.webp",
-    alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño", eyebrow: "La proposta del mese", tab: "Burger del mese", note: "Burger del mese",
-    sticker: "Solo a ottobre, poi sparisce.", overlay: "Diavolo",
-    acc: [{ t: "Ingredienti", chips: ["Doppio smash", "Cheddar", "Bacon croccante", "Jalapeño", "Salsa spicy", "Brioche al sesamo"] }, { t: "Allergeni", chips: ["Glutine", "Latte", "Uova", "Sesamo", "Senape"] }] },
-  { id: "tonyptony", name: "TonyPTony", l1: "TonyPTony", l2: "Il Fuorilegge", price: 15.9, img: "/assets/menu/tonyptony-burger.webp", photo: "/assets/menu/tonyptony-burger.webp", cutout: true, poster: "/assets/promo/tonyptony.webp", overlay: "Fuorilegge",
-    alt: "TonyPTony, il Fuorilegge: burger di manzo con Taleggio fuso, cialda di polenta, radicchio, cipolla caramellata e BBQ al vino rosso", eyebrow: "Special edition", tab: "Special edition",
-    tagline: "Il panino che non chiede permesso.", tags: ["Novità"], note: "Special edition",
+  { id: "tonyptony", name: "TonyPTony", price: 15.9, img: "/assets/menu/tonyptony-burger-v2.webp", cut: "/assets/menu/tonyptony-burger-v2.webp",
+    alt: "TonyPTony, il Fuorilegge: burger di manzo con Taleggio fuso, cialda di polenta, radicchio, cipolla caramellata e BBQ al vino rosso",
+    pill: "Drop #03 / Fino a domenica", d1: "Fuori", d2: "Legge", thumb: ["Il", "Fuorilegge"], fit: 2.35, w1: 2.17, stamp: ["Special", "drop"], torn: "Edizione limitata", tagline: "Il panino che non chiede permesso.", note: "Special edition",
     acc: [{ t: "Ingredienti", chips: ["Potato bun tostato al burro", "180 g di manzo alla griglia", "35 g di Taleggio DOP fuso", "Cialda croccante di polenta", "Cipolla rossa caramellata", "Radicchio fresco", "Salsa BBQ artigianale al vino rosso, miele e aceto balsamico"] },
       { t: "Allergeni", chips: ["Glutine", "Latte", "Solfiti"] }] },
+  { id: "diavolo", name: "Il Diavolo di Vanchiglia", price: 12.9, kcal: 1040, img: "/assets/menu/diavolo.webp", cut: "/assets/menu/diavolo.webp",
+    alt: "Il Diavolo di Vanchiglia: cheeseburger piccante con bacon e jalapeño nella carta Sbrano",
+    pill: "Drop #02 / Solo a ottobre", d1: "Diavolo", d2: "Vanchiglia", thumb: ["Il", "Diavolo"], fit: 4.75, w1: 3.18, stamp: ["Burger", "del mese"], torn: "Piccante vero", tagline: "Solo a ottobre, poi sparisce.", note: "Burger del mese",
+    acc: [{ t: "Ingredienti", chips: ["Doppio smash", "Cheddar", "Bacon croccante", "Jalapeño", "Salsa spicy", "Brioche al sesamo"] }, { t: "Allergeni", chips: ["Glutine", "Latte", "Uova", "Sesamo", "Senape"] }] },
+  { id: "pollo-teriyaki", name: "Pollo Teriyaki", price: 11.5, kcal: 910, img: "/assets/menu/pollo-teriyaki-extra.webp", cut: "/assets/menu/pollo-teriyaki-extra.webp",
+    alt: "Pollo Teriyaki: pollo croccante glassato con salsa teriyaki, bacon, pomodoro e cetrioli",
+    pill: "Drop #01 / Novità in menu", d1: "Pollo", d2: "Teriyaki", thumb: ["Pollo", "Teriyaki"], fit: 3.75, w1: 2.24, stamp: ["Nuovo", "drop"], torn: "Ora in menu", tagline: "Pollo con salsa teriyaki, bacon, pomodoro e cetrioli.",
+    acc: [{ t: "Ingredienti", chips: ["Pollo", "Salsa teriyaki", "Bacon", "Pomodoro", "Cetrioli"] }] },
 ];
 
 export const FILTERS: { id: Cat; label: string }[] = [
