@@ -334,13 +334,15 @@ export default function Builder() {
   };
   useEffect(() => {
     const el = cardsRef.current; if (!el) return;
-    // vertical wheel scrolls the cards sideways while there is room, then hands back to the page
+    // vertical wheel always scrolls the page (through Lenis). Only a horizontal gesture
+    // (trackpad swipe, shift+wheel) scrolls the cards: we keep that one away from Lenis
+    // so the browser scrolls the carousel natively, snapping to the cards.
     const wheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      const max = el.scrollWidth - el.clientWidth; if (max < 4) return;
-      const d = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
-      if ((d > 0 && el.scrollLeft >= max - 2) || (d < 0 && el.scrollLeft <= 2)) return; // native scroll moves the page (Lenis skips data-lenis-prevent)
-      e.preventDefault(); el.scrollLeft += d;
+      const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+      if (Math.abs(dx) <= Math.abs(e.shiftKey ? 0 : e.deltaY)) return;
+      if (el.scrollWidth - el.clientWidth < 4) return;
+      e.stopPropagation();
+      if (e.shiftKey && !e.deltaX) { e.preventDefault(); el.scrollBy({ left: dx }); }
     };
     el.addEventListener("wheel", wheel, { passive: false });
     return () => el.removeEventListener("wheel", wheel);
@@ -567,8 +569,8 @@ export default function Builder() {
 
         {/* 4. ingredient panel: category tabs + horizontal card carousel */}
         <div className="relative rounded-[30px] border-[2.5px] border-ink bg-[#fbf4e6] p-3 pt-2 md:p-5 md:pt-3 lg:col-start-2 lg:row-start-3 lg:self-start">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
-            <div role="tablist" aria-label="Categorie" data-lenis-prevent className="no-scrollbar -mx-3 flex min-w-0 flex-1 gap-1 overflow-x-auto px-3 pb-2 pt-3 md:mx-0 md:px-0">
+          <div className="flex flex-col gap-2 md:gap-1">
+            <div role="tablist" aria-label="Categorie" className="no-scrollbar -mx-3 flex min-w-0 flex-1 gap-1 overflow-x-auto px-3 pb-2 pt-3 md:mx-0 md:flex-wrap md:gap-x-1 md:gap-y-3 md:overflow-visible md:px-0">
               {TABS.filter((t) => t.id !== "menu" || asMenu).map((t) => {
                 const n = t.id === "pane" ? (breadPicked ? 1 : 0) : t.id === "menu" ? 0 : fill.filter((f) => f.group === t.id).length;
                 const on = tab === t.id;
@@ -583,13 +585,13 @@ export default function Builder() {
                 );
               })}
             </div>
-            <p className="flex shrink-0 items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:block md:border-l-2 md:border-ink/15 md:pl-4 md:text-right">
+            <p className="flex shrink-0 items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:order-first md:justify-end md:gap-3 md:pt-1">
               <span className={`block font-tanker text-[16px] tracking-[0.04em] tabular-nums ${full ? "text-red-600" : ""}`}>{fill.length}/{MAX} strati</span>
               <span className="block text-ink/55">Massimo {PER} per ingrediente</span>
             </p>
           </div>
           <div className="relative mt-2 border-t-2 border-ink/10 pt-1">
-            <div ref={cardsRef} data-lenis-prevent data-cards onScroll={edges} onPointerDown={dragStart} onClickCapture={dragClick}
+            <div ref={cardsRef} data-cards onScroll={edges} onPointerDown={dragStart} onClickCapture={dragClick}
               className="no-scrollbar -mx-3 snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-pl-3 px-3 pb-4 pt-4 md:-mx-5 md:scroll-pl-5 md:px-5">
               {TABS.filter((t) => (warm || t.id === tab) && (t.id !== "menu" || asMenu)).map((t) => (
                 <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-4 pr-3">
