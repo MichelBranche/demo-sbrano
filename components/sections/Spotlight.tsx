@@ -193,7 +193,7 @@ export default function Spotlight() {
               ))}
               {/* ingredients sheet */}
               <div role="dialog" aria-modal="false" aria-label={`Ingredienti di ${it.name}`} hidden={!open}
-                className="absolute inset-x-[4%] bottom-[4%] z-30 max-h-[88%] overflow-auto rounded-[24px] bg-ink-3 p-5 text-cream shadow-[0_24px_50px_rgba(0,0,0,.6)] md:p-6">
+                className="absolute inset-x-[4%] bottom-[4%] z-30 max-h-[88%] no-scrollbar overflow-auto rounded-[24px] bg-ink-3 p-5 text-cream shadow-[0_24px_50px_rgba(0,0,0,.6)] md:p-6">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-tanker text-[22px] uppercase leading-none text-lime">{it.name}</span>
                   <button onClick={() => toggle(false)} aria-label="Chiudi ingredienti" className="flex h-9 w-9 items-center justify-center rounded-full bg-lime text-lg text-ink">×</button>
