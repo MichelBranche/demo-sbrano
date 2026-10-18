@@ -7,6 +7,7 @@ import { useCart } from "../cart/CartProvider";
 import { LINKS } from "./Hero";
 import { HOURS } from "@/lib/hours";
 import Doodle from "../ui/Doodle";
+import { useT } from "@/lib/i18n";
 
 if (typeof window !== "undefined") gsap.registerPlugin(SplitText);
 
@@ -25,13 +26,13 @@ const Wave = ({ flip = false }: { flip?: boolean }) => (
 const Arrow = () => <span aria-hidden className="text-lime transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5">↗</span>;
 
 /** numbered column: tiny index label, Tanker title, content */
-const Col = ({ n, label, title, children, className = "" }: { n: string; label: string; title: string; children: React.ReactNode; className?: string }) => (
+const Col = ({ n, label, title, children, className = "" }: { n: string; label: string; title: string; children: React.ReactNode; className?: string }) => { const { t } = useT(); return (
   <div className={`min-w-0 ${className}`}>
-    <p className="text-[10.5px] font-bold uppercase tracking-[0.24em] text-cream/45"><span className="text-cream">{n}</span> / {label}</p>
-    <p className="mt-2 font-tanker text-[1.35rem] uppercase leading-none tracking-[0.02em] md:text-[1.55rem]">{title}</p>
+    <p className="text-[10.5px] font-bold uppercase tracking-[0.24em] text-cream/45"><span className="text-cream">{n}</span> / {t(label)}</p>
+    <p className="mt-2 font-tanker text-[1.35rem] uppercase leading-none tracking-[0.02em] md:text-[1.55rem]">{t(title)}</p>
     <div className="mt-4">{children}</div>
   </div>
-);
+); };
 
 /**
  * Footer: black block with wavy edges on cream.
@@ -42,6 +43,7 @@ export default function Footer() {
   const root = useRef<HTMLElement>(null);
   const claim = useRef<HTMLParagraphElement>(null);
   const { setOpen } = useCart();
+  const { t, lang } = useT();
   useGSAP(() => {
     if (reduced()) return;
     let split: SplitText | null = null, alive = true;
@@ -67,18 +69,18 @@ export default function Footer() {
                 <Doodle name="k-crown-tall" className="absolute left-[7%] top-[4%] w-[20%] -rotate-12 text-ink" />
                 <Image src="/assets/brand/logo-compact.webp" alt="SBRANO" width={720} height={250} className="mt-2 h-auto w-[78%]" />
               </div>
-              <p className="font-tanker text-[15px] uppercase leading-[1.08] tracking-[0.03em] md:text-[17px]">Smash burger<br />e patatine.<br />Santa Giulia,<br /><span className="text-lime">Torino.</span></p>
+              <p className="font-tanker text-[15px] uppercase leading-[1.08] tracking-[0.03em] md:text-[17px]">Smash burger<br />{t("e patatine.")}<br />Santa Giulia,<br /><span className="text-lime">{t("Torino.")}</span></p>
             </div>
             <div className="group/cta flex items-center gap-3 md:gap-5">
               <div className="relative">
                 <Doodle name="l-rays-r" className="ft-dd absolute -left-10 -top-7 w-11 rotate-[200deg] text-lime md:-left-14 md:w-14" />
-                <button type="button" onClick={() => setOpen(true)} aria-label="Ordina ora, apri il carrello"
+                <button type="button" onClick={() => setOpen(true)} aria-label={t("Ordina ora, apri il carrello")}
                   className="group flex h-16 -rotate-2 items-center gap-4 whitespace-nowrap rounded-[12px] border-[3px] border-ink bg-lime px-6 font-tanker text-[2rem] uppercase leading-none text-ink shadow-[0_0_0_3px_#d6ff4d,6px_7px_0_3px_rgba(214,255,77,.25)] transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] hover:-rotate-[4deg] hover:scale-[1.04] md:h-[88px] md:px-9 md:text-[clamp(2.4rem,1.5rem+1.9vw,3.4rem)]">
-                  <span className="pt-[0.1em]">Ordina ora</span><span className="transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                  <span className="pt-[0.1em]">{t("Ordina ora")}</span><span className="transition-transform duration-300 group-hover:translate-x-1.5">→</span>
                 </button>
               </div>
               <div className="ml-auto flex items-center md:ml-2">
-                <p className="hidden rotate-[-6deg] font-marker text-[1.15rem] leading-[1.05] text-cream sm:block md:text-[1.3rem]">Ritiro in<br />circa 15 min.
+                <p className="hidden rotate-[-6deg] font-marker text-[1.15rem] leading-[1.05] text-cream sm:block md:text-[1.3rem]">{t("Ritiro in")}<br />{t("circa 15 min.")}
                   <Doodle name="l-swoosh" className="mt-1.5 w-[104px] text-lime" />
                 </p>
                 <span className="ft-mascot sb-thumb relative block h-[82px] w-[82px] shrink-0 md:h-[112px] md:w-[112px]"><Image src="/assets/mascot/thumbs-cream.webp" alt="" fill sizes="112px" className="object-contain" /></span>
@@ -89,21 +91,21 @@ export default function Footer() {
           {/* 2. columns + torn note */}
           <div className="relative mt-8 grid grid-cols-2 gap-x-5 gap-y-9 border-t border-cream/15 pt-7 md:mt-10 md:pt-8 lg:grid-cols-[1fr_1.05fr_1.15fr_1fr_200px] lg:gap-x-0">
             <Col n="01" label="Naviga" title="Esplora Sbrano" className="lg:pr-8">
-              <ul className="space-y-2">{LINKS.map((l) => <li key={l.href}><a href={l.href} className="group flex items-center gap-3 text-[15px] transition-colors hover:text-lime">{l.label}<Arrow /></a></li>)}</ul>
+              <ul className="space-y-2">{LINKS.map((l) => <li key={l.href}><a href={l.href} className="group flex items-center gap-3 text-[15px] transition-colors hover:text-lime">{t(l.label)}<Arrow /></a></li>)}</ul>
             </Col>
             <Col n="02" label="Dove siamo" title="Torino, Santa Giulia" className="lg:border-l lg:border-cream/15 lg:px-8">
-              <p className="text-[15px] leading-snug">Piazza Santa Giulia<br />10124 Torino<br /><span className="text-cream/60">Quartiere Vanchiglia</span></p>
+              <p className="text-[15px] leading-snug">Piazza Santa Giulia<br />{t("10124 Torino")}<br /><span className="text-cream/60">{t("Quartiere Vanchiglia")}</span></p>
               <a href={MAPS} target="_blank" rel="noreferrer" className="group mt-4 inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border-2 border-lime px-4 font-tanker text-[15px] uppercase leading-none text-lime transition-colors hover:bg-lime hover:text-ink">
                 <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px]"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11Z" {...ico} /><circle cx="12" cy="10" r="2.3" {...ico} /></svg>
-                <span className="pt-[0.12em]">Apri indicazioni</span><span aria-hidden>↗</span>
+                <span className="pt-[0.12em]">{t("Apri indicazioni")}</span><span aria-hidden>↗</span>
               </a>
             </Col>
             <Col n="03" label="Orari" title="Quando hai fame" className="col-span-2 sm:col-span-1 lg:border-l lg:border-cream/15 lg:px-8">
               <table className="w-full text-[14px] leading-snug"><tbody>
                 {HOURS.map(([d, h]) => (
                   <tr key={d} className="border-b border-cream/10 last:border-0">
-                    <th scope="row" className="w-[42%] py-1.5 pr-3 text-left align-top font-bold">{d}</th>
-                    <td className="py-1.5 text-cream/75">{h.replace(/\.$/, "").split(" • ").map((x) => <span key={x} className="block whitespace-nowrap">{x}</span>)}</td>
+                    <th scope="row" className="w-[42%] py-1.5 pr-3 text-left align-top font-bold">{t(d)}</th>
+                    <td className="py-1.5 text-cream/75">{h.replace(/\.$/, "").split(" • ").map((x) => <span key={x} className="block whitespace-nowrap">{t(x)}</span>)}</td>
                   </tr>
                 ))}
               </tbody></table>
@@ -113,7 +115,7 @@ export default function Footer() {
                 {SOCIAL.map((s) => (
                   <li key={s.n}><a href={s.h} target="_blank" rel="noreferrer" className="group flex items-center gap-3 transition-colors hover:text-lime"><svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0">{s.i}</svg>{s.n}<Arrow /></a></li>
                 ))}
-                <li><a href="https://instagram.com" target="_blank" rel="noreferrer" className="group flex items-center gap-3 whitespace-nowrap font-bold text-lime"><svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0"><path d="M4 9h16l-1.5 11h-13ZM8.5 9V7a3.5 3.5 0 0 1 7 0v2" {...ico} /></svg>Sgobba con noi<Arrow /></a></li>
+                <li><a href="https://instagram.com" target="_blank" rel="noreferrer" className="group flex items-center gap-3 whitespace-nowrap font-bold text-lime"><svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0"><path d="M4 9h16l-1.5 11h-13ZM8.5 9V7a3.5 3.5 0 0 1 7 0v2" {...ico} /></svg>{t("Sgobba con noi")}<Arrow /></a></li>
               </ul>
               <p className="mt-4 text-[13px] text-cream/50">@sbrano.burger</p>
             </Col>
@@ -122,7 +124,7 @@ export default function Footer() {
               <Doodle name="l-crown" className="ft-dd absolute right-[58%] top-[-10px] w-10 rotate-[-14deg] text-lime lg:right-auto lg:left-5 lg:top-[-16px] lg:w-12" />
               <div className="ft-note relative mt-2 aspect-[1.53] w-[170px] rotate-[7deg] drop-shadow-[0_14px_16px_rgba(0,0,0,.5)] lg:mt-8 lg:w-[196px]">
                 <Image src="/assets/promo/torn-cream.webp" alt="" fill sizes="200px" className="object-contain" />
-                <p className="absolute inset-x-[12%] top-[36%] font-marker text-[15px] uppercase leading-[1.02] text-ink lg:text-[17px]">Burger people<br />good mood.</p>
+                <p className="absolute inset-x-[12%] top-[36%] font-marker text-[15px] uppercase leading-[1.02] text-ink lg:text-[17px]">{t("Burger people")}<br />{t("good mood.")}</p>
                 <svg aria-hidden viewBox="0 0 30 30" className="absolute bottom-[9%] right-[9%] w-[15%] text-ink"><circle cx="15" cy="15" r="12" {...ico} strokeWidth={2.2} /><circle cx="11" cy="12.5" r="1.3" fill="currentColor" /><circle cx="19" cy="12.5" r="1.3" fill="currentColor" /><path d="M9.5 18c1.4 2.2 3.3 3.2 5.5 3.2s4.1-1 5.5-3.2" {...ico} strokeWidth={2.2} /></svg>
               </div>
             </div>
@@ -130,18 +132,18 @@ export default function Footer() {
 
           {/* 3. mega claim */}
           <div className="relative mt-10 md:mt-12">
-            <p ref={claim} className="font-display uppercase leading-[0.84] text-lime" style={{ fontSize: "min(17.2cqw, 236px)" }} aria-label="Fame brutta. Prezzi giusti.">
-              <span className="block whitespace-nowrap">Fame brutta.</span>
-              <span className="block whitespace-nowrap text-cream">Prezzi giusti.</span>
+            <p ref={claim} className="font-display uppercase leading-[0.84] text-lime" style={{ fontSize: "min(17.2cqw, 236px)" }} aria-label={t("Fame brutta. Prezzi giusti.")}>
+              <span className="block whitespace-nowrap">{t("Fame brutta.")}</span>
+              <span className="block whitespace-nowrap text-cream">{t("Prezzi giusti.")}</span>
             </p>
             <Doodle name="l-crown-burst" className="ft-dd absolute right-[1%] top-[-6%] w-[9%] rotate-[12deg] text-lime" />
-            <Doodle name="l-drip" className="ft-dd absolute left-[61.5%] top-[37%] w-[2.6%] text-lime" />
+            {lang === "it" && <Doodle name="l-drip" className="ft-dd absolute left-[61.5%] top-[37%] w-[2.6%] text-lime" />}
           </div>
 
           {/* 4. legal */}
           <div className="mt-6 flex flex-col gap-1.5 border-t border-cream/12 pt-4 text-[11px] text-cream/50 md:flex-row md:items-center md:justify-between md:gap-4 md:pt-5 md:text-xs">
-            <p>SBRANO © 2026 · Smash burger, Torino. Brand di fantasia, concept demo ambientato in Piazza Santa Giulia.</p>
-            <p>Concept demo di <a href="https://michelbranche.it" className="sb-uline font-bold text-lime">Michel Branche</a></p>
+            <p>{t("SBRANO © 2026 · Smash burger, Torino. Brand di fantasia, concept demo ambientato in Piazza Santa Giulia.")}</p>
+            <p>{t("Concept demo di")} <a href="https://michelbranche.it" className="sb-uline font-bold text-lime">Michel Branche</a></p>
           </div>
         </div>
       </div>

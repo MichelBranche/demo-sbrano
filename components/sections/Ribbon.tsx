@@ -1,6 +1,7 @@
 "use client";
 import { useLayoutEffect, useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, reduced } from "@/lib/gsap";
+import { useT } from "@/lib/i18n";
 
 const WORDS = ["Smash burger", "✶", "A Torino, Vanchiglia", "✶", "Burger • Fries • Drinks", "✶", "Burger • Fries • Good mood", "✶"];
 
@@ -9,6 +10,7 @@ export default function Ribbon({ id = "rb", text = WORDS, tone = "dark", classNa
   id?: string; text?: string[]; tone?: "dark" | "lime"; className?: string; path?: string;
 }) {
   const root = useRef<HTMLDivElement>(null);
+  const { t } = useT();
   const base = path ?? "M-100 140 C 200 40, 420 40, 720 120 S 1240 220, 1540 90";
   // Keep 1 viewBox unit = same vertical scale at any width: the viewBox width follows the element's aspect and the
   // curve is stretched horizontally only. Text size stays constant and the band always reaches both screen edges
@@ -22,7 +24,7 @@ export default function Ribbon({ id = "rb", text = WORDS, tone = "dark", classNa
   const k = vw / 1440;
   let i = 0;
   const d = base.replace(/-?\d+(\.\d+)?/g, (n) => (i++ % 2 === 0 ? (Number(n) * k).toFixed(1) : n));
-  const str = Array(6).fill(text.join("  ")).join("  ");
+  const str = Array(6).fill(text.map((w) => t(w)).join("  ")).join("  ");
   useGSAP(() => {
     if (reduced()) return;
     const tps = root.current!.querySelectorAll<SVGTextPathElement>("textPath");

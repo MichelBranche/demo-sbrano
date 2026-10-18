@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import { ADDRESS, HOURS_TABLE, MAPS_URL } from "@/lib/hours";
+import { useT } from "@/lib/i18n";
 
 /** the three reviews of Michel's mockup, word for word; lines break as in the mockup on desktop */
 const REVIEWS = [
@@ -30,6 +31,7 @@ function Star({ className = "" }: { className?: string }) {
 }
 
 function Title() {
+  const { t } = useT();
   // Lunar Blob on two gentle arches, like the mockup's warped lockup
   return (
     <svg viewBox="400 30 664 196" className="rv-title-svg block h-auto w-full overflow-visible" aria-hidden>
@@ -41,15 +43,16 @@ function Title() {
         <textPath href="#rv-arc1" startOffset="50%" textAnchor="middle" textLength="536" lengthAdjust="spacingAndGlyphs">VANCHIGLIA</textPath>
       </text>
       <text className="rv-t2" fill="#98BC12" stroke="#98BC12" strokeWidth="5" strokeLinejoin="round" paintOrder="stroke" style={{ fontFamily: "var(--font-display)" }} fontSize="93">
-        <textPath href="#rv-arc2" startOffset="50%" textAnchor="middle" textLength="631" lengthAdjust="spacingAndGlyphs">CI VUOLE BENE.</textPath>
+        <textPath href="#rv-arc2" startOffset="50%" textAnchor="middle" textLength="631" lengthAdjust="spacingAndGlyphs">{t("CI VUOLE BENE.")}</textPath>
       </text>
     </svg>
   );
 }
 
 function MapArt() {
+  const { t } = useT();
   return (
-    <svg viewBox="0 0 827 348" preserveAspectRatio="xMidYMid slice" className="absolute left-1/2 top-0 aspect-[827/348] h-full w-auto max-w-none -translate-x-[43%] md:-translate-x-1/2 lg:inset-0 lg:w-full lg:translate-x-0" role="img" aria-label="Mappa illustrata di Vanchiglia: SBRANO è in Piazza Santa Giulia, tra Corso San Maurizio, Via Vanchiglia, Via Santa Giulia e il Po.">
+    <svg viewBox="0 0 827 348" preserveAspectRatio="xMidYMid slice" className="absolute left-1/2 top-0 aspect-[827/348] h-full w-auto max-w-none -translate-x-[43%] md:-translate-x-1/2 lg:inset-0 lg:w-full lg:translate-x-0" role="img" aria-label={t("Mappa illustrata di Vanchiglia: SBRANO è in Piazza Santa Giulia, tra Corso San Maurizio, Via Vanchiglia, Via Santa Giulia e il Po.")}>
       <image href="/assets/map/vanchiglia-map.svg" x="0" y="0" width="827" height="348" preserveAspectRatio="none" />
       <g fill="#F7EEDD" style={{ fontFamily: "var(--font-body)" }} fontWeight="700" fontSize="11.9">
         {STREETS.map((s) => (
@@ -57,11 +60,11 @@ function MapArt() {
         ))}
       </g>
       <g transform="rotate(-30 640 232)">
-        <text x="630" y="232" dy="4.2" textAnchor="middle" textLength="64" lengthAdjust="spacing" fill="#111" style={{ fontFamily: "var(--font-body)" }} fontWeight="700" fontSize="12.6">FIUME PO</text>
+        <text x="630" y="232" dy="4.2" textAnchor="middle" textLength="64" lengthAdjust="spacing" fill="#111" style={{ fontFamily: "var(--font-body)" }} fontWeight="700" fontSize="12.6">{t("FIUME PO")}</text>
         <path d="M667 231 h11 m-4 -3.4 l4 3.4 l-4 3.4" fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </g>
       {/* "Siamo qui!" + doodle arrow */}
-      <text className="rv-siamo" x="200" y="142" transform="rotate(-13 255 128)" fill="#111" style={{ fontFamily: "var(--font-marker)" }} fontSize="25.5" stroke="#111" strokeWidth=".6">Siamo qui!</text>
+      <text className="rv-siamo" x="200" y="142" transform="rotate(-13 255 128)" fill="#111" style={{ fontFamily: "var(--font-marker)" }} fontSize="25.5" stroke="#111" strokeWidth=".6">{t("Siamo qui!")}</text>
       <g fill="none" stroke="#111" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
         <path className="rv-arrow" d="M268 158 C 272 172, 284 182, 306 184" />
         <path d="M297 175 L 307 184 L 295 189" />
@@ -81,6 +84,9 @@ function MapArt() {
 
 export default function Reviews() {
   const root = useRef<HTMLElement>(null);
+  const { t } = useT();
+  /** quote lines: the translation keeps the desktop line breaks with "\n" */
+  const quote = (l: string[]) => { const k = l.join(" "), tx = t(k); return tx === k ? l : tx.split("\n"); };
   useGSAP(() => {
     if (reduced()) return;
     const st = { trigger: root.current, start: "top 70%" };
@@ -100,17 +106,17 @@ export default function Reviews() {
       <div className="rv-frame relative mx-auto">
         <header className="rv-head flex flex-col items-center text-center">
           <p className="rv-eye flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.04em]">
-            <span aria-hidden className="rv-eline h-[1.5px] w-12 bg-ink" />Parlano di noi<span aria-hidden className="rv-eline h-[1.5px] w-12 bg-ink" />
+            <span aria-hidden className="rv-eline h-[1.5px] w-12 bg-ink" />{t("Parlano di noi")}<span aria-hidden className="rv-eline h-[1.5px] w-12 bg-ink" />
           </p>
           <h2 id="rv-title" className="rv-title mt-2 w-[min(100%,560px)]">
-            <span className="sr-only">Vanchiglia ci vuole bene.</span>
+            <span className="sr-only">{t("Vanchiglia ci vuole bene.")}</span>
             <Title />
           </h2>
           <div className="rv-rate mt-1 flex items-center gap-2">
             <span className="rv-49 font-tanker text-[48px] leading-none">4,9</span>
             <span className="flex flex-col items-start">
-              <span className="rv-stars flex text-[#A2CB10]" role="img" aria-label="5 stelle su 5">{[0, 1, 2, 3, 4].map((i) => <Star key={i} className="rv-star h-5 w-5" />)}</span>
-              <span className="rv-g text-[13px] font-bold leading-none">su Google</span>
+              <span className="rv-stars flex text-[#A2CB10]" role="img" aria-label={t("5 stelle su 5")}>{[0, 1, 2, 3, 4].map((i) => <Star key={i} className="rv-star h-5 w-5" />)}</span>
+              <span className="rv-g text-[13px] font-bold leading-none">{t("su Google")}</span>
             </span>
           </div>
         </header>
@@ -123,16 +129,16 @@ export default function Reviews() {
                 <span aria-hidden className="rv-dots flex gap-[3px]"><i className="rv-dot" /><i className="rv-dot" /><i className="rv-dot" /></span>
               </div>
               <blockquote className={`rv-q mt-4 text-[15.5px] leading-[1.32] lg:mt-0 ${r.hang ? "rv-hang" : ""}`}>
-                {r.l.map((t, k) => <span key={k} className="lg:block">{t}{k < 2 && " "}</span>)}
+                {quote(r.l).map((ln, k, all) => <span key={k} className="lg:block">{ln}{k < all.length - 1 && " "}</span>)}
               </blockquote>
               <div className="rv-who mt-4 flex items-center gap-3 lg:mt-0 lg:block">
                 <span className="rv-av relative block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-ink/30"><Image src={r.img} alt="" fill sizes="44px" className="object-cover" /></span>
                 <span className="rv-meta flex flex-col">
                   <span className="rv-name font-tanker text-[15px] uppercase leading-none">{r.n}</span>
-                  <span className="rv-area mt-1 text-[12.5px] leading-none text-[#8F887C]">{r.a}</span>
+                  <span className="rv-area mt-1 text-[12.5px] leading-none text-[#8F887C]">{t(r.a)}</span>
                 </span>
               </div>
-              <span className="sr-only">Valutazione: 5 stelle su 5.</span>
+              <span className="sr-only">{t("Valutazione: 5 stelle su 5.")}</span>
             </li>
           ))}
         </ul>
@@ -141,29 +147,29 @@ export default function Reviews() {
           <div className="rv-info p-6 md:p-8 lg:p-0">
             <p className="rv-ci flex items-center gap-2 font-tanker text-[17px] uppercase leading-none">
               <svg viewBox="0 0 12 16" aria-hidden className="rv-pinic h-4 w-3 text-[#D2FA52]"><path fill="currentColor" d="M6 0a6 6 0 0 0-6 6c0 4.2 6 10 6 10s6-5.8 6-10a6 6 0 0 0-6-6zm0 8.4A2.4 2.4 0 1 1 6 3.6a2.4 2.4 0 0 1 0 4.8z" /></svg>
-              <span className="rv-cit pt-[0.1em]">Ci vediamo in</span>
+              <span className="rv-cit pt-[0.1em]">{t("Ci vediamo in")}</span>
             </p>
             <h3 className="rv-pz mt-3 font-display text-[50px] uppercase leading-[0.9] lg:mt-0">
               <span className="rv-pz1 block text-[#F7EEDD]">Piazza</span>
               <span className="rv-pz2 block text-[#D2FA52]">Santa Giulia</span>
             </h3>
-            <p className="rv-addr mt-3 text-[14px] text-cream/90 lg:mt-0">{ADDRESS}, nel cuore di Vanchiglia.</p>
+            <p className="rv-addr mt-3 text-[14px] text-cream/90 lg:mt-0">{ADDRESS}{t(", nel cuore di Vanchiglia.")}</p>
             <table className="rv-hours mt-4 w-full border-t border-cream/25 text-[13px] lg:mt-0">
-              <caption className="sr-only">Orari di apertura</caption>
+              <caption className="sr-only">{t("Orari di apertura")}</caption>
               <tbody>
                 {HOURS_TABLE.map(([d, a, b]) => (
                   <tr key={d} className="rv-row border-b border-cream/20">
-                    <th scope="row" className="rv-day py-[5px] text-left text-[12.5px] font-bold uppercase">{d}</th>
+                    <th scope="row" className="rv-day py-[5px] text-left text-[12.5px] font-bold uppercase">{t(d)}</th>
                     <td className="rv-s1 py-[5px] text-right tabular-nums text-cream/90">{a}</td>
-                    <td className="rv-s2 py-[5px] pl-4 text-right tabular-nums text-cream/90">{b}</td>
+                    <td className="rv-s2 py-[5px] pl-4 text-right tabular-nums text-cream/90">{t(b)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <a href={MAPS_URL} target="_blank" rel="noopener noreferrer" className="rv-go group mt-6 inline-flex h-12 items-center gap-3 rounded-full bg-[#D2FA52] px-7 font-tanker text-[20px] uppercase text-ink transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.02] lg:mt-0 lg:flex">
-              <span className="pt-[0.12em]">Portami da Sbrano</span>
+              <span className="pt-[0.12em]">{t("Portami da Sbrano")}</span>
               <svg viewBox="0 0 16 16" aria-hidden className="rv-goar h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"><path d="M3 13L13 3M5 3h8v8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" /></svg>
-              <span className="sr-only">(apre Google Maps)</span>
+              <span className="sr-only">{t("(apre Google Maps)")}</span>
             </a>
           </div>
           <div className="rv-map relative h-[300px] overflow-hidden rounded-[16px] md:h-[380px] lg:h-auto">
