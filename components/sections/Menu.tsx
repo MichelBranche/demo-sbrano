@@ -9,6 +9,7 @@ import Sticker from "../ui/Sticker";
 import { BLUR } from "@/lib/blur";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
+import { useT } from "@/lib/i18n";
 
 const N = MENU.length;
 const STEP = 360 / N;
@@ -25,6 +26,8 @@ export default function Menu() {
   const activeRef = useRef(0);
   const [filter, setFilter] = useState<Cat | null>(null);
   const { add } = useCart();
+  const { t } = useT();
+  const tt = t;
 
   const render = useCallback(() => {
     const { rot, R } = state.current;
@@ -138,12 +141,12 @@ export default function Menu() {
         {FILTERS.map((f) => (
           <button key={f.id} onClick={() => pick(f.id)} aria-pressed={filter === f.id}
             className={`m-pill sb-lift h-11 rounded-full border-2 border-ink px-5 text-sm font-bold uppercase tracking-wider transition-colors ${filter === f.id ? "bg-ink text-lime" : "bg-transparent hover:bg-lime"}`}>
-            {f.label}
+            {t(f.label)}
           </button>
         ))}
       </div>
 
-      <div ref={stage} tabIndex={0} aria-roledescription="carosello" aria-label="Menu, usa le frecce per ruotare"
+      <div ref={stage} tabIndex={0} aria-roledescription={t("carosello")} aria-label={t("Menu, usa le frecce per ruotare")}
         onKeyDown={(e) => { if (e.key === "ArrowRight") goTo((active + 1) % N); if (e.key === "ArrowLeft") goTo((active - 1 + N) % N); }}
         className="relative mx-auto -mt-2 h-[500px] cursor-grab touch-pan-y select-none outline-none md:h-[600px]"
         style={{ perspective: "1500px", perspectiveOrigin: "50% 40%" }}>
@@ -159,7 +162,7 @@ export default function Menu() {
                   {it.tag === "Il più scelto" && (
                     <span className="sb-best absolute -left-7 -top-10 z-20 block w-[86px] md:-left-9 md:w-[104px]" data-best>
                       <Image src="/assets/stickers/mascot-crown.webp" alt="" width={300} height={344} sizes="104px" draggable={false} className="h-auto w-full" />
-                      <span className="absolute -bottom-3 left-[58%] whitespace-nowrap rounded-md border-2 border-ink bg-lime px-1.5 pb-0.5 pt-1 font-marker text-[13px] leading-none text-ink shadow-[0_0_0_3px_#fff] md:text-[15px]">Il più scelto ↘</span>
+                      <span className="absolute -bottom-3 left-[58%] whitespace-nowrap rounded-md border-2 border-ink bg-lime px-1.5 pb-0.5 pt-1 font-marker text-[13px] leading-none text-ink shadow-[0_0_0_3px_#fff] md:text-[15px]">{t("Il più scelto")} ↘</span>
                     </span>
                   )}
                   <div className={`relative h-[200px] rounded-[20px] md:h-[250px] ${it.cutout ? (isActive ? "bg-lime" : "bg-cream") : "overflow-hidden"}`}>
@@ -167,7 +170,7 @@ export default function Menu() {
                       className={`absolute transition-transform duration-700 ease-[cubic-bezier(.2,1.6,.4,1)] ${it.cutout ? "-inset-2" : "inset-0"} ${isActive && it.cutout ? (it.id === "bibita" ? "-translate-y-4 scale-[1.06] md:-translate-y-6" : "-translate-y-10 scale-[1.22] md:-translate-y-14") : ""} ${isActive && !it.cutout ? "scale-110" : ""}`}>
                       {it.id === "bibita" ? (
                         /* all three cups together, large: tap one to pick the flavour, the picked one lifts to the front */
-                        <div className="absolute inset-0" role="radiogroup" aria-label="Scegli il gusto" onPointerDown={(e) => e.stopPropagation()}>
+                        <div className="absolute inset-0" role="radiogroup" aria-label={t("Scegli il gusto")} onPointerDown={(e) => e.stopPropagation()}>
                           {DRINKS.map((d, k) => {
                             const on = flavor === d.id;
                             return (
@@ -180,29 +183,29 @@ export default function Menu() {
                           })}
                         </div>
                       ) : (
-                        <Image src={it.img} alt={it.name} fill sizes="320px" draggable={false} className={`${it.cutout ? "object-contain p-3 drop-shadow-[0_20px_20px_rgba(0,0,0,.3)]" : "rounded-[20px] object-cover"}`} />
+                        <Image src={it.img} alt={t(it.name)} fill sizes="320px" draggable={false} className={`${it.cutout ? "object-contain p-3 drop-shadow-[0_20px_20px_rgba(0,0,0,.3)]" : "rounded-[20px] object-cover"}`} />
                       )}
                     </div>
                   </div>
                   <div className="px-2 pb-1 pt-4">
                     {it.tag !== "Il più scelto" && (
                       <div className="mb-2 flex flex-wrap gap-1 md:gap-1.5">
-                        {[it.tag, ...(it.tags ?? [])].map((t, k) => (
-                          <span key={t} data-menu-tag={k === 0 ? "" : undefined} className={`${it.special ? "inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.08em] md:h-7 md:px-3 md:text-[11px] md:tracking-[0.1em]" : "pill-label h-6 px-3 text-[10px]"} ${it.special && k === 0 ? (isActive ? "bg-cream text-ink" : "bg-lime text-ink ring-2 ring-ink") : isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.special && k === 0 ? "✶ " : ""}{t}</span>
+                        {[it.tag, ...(it.tags ?? [])].map((tg, k) => (
+                          <span key={tg} data-menu-tag={k === 0 ? "" : undefined} className={`${it.special ? "inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.08em] md:h-7 md:px-3 md:text-[11px] md:tracking-[0.1em]" : "pill-label h-6 px-3 text-[10px]"} ${it.special && k === 0 ? (isActive ? "bg-cream text-ink" : "bg-lime text-ink ring-2 ring-ink") : isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{it.special && k === 0 ? "✶ " : ""}{tt(tg)}</span>
                         ))}
                       </div>
                     )}
-                    <h3 className={`font-tanker uppercase leading-[0.9] text-[42px] md:text-[54px] ${isActive ? "text-lime" : ""}`}>{it.name}</h3>
-                    <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{it.desc}</p>
+                    <h3 className={`font-tanker uppercase leading-[0.9] text-[42px] md:text-[54px] ${isActive ? "text-lime" : ""}`}>{t(it.name)}</h3>
+                    <p className={`mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-snug ${isActive ? "text-cream/70" : "text-ink/60"}`}>{t(it.desc)}</p>
                     {it.id === "bibita" && (
-                      <p className={`mt-2 text-xs font-bold uppercase tracking-[0.18em] ${isActive ? "text-lime" : "text-ink/60"}`} aria-live="polite">Gusto: {DRINKS.find((d) => d.id === flavor)?.name}. Tocca un bicchiere.</p>
+                      <p className={`mt-2 text-xs font-bold uppercase tracking-[0.18em] ${isActive ? "text-lime" : "text-ink/60"}`} aria-live="polite">{t("Gusto: {name}. Tocca un bicchiere.", { name: DRINKS.find((d) => d.id === flavor)?.name ?? "" })}</p>
                     )}
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full px-3 py-1.5 text-sm font-bold tabular-nums ${isActive ? "bg-lime text-ink" : "bg-cream"}`}>{euro(it.price)}</span>
-                        {it.kcal ? <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span> : it.special && <span className={`hidden whitespace-nowrap text-[11px] font-bold uppercase tracking-wider md:inline ${isActive ? "text-lime" : "text-ink/60"}`}>Edizione limitata</span>}
+                        {it.kcal ? <span className={`text-xs ${isActive ? "text-cream/50" : "text-ink/50"}`}>{it.kcal} kcal</span> : it.special && <span className={`hidden whitespace-nowrap text-[11px] font-bold uppercase tracking-wider md:inline ${isActive ? "text-lime" : "text-ink/60"}`}>{t("Edizione limitata")}</span>}
                       </div>
-                      <button onClick={() => addItem(i)} aria-label={`Aggiungi ${it.name} al carrello`}
+                      <button onClick={() => addItem(i)} aria-label={t("Aggiungi {name} al carrello", { name: t(it.name) })}
                         className={`flex h-12 w-12 items-center justify-center rounded-full text-3xl leading-none transition-transform duration-300 hover:rotate-90 active:scale-90 ${isActive ? "bg-lime text-ink" : "bg-ink text-lime"}`}>+</button>
                     </div>
                   </div>
@@ -214,31 +217,31 @@ export default function Menu() {
       </div>
 
       <div className="flex items-center justify-center gap-5">
-        <button onClick={() => goTo((active - 1 + N) % N)} aria-label="Precedente" className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">←</button>
+        <button onClick={() => goTo((active - 1 + N) % N)} aria-label={t("Precedente")} className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">←</button>
         <div className="flex gap-2">
           {MENU.map((it, i) => (
-            <button key={it.id} onClick={() => goTo(i)} aria-label={it.name} className={`h-2.5 rounded-full transition-all duration-500 ${i === active ? "w-9 bg-ink" : "w-2.5 bg-ink/25"}`} />
+            <button key={it.id} onClick={() => goTo(i)} aria-label={t(it.name)} className={`h-2.5 rounded-full transition-all duration-500 ${i === active ? "w-9 bg-ink" : "w-2.5 bg-ink/25"}`} />
           ))}
         </div>
-        <button onClick={() => goTo((active + 1) % N)} aria-label="Successivo" className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">→</button>
+        <button onClick={() => goTo((active + 1) % N)} aria-label={t("Successivo")} className="sb-lift flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink text-lg font-bold transition-colors hover:bg-ink hover:text-lime">→</button>
       </div>
-      <p className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-ink/50" aria-live="polite">← trascina • {m.name} →</p>
+      <p className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-ink/50" aria-live="polite">← {t("trascina")} • {t(m.name)} →</p>
       <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 px-5 text-center">
-        <span className="pill-label bg-lime text-ink">Combo</span>
-        <p className="text-sm md:text-base">Burger + patatine + bibita a <b>{euro(13.9)}</b>.</p>
+        <span className="pill-label bg-lime text-ink">{t("Combo")}</span>
+        <p className="text-sm md:text-base">{t("Burger + patatine + bibita a")} <b>{euro(13.9)}</b>.</p>
       </div>
       {/* Free refill band: real fountain photo, fetched early (eager, low priority) with blur placeholder so it never pops in */}
       <div className="relative mx-auto mt-10 max-w-[1100px] px-4 md:px-10" data-refill>
         <Sticker name="asterisco" spin tilt={0} parallax={16} className="absolute -top-9 right-4 z-10 hidden w-[72px] md:block" sizes="72px" />
         <div className="grid overflow-hidden rounded-[28px] bg-ink text-cream md:grid-cols-[1.25fr_1fr] md:rounded-[36px]">
           <div className="relative aspect-[16/9] md:aspect-auto md:min-h-[300px]">
-            <Image src="/assets/locale/free-refill.webp" alt="Banco bibite SBRANO con spillatori e murale" fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
+            <Image src="/assets/locale/free-refill.webp" alt={t("Banco bibite SBRANO con spillatori e murale")} fill loading="eager" fetchPriority="low" placeholder="blur" blurDataURL={BLUR["/assets/locale/free-refill.webp"]}
               sizes="(min-width:1100px) 600px, (min-width:768px) 55vw, 100vw" className="object-cover" />
           </div>
           <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
-            <Badge icon="bolt" tilt={-3} dark className="w-fit">Free refill</Badge>
-            <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">Refill disponibile.</h3>
-            <p className="text-cream/70">Pepsi, Fanta o Sprite alla spina. Riempi il bicchiere al banco.</p>
+            <Badge icon="bolt" tilt={-3} dark className="w-fit">{t("Free refill")}</Badge>
+            <h3 className="font-display text-4xl uppercase leading-[0.9] md:text-5xl">{t("Refill disponibile.")}</h3>
+            <p className="text-cream/70">{t("Pepsi, Fanta o Sprite alla spina. Riempi il bicchiere al banco.")}</p>
             <div className="flex -space-x-3" aria-hidden>
               {DRINKS.map((d) => <span key={d.id} className="relative h-14 w-14 rounded-full border-2 border-ink bg-cream"><Image src={d.img} alt="" fill sizes="56px" className="object-contain p-1" /></span>)}
             </div>

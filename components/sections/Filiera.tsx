@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import Sticker from "../ui/Sticker";
 import { BLUR } from "@/lib/blur";
+import { useT } from "@/lib/i18n";
 
 const CARDS = [
   { n: "01", t: "Carne", h: "Manzo piemontese", d: "Manzo piemontese, macinato ogni mattina. Niente congelatore, niente storie.", stamp: "Macinato oggi", img: "/assets/filiera/carne.webp", alt: "Mani con guanti che formano polpette di manzo", tone: "bg-white text-ink" },
@@ -14,6 +15,7 @@ const INTRO = "Ingredienti selezionati e cottura alla piastra. Scopri cosa sta d
 
 export default function Filiera() {
   const root = useRef<HTMLElement>(null);
+  const { t } = useT();
   useGSAP(() => {
     if (reduced()) return;
     // scroll-coloured text reveal
@@ -45,11 +47,11 @@ export default function Filiera() {
       <div className="mx-auto max-w-[1360px]">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end">
           <h2 className="f-title font-tanker text-[clamp(4.25rem,1.6rem+9vw,10.5rem)] uppercase leading-[0.82] text-ink">
-            <span className="block overflow-hidden pb-[0.04em]"><span className="f-tline block">Pochi ingredienti.</span></span>
-            <span className="block overflow-hidden pb-[0.04em]"><span className="f-tline block pl-[0.6em] text-ink/90">Quelli <span className="relative inline-block">giusti.<svg aria-hidden viewBox="0 0 200 20" preserveAspectRatio="none" className="absolute -bottom-[0.02em] left-0 h-[0.12em] w-full text-lime"><path d="M3 14 C 50 4, 120 18, 197 6" fill="none" stroke="currentColor" strokeWidth="9" strokeLinecap="round" /></svg></span></span></span>
+            <span className="block overflow-hidden pb-[0.04em]"><span className="f-tline block">{t("Pochi ingredienti.")}</span></span>
+            <span className="block overflow-hidden pb-[0.04em]"><span className="f-tline block pl-[0.6em] text-ink/90">{t("Quelli")} <span className="relative inline-block">{t("giusti.")}<svg aria-hidden viewBox="0 0 200 20" preserveAspectRatio="none" className="absolute -bottom-[0.02em] left-0 h-[0.12em] w-full text-lime"><path d="M3 14 C 50 4, 120 18, 197 6" fill="none" stroke="currentColor" strokeWidth="9" strokeLinecap="round" /></svg></span></span></span>
           </h2>
           <p className="f-intro font-display text-2xl uppercase leading-[1.05] md:text-[34px]">
-            {INTRO.split(" ").map((w, i) => <span key={i} className="f-word">{w} </span>)}
+            {t(INTRO).split(" ").map((w, i) => <span key={i} className="f-word">{w} </span>)}
           </p>
         </div>
         <div className="f-cascade relative mt-14 flex flex-col gap-6 lg:block lg:h-[1040px]">
@@ -61,12 +63,12 @@ export default function Filiera() {
               style={{ zIndex: i + 1, ["--l" as string]: ["0%", "32%", "64%"][i], ["--t" as string]: ["0px", "250px", "500px"][i], ["--r" as string]: ["-3deg", "2deg", "-2deg"][i] } as React.CSSProperties}>
               <div className="flex items-start justify-between gap-3">
                 <span className="font-display text-7xl leading-none md:text-8xl">{c.n}</span>
-                <span className={`f-stamp sb-stamp mt-2 rotate-[-7deg] font-tanker text-[clamp(1.1rem,0.95rem+0.6vw,1.6rem)] uppercase leading-none ${i === 1 ? "text-lime [--stamp-bg:#111]" : i === 2 ? "text-ink [--stamp-bg:#d6ff4d]" : "text-ink [--stamp-bg:#fff]"}`}>{c.stamp}</span>
+                <span className={`f-stamp sb-stamp mt-2 rotate-[-7deg] font-tanker text-[clamp(1.1rem,0.95rem+0.6vw,1.6rem)] uppercase leading-none ${i === 1 ? "text-lime [--stamp-bg:#111]" : i === 2 ? "text-ink [--stamp-bg:#d6ff4d]" : "text-ink [--stamp-bg:#fff]"}`}>{t(c.stamp)}</span>
               </div>
-              <h3 className="font-display text-3xl uppercase leading-none">{c.h}</h3>
-              <p className="text-sm opacity-75 md:text-base">{c.d}</p>
+              <h3 className="font-display text-3xl uppercase leading-none">{t(c.h)}</h3>
+              <p className="text-sm opacity-75 md:text-base">{t(c.d)}</p>
               <div className="relative aspect-square overflow-hidden rounded-[22px]">
-                <div className="f-img absolute inset-x-0 -bottom-[12%] top-0"><Image src={c.img} alt={c.alt} fill placeholder="blur" blurDataURL={BLUR[c.img]} sizes="(min-width:1024px) 480px, (min-width:768px) 90vw, 100vw" className="object-cover" /></div>
+                <div className="f-img absolute inset-x-0 -bottom-[12%] top-0"><Image src={c.img} alt={t(c.alt)} fill placeholder="blur" blurDataURL={BLUR[c.img]} sizes="(min-width:1024px) 480px, (min-width:768px) 90vw, 100vw" className="object-cover" /></div>
               </div>
             </article>
           ))}

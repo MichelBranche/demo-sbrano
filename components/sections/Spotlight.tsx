@@ -7,6 +7,7 @@ import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 import { euro, SPECIALS } from "@/lib/data";
 import Doodle from "../ui/Doodle";
+import { useT } from "@/lib/i18n";
 
 if (typeof window !== "undefined") gsap.registerPlugin(SplitText);
 
@@ -51,6 +52,7 @@ export default function Spotlight() {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);
   const { add } = useCart();
+  const { t } = useT();
 
   const sync = useCallback(() => {
     const p = play.current; if (!p) return;
@@ -153,10 +155,10 @@ export default function Spotlight() {
   };
 
   return (
-    <section ref={root} id="proposta" className="relative mt-10 scroll-mt-20" aria-roledescription="carosello" aria-labelledby="dp-title"
+    <section ref={root} id="proposta" className="relative mt-10 scroll-mt-20" aria-roledescription={t("carosello")} aria-labelledby="dp-title"
       onMouseEnter={() => { hold.current.hover = true; sync(); }} onMouseLeave={() => { hold.current.hover = false; sync(); }}
       onFocus={() => { hold.current.hover = true; sync(); }} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) { hold.current.hover = false; sync(); } }}>
-      <h2 id="dp-title" className="sr-only">Edizioni speciali e burger del mese</h2>
+      <h2 id="dp-title" className="sr-only">{t("Edizioni speciali e burger del mese")}</h2>
       <Wave />
       <div className="-my-px flex items-stretch overflow-hidden bg-ink py-6 md:py-10">
         <Strip side="l" words={["Sbrano", "Smash burger culture"]} />
@@ -175,16 +177,16 @@ export default function Spotlight() {
               </div>
               {SPECIALS.map((x, i) => (
                 <div key={x.id} data-dp-slide={i} aria-hidden={idx !== i} className={`absolute inset-0 ${i ? "invisible opacity-0" : ""}`}>
-                  <Image src={x.cut} alt={x.alt} fill draggable={false} sizes="(min-width:1024px) 640px, 100vw" loading={i ? "lazy" : "eager"}
+                  <Image src={x.cut} alt={t(x.alt)} fill draggable={false} sizes="(min-width:1024px) 640px, 100vw" loading={i ? "lazy" : "eager"}
                     className="dp-burger object-contain object-center p-[2%] drop-shadow-[0_34px_32px_rgba(0,0,0,.5)]" />
                   <span data-pop className="absolute right-[0%] top-[1%] z-10 flex aspect-square w-[25%] min-w-[100px] max-w-[164px] rotate-[10deg] flex-col items-center justify-center text-center text-cream drop-shadow-[0_14px_18px_rgba(0,0,0,.5)]">
                     <Image src="/assets/promo/sticker-black.webp" alt="" fill sizes="164px" className="object-contain" />
                     <Doodle name="l-crown" className="relative mb-1 w-[30%] text-lime" />
-                    <span className="relative font-marker text-[clamp(15px,1.6vw,24px)] uppercase leading-[0.9]">{x.stamp[0]}<br />{x.stamp[1]}</span>
+                    <span className="relative font-marker text-[clamp(15px,1.6vw,24px)] uppercase leading-[0.9]">{t(x.stamp[0])}<br />{t(x.stamp[1])}</span>
                   </span>
                   <span data-pop className="absolute bottom-[9%] right-[-2%] z-10 flex aspect-[1.55] w-[27%] min-w-[124px] max-w-[230px] rotate-[-7deg] items-center justify-center drop-shadow-[0_12px_16px_rgba(0,0,0,.45)]">
                     <Image src="/assets/promo/torn-cream.webp" alt="" fill sizes="230px" className="object-contain" />
-                    <span className="relative mt-[14%] max-w-[78%] text-center font-tanker text-[clamp(15px,1.55vw,25px)] uppercase leading-[0.92] text-ink">{x.torn}</span>
+                    <span className="relative mt-[14%] max-w-[78%] text-center font-tanker text-[clamp(15px,1.55vw,25px)] uppercase leading-[0.92] text-ink">{t(x.torn)}</span>
                   </span>
                   <span data-pop className="absolute left-[8%] top-[1%] w-[15%]"><Doodle name="l-crown-burst" className="w-full -rotate-12 text-lime" /></span>
                   <span data-pop className="absolute bottom-[8%] left-[2%] w-[7%]"><Doodle name="l-bolt" className="w-full rotate-12 text-lime" /></span>
@@ -192,16 +194,16 @@ export default function Spotlight() {
                 </div>
               ))}
               {/* ingredients sheet */}
-              <div role="dialog" aria-modal="false" aria-label={`Ingredienti di ${it.name}`} hidden={!open}
+              <div role="dialog" aria-modal="false" aria-label={t("Ingredienti di {name}", { name: it.name })} hidden={!open}
                 className="absolute inset-x-[4%] bottom-[4%] z-30 max-h-[88%] no-scrollbar overflow-auto rounded-[24px] bg-ink-3 p-5 text-cream shadow-[0_24px_50px_rgba(0,0,0,.6)] md:p-6">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-tanker text-[22px] uppercase leading-none text-lime">{it.name}</span>
-                  <button onClick={() => toggle(false)} aria-label="Chiudi ingredienti" className="flex h-9 w-9 items-center justify-center rounded-full bg-lime text-lg text-ink">×</button>
+                  <button onClick={() => toggle(false)} aria-label={t("Chiudi ingredienti")} className="flex h-9 w-9 items-center justify-center rounded-full bg-lime text-lg text-ink">×</button>
                 </div>
                 {it.acc.map((a) => (
                   <div key={a.t} className="mt-3">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-cream/50">{a.t}</p>
-                    <ul className="flex flex-wrap gap-1.5">{a.chips.map((c) => <li key={c} className="rounded-full bg-cream/10 px-3 py-1.5 text-[13px] font-medium leading-tight">{c}</li>)}</ul>
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-cream/50">{t(a.t)}</p>
+                    <ul className="flex flex-wrap gap-1.5">{a.chips.map((c) => <li key={c} className="rounded-full bg-cream/10 px-3 py-1.5 text-[13px] font-medium leading-tight">{t(c)}</li>)}</ul>
                   </div>
                 ))}
               </div>
@@ -210,7 +212,7 @@ export default function Spotlight() {
             <div className="grid @container lg:order-1">
               {SPECIALS.map((x, i) => (
                 <div key={x.id} data-dp-copy={i} aria-hidden={idx !== i} className={`flex flex-col items-start self-center [grid-area:1/1] ${i ? "invisible opacity-0" : ""}`}>
-                  <span data-fx className="rounded-full bg-lime px-4 pb-1.5 pt-2 font-tanker text-[14px] uppercase leading-none tracking-[0.04em] text-ink md:text-[16px]">{x.pill}</span>
+                  <span data-fx className="rounded-full bg-lime px-4 pb-1.5 pt-2 font-tanker text-[14px] uppercase leading-none tracking-[0.04em] text-ink md:text-[16px]">{t(x.pill)}</span>
                   <div className="relative mt-4 w-full" style={{ fontSize: `min(172px, ${(92 / x.fit).toFixed(2)}cqw, calc(11vw + 70px))` }}>
                     <p data-dp-title={i} className="font-display uppercase leading-[0.86] text-cream">
                       <span className="block">{x.d1}</span><span className="block text-lime">{x.d2}</span>
@@ -218,16 +220,16 @@ export default function Spotlight() {
                     <Doodle name="l-drip-wide" className="absolute bottom-[-0.3em] left-[2%] w-[0.8em] text-lime opacity-90" />
                     <Doodle name="l-crown-tall" className="absolute top-[-0.2em] w-[0.42em] rotate-12 text-lime" style={{ left: `${x.w1 + 0.02}em` }} />
                   </div>
-                  <p data-fx className="mt-8 max-w-[18ch] text-[clamp(20px,1.1rem+0.9vw,32px)] font-bold leading-[1.1] text-cream">{x.tagline}</p>
+                  <p data-fx className="mt-8 max-w-[18ch] text-[clamp(20px,1.1rem+0.9vw,32px)] font-bold leading-[1.1] text-cream">{t(x.tagline)}</p>
                   <p data-fx className="mt-3 font-display text-[clamp(34px,1.6rem+1.2vw,48px)] leading-none text-lime tabular-nums">{euro(x.price)}</p>
                   <div data-fx className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
-                    <button tabIndex={idx === i ? 0 : -1} onClick={addIt} aria-label={`Lo voglio: aggiungi ${x.name} al carrello`}
+                    <button tabIndex={idx === i ? 0 : -1} onClick={addIt} aria-label={t("Lo voglio: aggiungi {name} al carrello", { name: x.name })}
                       className="group flex h-14 items-center gap-3 rounded-full bg-lime px-8 font-tanker text-[20px] uppercase leading-none text-ink transition-transform duration-300 hover:-rotate-2 hover:scale-[1.03]">
-                      <span className="pt-[0.12em]">Lo voglio</span><span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                      <span className="pt-[0.12em]">{t("Lo voglio")}</span><span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                     </button>
                     <button tabIndex={idx === i ? 0 : -1} onClick={() => toggle(!open)} aria-expanded={open && idx === i}
                       className="group relative font-tanker text-[16px] uppercase leading-none tracking-[0.04em] text-cream">
-                      <span className="pt-[0.12em]">Scopri gli ingredienti</span> <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                      <span className="pt-[0.12em]">{t("Scopri gli ingredienti")}</span> <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                       <svg aria-hidden viewBox="0 0 120 8" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-[5px] w-[86%] text-lime"><path d="M2 5 C 30 2, 70 7, 118 3" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
                     </button>
                   </div>
@@ -238,8 +240,8 @@ export default function Spotlight() {
 
           {/* thumbnails + progress */}
           <div className="mt-6 flex items-center gap-3 md:mt-5 md:justify-center">
-            <button onClick={() => go(cur.current - 1, -1)} aria-label="Drop precedente" className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cream/10 text-xl text-cream transition-colors hover:bg-lime hover:text-ink sm:flex">←</button>
-            <div ref={thumbs} role="tablist" aria-label="Scegli il drop" className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:mx-0 sm:px-1">
+            <button onClick={() => go(cur.current - 1, -1)} aria-label={t("Drop precedente")} className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cream/10 text-xl text-cream transition-colors hover:bg-lime hover:text-ink sm:flex">←</button>
+            <div ref={thumbs} role="tablist" aria-label={t("Scegli il drop")} className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 py-1 sm:mx-0 sm:px-1">
               {SPECIALS.map((x, i) => (
                 <button key={x.id} role="tab" data-dp-thumb={i} data-sp-tab={x.id} aria-selected={idx === i} aria-label={x.name} onClick={() => go(i)}
                   className={`flex h-[84px] w-[214px] shrink-0 snap-center items-center gap-2 rounded-[18px] p-2 pr-4 text-left transition-colors duration-300 md:h-[92px] md:w-[236px] ${idx === i ? "bg-lime text-ink" : "bg-ink-3 text-cream hover:bg-cream/15"}`}>
@@ -248,14 +250,14 @@ export default function Spotlight() {
                 </button>
               ))}
             </div>
-            <button onClick={() => go(cur.current + 1, 1)} aria-label="Drop successivo" className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cream/10 text-xl text-cream transition-colors hover:bg-lime hover:text-ink sm:flex">→</button>
+            <button onClick={() => go(cur.current + 1, 1)} aria-label={t("Drop successivo")} className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cream/10 text-xl text-cream transition-colors hover:bg-lime hover:text-ink sm:flex">→</button>
           </div>
           <div className="mt-4 flex items-center gap-4 md:justify-center">
             <span className="shrink-0 whitespace-nowrap font-tanker text-[15px] leading-none tracking-[0.08em] text-cream tabular-nums" aria-live="polite">{String(idx + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}</span>
             <span className="relative h-1 w-full max-w-[200px] overflow-hidden rounded-full bg-cream/15"><span ref={bar} className="absolute inset-0 origin-left scale-x-0 rounded-full bg-lime" /></span>
             <span className="flex gap-2 sm:hidden">
-              <button onClick={() => go(cur.current - 1, -1)} aria-label="Drop precedente" className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/10 text-cream">←</button>
-              <button onClick={() => go(cur.current + 1, 1)} aria-label="Drop successivo" className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/10 text-cream">→</button>
+              <button onClick={() => go(cur.current - 1, -1)} aria-label={t("Drop precedente")} className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/10 text-cream">←</button>
+              <button onClick={() => go(cur.current + 1, 1)} aria-label={t("Drop successivo")} className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/10 text-cream">→</button>
             </span>
           </div>
         </div>

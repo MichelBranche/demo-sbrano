@@ -8,6 +8,7 @@ import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 import Tick from "../ui/Tick";
 import Doodle from "../ui/Doodle";
+import { useT, type Lang } from "@/lib/i18n";
 
 type Layer = { uid: number; ing: Ingredient };
 /** total filling layers (buns excluded) and max copies of the same ingredient */
@@ -17,8 +18,10 @@ const PER = 5;
 const GAP = 64;
 const PLACES = ["di Vanchiglia", "del Balon", "della Mole", "di Santa Giulia", "del Po", "di Porta Palazzo"];
 
-function makeName(fill: Ingredient[], closed: boolean) {
-  if (!fill.length) return "Inizia scegliendo gli ingredienti.";
+type TFn = (s: string, v?: Record<string, string | number>) => string;
+/** generated burger name, in the current language (EN puts the adjectives first, IT / FR after the noun) */
+function makeName(fill: Ingredient[], closed: boolean, t: TFn, lang: Lang) {
+  if (!fill.length) return t("Inizia scegliendo gli ingredienti.");
   const n = (id: string) => fill.filter((f) => f.id === id).length;
   const p = n("patty"), c = n("chicken");
   let base = "Il Vegetariano";
@@ -38,10 +41,12 @@ function makeName(fill: Ingredient[], closed: boolean) {
   if (n("lettuce") && n("tomato")) adj.push("Vegetariano");
   if (n("mayo")) adj.push("Cremoso");
   const teri = n("teriyaki") ? " Teriyaki" : "";
-  const place = teri || " " + PLACES[fill.reduce((a, f) => a + f.id.length, 0) % PLACES.length];
+  const place = teri || " " + t(PLACES[fill.reduce((a, f) => a + f.id.length, 0) % PLACES.length]);
   const L = fill.length;
   const xl = L >= 35 ? " Grande" : L >= 25 ? " Doppio" : L >= 18 ? " Extra" : L >= 12 ? " XXXL" : L >= 8 ? " XXL" : "";
-  return `${base} ${adj.slice(0, 2).join(" ")}${xl}${place}${closed ? "" : " (senza cappello)"}`.replace(/\s+/g, " ");
+  const a2 = adj.slice(0, 2).map((x) => t(x)).join(" "), xlT = xl && " " + t(xl.trim()), lid = closed ? "" : " " + t("(senza cappello)");
+  const out = lang === "en" ? `The ${a2} ${t(base)}${xlT}${place}${lid}` : `${t(base)} ${a2}${xlT}${place}${lid}`;
+  return out.replace(/\s+/g, " ");
 }
 
 type Tab = "pane" | IngGroup | "menu";
@@ -103,6 +108,7 @@ export default function Builder() {
   const friesObj = FRIES.find((f) => f.id === fries) ?? FRIES[0];
   const bread = BREADS.find((b) => b.id === breadId) ?? BREADS[0];
   const { add, announce } = useCart();
+  const { t, lang } = useT();
   const { contextSafe } = useGSAP({ scope: root });
 
   const fill = fillLayers.map((l) => l.ing);
@@ -110,7 +116,7 @@ export default function Builder() {
   const burgerPrice = fill.length ? all.reduce((a, i) => a + i.price, 0) + 2.0 : 0; // +2€ mano d'opera & amore
   const price = burgerPrice + (asMenu && fill.length ? MENU_UPGRADE : 0);
   const kcal = fill.length ? all.reduce((a, i) => a + i.kcal, 0) : 0;
-  const name = makeName(fill, closed);
+  const name = makeName(fill, closed, t, lang);
   const spicy = fill.some((f) => f.spicy);
   const full = fill.length >= MAX;
   const counts = useMemo(() => {
@@ -244,8 +250,8 @@ export default function Builder() {
   };
 
   const addIng = (ing: Ingredient) => {
-    if (fill.length >= MAX) { setToast(`Massimo ${MAX} strati. Rimuovine uno (−) per aggiungere ${ing.name}.`); return; }
-    if ((counts[ing.id] ?? 0) >= PER) { setToast(`Puoi aggiungere al massimo ${PER} porzioni di ${ing.name}.`); return; }
+    if (fill.length >= MAX) { setToast(t("Massimo {max} strati. Rimuovine uno (−) per aggiungere {name}.", { max: MAX, name: t(ing.name) })); return; }
+    if ((counts[ing.id] ?? 0) >= PER) { setToast(t("Puoi aggiungere al massimo {per} porzioni di {name}.", { per: PER, name: t(ing.name) })); return; }
     setToast(""); setOpen(false);
     floatUp(ing);
     const l = { uid: uid.current++, ing };
@@ -266,7 +272,7 @@ export default function Builder() {
     setTimeout(() => d.remove(), 850);
   };
   const closeTop = () => {
-    if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
+    if (!fill.length) { setToast(t("Seleziona almeno un ingrediente.")); return; }
     if (closed) return;
     setClosed(true); setStep(3); squash(0.45); popMascot();
   };
@@ -284,12 +290,12 @@ export default function Builder() {
   const reset = () => { setOpen(false); setFill([]); setClosed(false); setToast(""); setBreadId(BREADS[0].id); setBreadPicked(false); setAsMenu(false); goTab("pane"); popMascot(); };
 
   const order = () => {
-    if (!fill.length) { setToast("Seleziona almeno un ingrediente."); return; }
+    if (!fill.length) { setToast(t("Seleziona almeno un ingrediente.")); return; }
     const ids = [bread.bottom.id, ...fill.map((f) => f.id), bread.top.id];
     const key = "custom-" + ids.join("-") + (asMenu ? `-menu-${friesObj.id}-${drinkObj.id}` : "");
     const finalPrice = Math.round((price + (closed ? 0 : bread.top.price)) * 100) / 100;
-    const fillNames = fill.map((f) => f.name);
-    const finalName = makeName(fill, true); // the order always closes the bun first
+    const fillNames = fill.map((f) => f.name); // stored in Italian (source keys), translated in the cart
+    const finalName = makeName(fill, true, t, lang); // the order always closes the bun first
     const go = async () => {
       let img = "/assets/menu/sbranatore.webp";
       try { img = await composeBurger(ids); } catch { /* fallback: stacked component in cart */ }
@@ -297,11 +303,11 @@ export default function Builder() {
       const ghost = stackRef.current;
       if (ghost && !reduced()) gsap.to(ghost, { opacity: 0.18, scale: 0.9, duration: 0.25, ease: "power2.out", onComplete: () => { gsap.to(ghost, { opacity: 1, scale: 1, duration: 0.6, delay: 0.75, ease: "back.out(2)" }); } });
       flyToCart(stackRef.current, asMenu ? [img, friesObj.img, drinkObj.img] : img, () => {
-        add({ id: key, name: asMenu ? `Menu ${finalName}` : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames,
+        add({ id: key, name: asMenu ? t("Menu {x}", { x: finalName }) : finalName, price: finalPrice, img, layers: ids, ingredients: fillNames,
           note: `Pane: ${bread.name}. Ingredienti: ${fillNames.join(", ")}`,
           ...(asMenu ? { menu: { fries: friesObj.full, drink: drinkObj.name, friesImg: friesObj.img, drinkImg: drinkObj.img } } : {}) });
-        announce({ title: "Nel sacchetto!", sub: asMenu ? `Il tuo mostro con ${friesObj.full.toLowerCase()} e ${drinkObj.name} è nel carrello.` : "Il tuo mostro è nel carrello.", img });
-        setToast("Aggiunto all’ordine."); setOpen(false);
+        announce({ title: t("Nel sacchetto!"), sub: asMenu ? t("Il tuo mostro con {fries} e {drink} è nel carrello.", { fries: t(friesObj.full).toLowerCase(), drink: drinkObj.name }) : t("Il tuo mostro è nel carrello."), img });
+        setToast(t("Aggiunto all’ordine.")); setOpen(false);
       }, { big: true });
     };
     if (!closed) { closeTop(); setTimeout(go, 750); } else go();
@@ -372,10 +378,10 @@ export default function Builder() {
       className={`b-card group/c relative flex w-[188px] shrink-0 snap-start flex-col rounded-[22px] border-[2.5px] bg-[#fffaf0] p-2.5 transition-[translate,rotate,box-shadow,border-color] duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] md:w-[206px] ${opts.selected ? "border-ink shadow-[0_0_0_3px_#d6ff4d,6px_6px_0_3px_#111]" : "border-ink shadow-[5px_5px_0_#111]"} hover:-translate-y-1 hover:-rotate-[1.2deg] hover:shadow-[7px_8px_0_#111]`}>
       <span aria-hidden className={`absolute right-3.5 top-3.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${opts.selected ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
       {opts.main}
-      <p className="mt-2.5 truncate px-1 text-[15.5px] font-bold leading-tight md:text-[16px]">{opts.name}{opts.spicy && <span aria-label="piccante"> 🌶</span>}</p>
-      <p className="mt-1 line-clamp-2 h-[2.7em] px-1 text-[12.5px] leading-[1.35] text-ink/60">{opts.desc}</p>
+      <p className="mt-2.5 truncate px-1 text-[15.5px] font-bold leading-tight md:text-[16px]">{t(opts.name)}{opts.spicy && <span aria-label={t("piccante")}> 🌶</span>}</p>
+      <p className="mt-1 line-clamp-2 h-[2.7em] px-1 text-[12.5px] leading-[1.35] text-ink/60">{opts.desc ? t(opts.desc) : ""}</p>
       <div className="mt-2 flex h-10 items-center justify-between gap-1 pl-1">
-        <span className={`text-[14px] font-bold tabular-nums ${opts.priceLabel === "Incluso" ? "text-[12px] uppercase tracking-wider" : ""}`}>{opts.priceLabel}</span>
+        <span className={`text-[14px] font-bold tabular-nums ${opts.priceLabel === "Incluso" ? "text-[12px] uppercase tracking-wider" : ""}`}>{t(opts.priceLabel)}</span>
         {opts.foot}
       </div>
     </div>
@@ -398,12 +404,12 @@ export default function Builder() {
     return card({
       key: ing.id, img: ing.img, name: ing.name, desc: ing.desc, priceLabel: `+${euro(ing.price)}`, selected: count > 0, spicy: ing.spicy,
       main: (
-        <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={maxed}
+        <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} aria-label={t("Aggiungi {name}, {price}", { name: t(ing.name), price: euro(ing.price) })} aria-disabled={maxed}
           className={`group block w-full text-left transition-transform active:scale-[0.97] ${maxed ? "opacity-60" : ""}`}>{thumb(ing.img, "")}</button>
       ),
       foot: count ? (
         <span className="flex h-10 items-center rounded-full border-2 border-ink bg-lime p-0.5 text-ink">
-          <button type="button" onClick={() => removeOne(ing)} aria-label={`Togli un ${ing.name}`} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none hover:bg-ink/10">−</button>
+          <button type="button" onClick={() => removeOne(ing)} aria-label={t("Togli un {name}", { name: t(ing.name) })} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none hover:bg-ink/10">−</button>
           <span className="w-5 text-center text-sm font-bold tabular-nums" data-count><span key={count} className="sb-pop inline-block">{count}</span></span>
           <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} tabIndex={-1} aria-hidden data-plus className={`flex h-8 w-8 items-center justify-center rounded-full bg-ink text-lg leading-none text-lime ${maxed ? "opacity-40" : ""}`}>+</button>
         </span>
@@ -418,11 +424,11 @@ export default function Builder() {
     return card({
       key: "bread-" + b.id, img: b.top.img, name: b.name, desc: b.desc, priceLabel: b.extra ? `+${euro(b.extra)}` : "Incluso", selected: sel,
       main: (
-        <button type="button" role="radio" aria-checked={sel} onClick={() => { pickBread(b.id); bump("bread-" + b.id); }} aria-label={`${b.name}, ${b.extra ? "+" + euro(b.extra) : "gratis"}`} data-bread={b.id}
+        <button type="button" role="radio" aria-checked={sel} onClick={() => { pickBread(b.id); bump("bread-" + b.id); }} aria-label={`${t(b.name)}, ${b.extra ? "+" + euro(b.extra) : t("gratis")}`} data-bread={b.id}
           className="group block w-full text-left transition-transform active:scale-[0.97]">{thumb(b.top.img, "")}</button>
       ),
       foot: sel ? (
-        <span className="sb-pop-in flex h-10 items-center rounded-full border-2 border-ink bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink">Scelto</span>
+        <span className="sb-pop-in flex h-10 items-center rounded-full border-2 border-ink bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink">{t("Scelto")}</span>
       ) : (
         <button type="button" tabIndex={-1} aria-hidden data-plus onClick={() => { pickBread(b.id); bump("bread-" + b.id); }}
           className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-ink bg-[#fffaf0] text-[22px] leading-none text-ink transition-colors hover:bg-lime">+</button>
@@ -437,18 +443,18 @@ export default function Builder() {
       <span className="relative block aspect-square w-full overflow-hidden rounded-[16px]" style={{ background: o.tint ?? "#f6ebd7" }}>
         <Image src={o.img} alt="" fill sizes="150px" loading="eager" className={`object-contain p-1.5 transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:-rotate-6 group-hover:scale-110 ${o.sel ? "scale-105" : ""}`} />
       </span>
-      <span className="mt-2 block text-[13px] font-bold leading-tight md:text-[14px]">{o.name}</span>
-      <span className="mt-0.5 hidden text-[11px] leading-tight text-ink/55 md:block">{o.desc}</span>
+      <span className="mt-2 block text-[13px] font-bold leading-tight md:text-[14px]">{t(o.name)}</span>
+      <span className="mt-0.5 hidden text-[11px] leading-tight text-ink/55 md:block">{t(o.desc)}</span>
     </button>
   );
   const menuPicker = (
     <div className="flex flex-col gap-4">
-      <div role="radiogroup" aria-label="Scegli le patatine">
-        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Patatine</p>
+      <div role="radiogroup" aria-label={t("Scegli le patatine")}>
+        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">{t("Patatine")}</p>
         <div className="flex gap-4">{FRIES.map((f) => tile({ key: f.id, img: f.img, name: f.name, desc: f.desc, sel: fries === f.id, onPick: () => setFries(f.id), data: { "data-fries": f.id } }))}</div>
       </div>
-      <div role="radiogroup" aria-label="Scegli la bibita">
-        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Bibita</p>
+      <div role="radiogroup" aria-label={t("Scegli la bibita")}>
+        <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">{t("Bibita")}</p>
         <div className="flex gap-4">{DRINKS.map((d) => tile({ key: d.id, img: d.img, name: d.name, desc: "Alla spina, refill disponibile.", sel: drink === d.id, onPick: () => setDrink(d.id), data: { "data-drink": d.id }, tint: d.tint }))}</div>
       </div>
     </div>
@@ -459,16 +465,16 @@ export default function Builder() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] lg:gap-x-12 lg:gap-y-8 xl:gap-x-16">
         {/* 1. head */}
         <div className="b-head lg:col-start-1 lg:row-start-1">
-          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/70"><span>01 / Builder</span><span aria-hidden className="h-px w-16 bg-ink/40" /><Doodle name="k-crown-rays" className="-mt-2 w-12 -rotate-6 text-ink" /></p>
+          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/70"><span>01 / {t("Builder")}</span><span aria-hidden className="h-px w-16 bg-ink/40" /><Doodle name="k-crown-rays" className="-mt-2 w-12 -rotate-6 text-ink" /></p>
           <h2 id="b-title" className="mt-4 font-display text-[12.4vw] uppercase leading-[0.86] md:text-[clamp(52px,7vw,84px)] lg:text-[clamp(48px,4.7vw,84px)]">
-            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">Costruisci</span></span>
-            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">il tuo mostro</span></span>
+            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">{t("Costruisci")}</span></span>
+            <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">{t("il tuo mostro")}</span></span>
           </h2>
-          <p className="mt-4 max-w-[25rem] text-base text-ink/70 md:text-lg">Scegli gli ingredienti, strato dopo strato. Il tuo burger prende forma qui.</p>
+          <p className="mt-4 max-w-[25rem] text-base text-ink/70 md:text-lg">{t("Scegli gli ingredienti, strato dopo strato. Il tuo burger prende forma qui.")}</p>
         </div>
 
         {/* 2. steps: compact horizontal stepper on mobile, cards on desktop */}
-        <ol className="relative grid grid-cols-4 gap-1 lg:col-start-1 lg:row-start-2 lg:grid-cols-1 lg:gap-2.5" aria-label="Passaggi">
+        <ol className="relative grid grid-cols-4 gap-1 lg:col-start-1 lg:row-start-2 lg:grid-cols-1 lg:gap-2.5" aria-label={t("Passaggi")}>
           <span aria-hidden className="absolute left-[12.5%] right-[12.5%] top-5 h-0.5 bg-ink/15 lg:hidden" />
           {STEPS.map((s, i) => {
             const on = active === i;
@@ -478,14 +484,14 @@ export default function Builder() {
                   className={`flex w-full flex-col items-center gap-1.5 text-center transition-colors lg:flex-row lg:items-center lg:gap-4 lg:rounded-[22px] lg:border-2 lg:p-3 lg:pr-5 lg:text-left ${on ? "lg:border-ink lg:bg-white" : "lg:border-transparent lg:bg-white/55 lg:hover:bg-white/80"}`}>
                   <span className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink font-display text-lg text-lime transition-shadow duration-300 lg:h-11 lg:w-11 lg:text-xl ${on ? "shadow-[0_0_0_3px_#f6ebd7,0_0_0_6px_#d6ff4d]" : ""}`}>
                     {i + 1}
-                    {done[i] && !on && <span aria-label="completato" className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-ink bg-lime text-ink"><Check className="h-3 w-3" /></span>}
+                    {done[i] && !on && <span aria-label={t("completato")} className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-ink bg-lime text-ink"><Check className="h-3 w-3" /></span>}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={`block text-[10px] font-bold uppercase leading-tight tracking-wider lg:text-[15px] ${on ? "text-ink" : "text-ink/70"}`}>{s.t}</span>
-                    <span className="hidden text-sm text-ink/60 lg:block">{s.d}</span>
+                    <span className={`block text-[10px] font-bold uppercase leading-tight tracking-wider lg:text-[15px] ${on ? "text-ink" : "text-ink/70"}`}>{t(s.t)}</span>
+                    <span className="hidden text-sm text-ink/60 lg:block">{t(s.d)}</span>
                   </span>
                 </button>
-                {on && <span key={note} aria-hidden className="sb-note pointer-events-none absolute -bottom-3.5 right-4 z-10 hidden rounded-md bg-cream px-2 pt-1 font-marker text-[15px] leading-none text-ink shadow-[0_0_0_2px_#111] lg:block xl:text-[17px]" style={{ ["--r" as string]: i % 2 ? "2deg" : "-3deg" } as React.CSSProperties}>{note}</span>}
+                {on && <span key={note} aria-hidden className="sb-note pointer-events-none absolute -bottom-3.5 right-4 z-10 hidden rounded-md bg-cream px-2 pt-1 font-marker text-[15px] leading-none text-ink shadow-[0_0_0_2px_#111] lg:block xl:text-[17px]" style={{ ["--r" as string]: i % 2 ? "2deg" : "-3deg" } as React.CSSProperties}>{t(note)}</span>}
               </li>
             );
           })}
@@ -507,11 +513,11 @@ export default function Builder() {
             {/* Fallo menu: fries + drink grouped with the burger like a real menu shot (sized from the burger, slight overlap) */}
             {asMenu && (
               <>
-                <button type="button" onClick={() => goTab("menu")} aria-label={`Bibita: ${drinkObj.name}. Cambia`} data-stage-side="drink"
+                <button type="button" onClick={() => goTab("menu")} aria-label={t("Bibita: {name}. Cambia", { name: drinkObj.name })} data-stage-side="drink"
                   className="sb-side-r absolute bottom-[17%] z-[1] transition-[left,width,height] duration-500 ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ left: side.dx, width: side.dw, height: side.dh }}>
                   <span key={drinkObj.id} className="sb-pop relative block h-full w-full"><Image src={drinkObj.img} alt="" fill sizes="(min-width:1024px) 200px, 30vw" className="object-contain object-bottom drop-shadow-[0_16px_14px_rgba(0,0,0,.3)]" /></span>
                 </button>
-                <button type="button" onClick={() => goTab("menu")} aria-label={`Patatine: ${friesObj.full}. Cambia`} data-stage-side="fries"
+                <button type="button" onClick={() => goTab("menu")} aria-label={t("Patatine: {name}. Cambia", { name: t(friesObj.full) })} data-stage-side="fries"
                   className="sb-side-l absolute bottom-[16%] z-[55] transition-[left,width,height] duration-500 ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ left: side.fx, width: side.fw, height: side.fh }}>
                   <span key={friesObj.id} className="sb-pop relative block h-full w-full"><Image src={friesObj.img} alt="" fill sizes="(min-width:1024px) 260px, 40vw" className="object-contain object-bottom drop-shadow-[0_16px_14px_rgba(0,0,0,.3)]" /></span>
                 </button>
@@ -520,7 +526,7 @@ export default function Builder() {
             {/* stack */}
             <div className="absolute inset-x-0 bottom-[19%] flex justify-center">
               <div className="relative h-[300px] w-[260px]">
-                <div ref={stackRef} className="absolute inset-0" aria-label="Il tuo burger">
+                <div ref={stackRef} className="absolute inset-0" aria-label={t("Il tuo burger")}>
                   <div className="absolute -bottom-3 left-1/2 h-6 w-[90%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-sm" />
                   <div className="absolute inset-0 origin-bottom transition-transform duration-500" style={{ transform: `scale(${fit})` }}>
                     {stackIngs.map((ing, i) => {
@@ -529,7 +535,7 @@ export default function Builder() {
                         <div key={l ? l.uid : "bottom-" + bread.id} className="absolute bottom-0 left-1/2 transition-transform duration-500 ease-[cubic-bezier(.3,1.5,.5,1)]"
                           style={{ width: `${ing.w}%`, transform: `translate(-50%, ${-offsets[i]}px)`, zIndex: i + 1 }}>
                           <div data-layer={l ? l.uid : "bottom"} onClick={() => l && remove(l.uid)} className={`relative w-full ${l ? "cursor-pointer" : ""}`} style={{ aspectRatio: ing.ratio }}>
-                            <Image src={ing.img} alt={ing.name} fill sizes="280px" priority={!l} className="object-contain object-bottom" />
+                            <Image src={ing.img} alt={t(ing.name)} fill sizes="280px" priority={!l} className="object-contain object-bottom" />
                           </div>
                         </div>
                       );
@@ -537,10 +543,10 @@ export default function Builder() {
                     {/* top bun: floats above while open, drops on as the closing step */}
                     <div className="absolute bottom-0 left-1/2 transition-transform duration-[650ms] ease-[cubic-bezier(.34,1.5,.6,1)]"
                       style={{ width: `${bread.top.w}%`, transform: `translate(-50%, ${-(topOffset + (closed ? 0 : GAP))}px)`, zIndex: 50 }}>
-                      <div data-layer="top" role="button" tabIndex={0} aria-label={closed ? "Togli il pane sopra" : "Chiudi con il pane sopra"}
+                      <div data-layer="top" role="button" tabIndex={0} aria-label={t(closed ? "Togli il pane sopra" : "Chiudi con il pane sopra")}
                         onClick={() => (closed ? setClosed(false) : closeTop())} onKeyDown={(e) => e.key === "Enter" && (closed ? setClosed(false) : closeTop())}
                         className={`relative w-full cursor-pointer ${closed ? "" : "sb-bob"}`} style={{ aspectRatio: bread.top.ratio }}>
-                        <Image key={bread.top.id} src={bread.top.img} alt="Pane sopra" fill sizes="280px" priority className="object-contain object-bottom" />
+                        <Image key={bread.top.id} src={bread.top.img} alt={t("Pane sopra")} fill sizes="280px" priority className="object-contain object-bottom" />
                       </div>
                     </div>
                   </div>
@@ -550,13 +556,13 @@ export default function Builder() {
             {/* close button */}
             <button onClick={closeTop} disabled={closed} className="absolute bottom-[2%] left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-ink py-1 pl-1 pr-4 text-[11px] font-bold uppercase tracking-wider text-lime transition-transform hover:scale-105 disabled:opacity-40 md:text-xs">
               <span className="relative h-7 w-7 rounded-full bg-lime md:h-8 md:w-8"><Image src={bread.top.img} alt="" fill sizes="32px" className="object-contain p-0.5" /></span>
-              {closed ? "Chiuso" : "Completa con il pane sopra."}
+              {t(closed ? "Chiuso" : "Completa con il pane sopra.")}
             </button>
-            {slap && <span key={slap.k} role="status" className="b-slap sb-tag pointer-events-none absolute left-0 top-[34%] z-[70] max-w-[46%] whitespace-normal bg-lime font-marker text-[15px] text-ink md:text-[18px] lg:hidden" style={{ transform: `rotate(${slap.r}deg)` }}>{slap.t}</span>}
+            {slap && <span key={slap.k} role="status" className="b-slap sb-tag pointer-events-none absolute left-0 top-[34%] z-[70] max-w-[46%] whitespace-normal bg-lime font-marker text-[15px] text-ink md:text-[18px] lg:hidden" style={{ transform: `rotate(${slap.r}deg)` }}>{t(slap.t)}</span>}
             {/* handwritten hint + waving mascot */}
             <div className="pointer-events-none absolute right-0 top-0 z-[70] flex w-[34%] max-w-[230px] flex-col items-end text-right">
               <div className="flex items-start gap-1">
-                <p className="mt-1 rotate-[-5deg] font-marker text-[14px] leading-[1.12] md:text-[19px] lg:text-[clamp(17px,1.4vw,23px)]" aria-live="polite"><span key={note} className="sb-pop-in inline-block lg:hidden">{note}</span><span key={hint} className="sb-pop-in hidden lg:inline-block">{hint}</span></p>
+                <p className="mt-1 rotate-[-5deg] font-marker text-[14px] leading-[1.12] md:text-[19px] lg:text-[clamp(17px,1.4vw,23px)]" aria-live="polite"><span key={note} className="sb-pop-in inline-block lg:hidden">{t(note)}</span><span key={hint} className="sb-pop-in hidden lg:inline-block">{t(hint)}</span></p>
                 <div className="relative h-12 w-12 shrink-0 md:h-16 md:w-16"><Image src="/assets/mascot/waving.webp" alt="" fill sizes="64px" className="object-contain" /></div>
               </div>
               <svg aria-hidden viewBox="0 0 120 70" className="mr-[30%] mt-0.5 h-auto w-[52%] text-ink">
@@ -570,15 +576,15 @@ export default function Builder() {
         {/* 4. ingredient panel: category tabs + horizontal card carousel */}
         <div className="relative rounded-[30px] border-[2.5px] border-ink bg-[#fbf4e6] p-3 pt-2 md:p-5 md:pt-3 lg:col-start-2 lg:row-start-3 lg:self-start">
           <div className="flex flex-col gap-2 md:gap-1">
-            <div role="tablist" aria-label="Categorie" className="no-scrollbar -mx-3 flex min-w-0 flex-1 gap-1 overflow-x-auto px-3 pb-2 pt-3 md:mx-0 md:flex-wrap md:gap-x-1 md:gap-y-3 md:overflow-visible md:px-0">
-              {TABS.filter((t) => t.id !== "menu" || asMenu).map((t) => {
-                const n = t.id === "pane" ? (breadPicked ? 1 : 0) : t.id === "menu" ? 0 : fill.filter((f) => f.group === t.id).length;
-                const on = tab === t.id;
+            <div role="tablist" aria-label={t("Categorie")} className="no-scrollbar -mx-3 flex min-w-0 flex-1 gap-1 overflow-x-auto px-3 pb-2 pt-3 md:mx-0 md:flex-wrap md:gap-x-1 md:gap-y-3 md:overflow-visible md:px-0">
+              {TABS.filter((x) => x.id !== "menu" || asMenu).map((tb) => {
+                const n = tb.id === "pane" ? (breadPicked ? 1 : 0) : tb.id === "menu" ? 0 : fill.filter((f) => f.group === tb.id).length;
+                const on = tab === tb.id;
                 return (
-                  <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => goTab(t.id)} data-tab={t.id}
-                    className={`sb-lift relative flex h-11 shrink-0 items-center gap-2 rounded-full px-3.5 font-tanker text-[15px] uppercase leading-none tracking-[0.03em] transition-colors lg:px-3 ${on ? "border-2 border-ink bg-lime text-ink" : "border-2 border-transparent text-ink/75 hover:text-ink"} ${t.id === "menu" ? "sb-pop-in" : ""}`}>
-                    <svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0"><path d={ICON[t.id]} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    <span className="pt-[0.12em]">{t.label}</span>
+                  <button key={tb.id} type="button" role="tab" aria-selected={on} onClick={() => goTab(tb.id)} data-tab={tb.id}
+                    className={`sb-lift relative flex h-11 shrink-0 items-center gap-2 rounded-full px-3.5 font-tanker text-[15px] uppercase leading-none tracking-[0.03em] transition-colors lg:px-3 ${on ? "border-2 border-ink bg-lime text-ink" : "border-2 border-transparent text-ink/75 hover:text-ink"} ${tb.id === "menu" ? "sb-pop-in" : ""}`}>
+                    <svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0"><path d={ICON[tb.id]} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <span className="pt-[0.12em]">{t(tb.label)}</span>
                     {n > 0 && <span key={n} className="sb-pop absolute -right-1.5 -top-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink px-1 font-body text-[10.5px] font-bold tabular-nums text-lime">{n}</span>}
                     {on && <span aria-hidden className="absolute -bottom-2 left-1 right-1 h-[3px] rounded-full bg-ink" />}
                   </button>
@@ -586,33 +592,33 @@ export default function Builder() {
               })}
             </div>
             <p className="flex shrink-0 items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:order-first md:justify-end md:gap-3 md:pt-1">
-              <span className={`block font-tanker text-[16px] tracking-[0.04em] tabular-nums ${full ? "text-red-600" : ""}`}>{fill.length}/{MAX} strati</span>
-              <span className="block text-ink/55">Massimo {PER} per ingrediente</span>
+              <span className={`block font-tanker text-[16px] tracking-[0.04em] tabular-nums ${full ? "text-red-600" : ""}`}>{t("{n}/{max} strati", { n: fill.length, max: MAX })}</span>
+              <span className="block text-ink/55">{t("Massimo {per} per ingrediente", { per: PER })}</span>
             </p>
           </div>
           <div className="relative mt-2 border-t-2 border-ink/10 pt-1">
             <div ref={cardsRef} data-cards onScroll={edges} onPointerDown={dragStart} onClickCapture={dragClick}
               className="no-scrollbar -mx-3 snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-pl-3 px-3 pb-4 pt-4 md:-mx-5 md:scroll-pl-5 md:px-5">
-              {TABS.filter((t) => (warm || t.id === tab) && (t.id !== "menu" || asMenu)).map((t) => (
-                <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-4 pr-3">
-                  {t.id === "pane" ? BREADS.map(breadCard) : t.id === "menu" ? menuPicker : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
+              {TABS.filter((x) => (warm || x.id === tab) && (x.id !== "menu" || asMenu)).map((tb) => (
+                <div key={tb.id} role="tabpanel" data-panel={tb.id} hidden={tb.id !== tab} className="flex w-max gap-4 pr-3">
+                  {tb.id === "pane" ? BREADS.map(breadCard) : tb.id === "menu" ? menuPicker : INGREDIENTS.filter((i) => i.group === tb.id).map(ingCard)}
                 </div>
               ))}
             </div>
             {/* scroll hints: edge fades + round arrows */}
             <span aria-hidden className={`pointer-events-none absolute -left-3 bottom-0 top-0 w-12 bg-gradient-to-r from-[#fbf4e6] to-transparent transition-opacity duration-300 md:-left-5 ${edge.l ? "opacity-100" : "opacity-0"}`} />
             <span aria-hidden className={`pointer-events-none absolute -right-3 bottom-0 top-0 w-16 bg-gradient-to-l from-[#fbf4e6] to-transparent transition-opacity duration-300 md:-right-5 ${edge.r ? "opacity-100" : "opacity-0"}`} />
-            <button type="button" onClick={() => nudge(-1)} aria-label="Ingredienti precedenti" disabled={!edge.l}
+            <button type="button" onClick={() => nudge(-1)} aria-label={t("Ingredienti precedenti")} disabled={!edge.l}
               className="absolute -left-5 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink text-lg text-cream shadow-[3px_3px_0_rgba(17,17,17,.25)] transition-[opacity,scale] hover:scale-110 disabled:pointer-events-none disabled:opacity-0 md:-left-8 md:h-12 md:w-12">←</button>
-            <button type="button" onClick={() => nudge(1)} aria-label="Ingredienti successivi" disabled={!edge.r}
+            <button type="button" onClick={() => nudge(1)} aria-label={t("Ingredienti successivi")} disabled={!edge.r}
               className="absolute -right-5 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink text-lg text-cream shadow-[3px_3px_0_rgba(17,17,17,.25)] transition-[opacity,scale] hover:scale-110 disabled:pointer-events-none disabled:opacity-0 md:-right-8 md:h-12 md:w-12">→</button>
           </div>
-          <p className={`mt-1 min-h-5 px-1 text-sm ${full ? "text-red-600" : "text-ink/70"}`} role="status">{full ? `Hai raggiunto ${MAX} strati. Rimuovine uno (−) per aggiungerne altri.` : toast}</p>
+          <p className={`mt-1 min-h-5 px-1 text-sm ${full ? "text-red-600" : "text-ink/70"}`} role="status">{full ? t("Hai raggiunto {max} strati. Rimuovine uno (−) per aggiungerne altri.", { max: MAX }) : toast}</p>
         </div>
 
         {/* 5. summary: sticky compact bar on mobile, full card on desktop */}
         <div className="sticky bottom-3 z-[80] lg:relative lg:col-start-1 lg:row-start-3">
-          {slap && <span key={slap.k} aria-hidden className="b-slap sb-tag pointer-events-none absolute -right-7 top-[30%] z-10 hidden max-w-[260px] whitespace-normal bg-lime font-marker text-[clamp(17px,1.35vw,22px)] text-ink lg:inline-flex" style={{ transform: `rotate(${slap.r}deg)` }}>{slap.t}</span>}
+          {slap && <span key={slap.k} aria-hidden className="b-slap sb-tag pointer-events-none absolute -right-7 top-[30%] z-10 hidden max-w-[260px] whitespace-normal bg-lime font-marker text-[clamp(17px,1.35vw,22px)] text-ink lg:inline-flex" style={{ transform: `rotate(${slap.r}deg)` }}>{t(slap.t)}</span>}
           <div className="max-h-[78svh] overflow-y-auto rounded-[28px] bg-ink p-3 text-cream shadow-[0_18px_40px_-12px_rgba(0,0,0,.45)] md:p-5 lg:max-h-none lg:overflow-visible lg:p-6 lg:shadow-none">
             {/* mobile header */}
             <div className="flex items-center gap-2 lg:hidden">
@@ -621,11 +627,11 @@ export default function Builder() {
                   <svg viewBox="0 0 20 20" className="h-4 w-4"><path d="M5 12.5l5-5 5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate font-display text-[17px] uppercase leading-tight text-lime">{fill.length ? name : "Il tuo Sbrano"}</span>
-                  <span className="block truncate text-[11px] text-cream/60">{toast || `${fill.length}/${MAX} strati · ${kcal} kcal`}</span>
+                  <span className="block truncate font-display text-[17px] uppercase leading-tight text-lime">{fill.length ? name : t("Il tuo Sbrano")}</span>
+                  <span className="block truncate text-[11px] text-cream/60">{toast || `${t("{n}/{max} strati", { n: fill.length, max: MAX })} · ${kcal} kcal`}</span>
                 </span>
               </button>
-              <button onClick={order} className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink" data-builder-order-mobile aria-label={`Aggiungi all’ordine, ${euro(price)}`}>
+              <button onClick={order} className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink" data-builder-order-mobile aria-label={t("Aggiungi all’ordine, {price}", { price: euro(price) })}>
                 <Tick value={price} format={euro} /><span aria-hidden className="text-lg leading-none">+</span>
               </button>
             </div>
@@ -633,15 +639,15 @@ export default function Builder() {
             <div className={`${open ? "mt-4 block" : "hidden"} lg:mt-0 lg:block`}>
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cream/50">Il tuo Sbrano</p>
-                  <p className={`mt-1.5 min-h-[2em] font-display uppercase leading-[1] text-lime ${name.length > 44 && fill.length ? "text-[22px] md:text-[clamp(22px,1.9vw,30px)]" : "text-[26px] md:text-[clamp(26px,2.3vw,38px)]"}`} aria-live="polite">{fill.length ? name : "Il tuo burger, come lo vuoi tu."}</p>
-                  <p className="mt-2 min-h-5 text-sm text-cream/60">{mood.say}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cream/50">{t("Il tuo Sbrano")}</p>
+                  <p className={`mt-1.5 min-h-[2em] font-display uppercase leading-[1] text-lime ${name.length > 44 && fill.length ? "text-[22px] md:text-[clamp(22px,1.9vw,30px)]" : "text-[26px] md:text-[clamp(26px,2.3vw,38px)]"}`} aria-live="polite">{fill.length ? name : t("Il tuo burger, come lo vuoi tu.")}</p>
+                  <p className="mt-2 min-h-5 text-sm text-cream/60">{t(mood.say)}</p>
                 </div>
                 <div className="relative hidden w-[30%] max-w-[132px] shrink-0 sm:block">
                   <div ref={mascotRef} className="relative aspect-square w-full">
-                    <Image key={mood.img} src={mood.img} alt="Mascotte SBRANO" fill sizes="132px" className="object-contain invert" />
+                    <Image key={mood.img} src={mood.img} alt={t("Mascotte SBRANO")} fill sizes="132px" className="object-contain invert" />
                   </div>
-                  <p aria-hidden className="absolute -left-5 bottom-1 rotate-[-9deg] font-display text-[15px] uppercase leading-none text-lime md:text-[17px]">Zero<br />limiti.</p>
+                  <p aria-hidden className="absolute -left-5 bottom-1 rotate-[-9deg] font-display text-[15px] uppercase leading-none text-lime md:text-[17px]">{t("Zero")}<br />{t("limiti.")}</p>
                   <svg aria-hidden viewBox="0 0 60 10" className="absolute -left-6 -bottom-2 w-14 rotate-[-9deg] text-lime"><path d="M2 6 C 15 2, 30 9, 58 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
                 </div>
               </div>
@@ -649,7 +655,7 @@ export default function Builder() {
               <div className="mt-4 grid grid-cols-3 divide-x divide-cream/15 rounded-[20px] border border-cream/15">
                 {([["Prezzo", price, euro, ""], ["Energia", kcal, undefined, "kcal"], ["Strati", fill.length, undefined, `/${MAX}`]] as const).map(([l, v, f, u]) => (
                   <div key={l} className="px-3 py-2.5 md:px-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-cream/50">{l}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-cream/50">{t(l)}</p>
                     <p className="whitespace-nowrap font-display text-[22px] leading-tight tabular-nums md:text-[clamp(22px,2vw,30px)]"><Tick value={v} format={f} />{u && <span className="text-[0.55em] text-cream/50"> {u}</span>}</p>
                   </div>
                 ))}
@@ -660,25 +666,25 @@ export default function Builder() {
                 <label className="flex cursor-pointer items-center gap-3">
                   <input type="checkbox" checked={asMenu} onChange={(e) => toggleMenu(e.target.checked)} className="peer sr-only" data-menu-toggle />
                   <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-lime ${asMenu ? "bg-ink" : "bg-cream/30"}`}><span className={`sb-knob absolute top-1 h-5 w-5 rounded-full ${asMenu ? "translate-x-6 bg-lime" : "translate-x-1 bg-cream"}`} /></span>
-                  <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold uppercase tracking-wider">Fallo menu <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>{asMenu ? `${friesObj.full} e ${drinkObj.name}.` : "Patatine Sbrano e una bibita a scelta."}</span></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold uppercase tracking-wider">{t("Fallo menu")} <span className="tabular-nums">+{euro(MENU_UPGRADE)}</span></span><span className={`block text-xs ${asMenu ? "text-ink/70" : "text-cream/60"}`}>{asMenu ? t("{fries} e {drink}.", { fries: t(friesObj.full), drink: drinkObj.name }) : t("Patatine Sbrano e una bibita a scelta.")}</span></span>
                   <span className="flex shrink-0 -space-x-3" aria-hidden>
                     <span key={friesObj.id} className="sb-pop relative h-10 w-10 rounded-full bg-cream ring-2 ring-ink"><Image src={friesObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
                     <span key={drinkObj.id} className="sb-pop relative h-10 w-10 rounded-full ring-2 ring-ink" style={{ background: drinkObj.tint }}><Image src={drinkObj.img} alt="" fill sizes="40px" className="object-contain p-1" /></span>
                   </span>
                 </label>
                 {asMenu && (
-                  <button type="button" onClick={() => goTab("menu")} className="sb-pop-in mt-2 text-xs font-bold uppercase tracking-wider underline underline-offset-4">Cambia patatine o bibita</button>
+                  <button type="button" onClick={() => goTab("menu")} className="sb-pop-in mt-2 text-xs font-bold uppercase tracking-wider underline underline-offset-4">{t("Cambia patatine o bibita")}</button>
                 )}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <button onClick={order} data-mag="0.2" className="group hidden h-12 items-center justify-between gap-3 rounded-full bg-lime pl-6 pr-2 text-ink lg:flex" data-builder-order>
-                  <span className="whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.08em]">Aggiungi all&apos;ordine</span>
+                  <span className="whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.08em]">{t("Aggiungi all’ordine")}</span>
                   <span className="flex h-9 items-center gap-2 border-l-2 border-ink/20 pl-3 pr-3 font-bold tabular-nums"><Tick value={price} format={euro} /></span>
                 </button>
                 <button onClick={reset} className="flex h-12 items-center gap-2 rounded-full border-2 border-cream/30 px-5 text-xs font-bold uppercase tracking-wider transition-colors hover:border-lime hover:text-lime">
                   <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4"><path d="M4 10a6 6 0 1 0 1.8-4.3M4 3.5v3.2h3.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Butta tutto e riparti
+                  {t("Butta tutto e riparti")}
                 </button>
               </div>
               <p className="mt-3 hidden min-h-5 text-sm text-lime/80 lg:block" aria-live="polite">{toast}</p>
