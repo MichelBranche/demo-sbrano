@@ -4,10 +4,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 import { visibleCart } from "@/lib/fly";
 import { gsap, reduced } from "@/lib/gsap";
+import { useT } from "@/lib/i18n";
 
 /** Tilted brand sticker that pops out under the cart pill after an add (gsap, no extra bundle). */
 export default function CartToast() {
   const { notice, announce, setOpen } = useCart();
+  const { t } = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   useLayoutEffect(() => {
@@ -44,7 +46,7 @@ export default function CartToast() {
           <span className="block font-display text-2xl uppercase leading-none">{notice.title}</span>
           <span className="mt-0.5 line-clamp-2 block text-xs font-medium leading-tight text-ink/75">{notice.sub}</span>
         </span>
-        {notice.cta !== false && <button type="button" onClick={() => { announce(null); setOpen(true); }} className="shrink-0 rounded-full bg-ink px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-lime">Apri</button>}
+        {notice.cta !== false && <button type="button" onClick={() => { announce(null); setOpen(true); }} className="shrink-0 rounded-full bg-ink px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-lime">{t("Apri")}</button>}
       </div>
     </div>
   );

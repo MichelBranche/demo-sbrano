@@ -6,9 +6,11 @@ import { useCart } from "./CartProvider";
 import { euro } from "@/lib/data";
 import BurgerStack from "./BurgerStack";
 import Tick from "../ui/Tick";
+import { useT } from "@/lib/i18n";
 
 export default function CartDrawer() {
   const { lines, total, open, setOpen, setQty, clear, count } = useCart();
+  const { t, tn } = useT();
   const [step, setStep] = useState<"cart" | "checkout" | "done">("cart");
   const [order, setOrder] = useState("");
 
@@ -29,36 +31,36 @@ export default function CartDrawer() {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label="Carrello">
+        <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={t("Carrello")}>
           <motion.div className="absolute inset-0 bg-ink/60 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
           <motion.aside
             initial={{ x: "105%" }} animate={{ x: 0 }} exit={{ x: "105%" }} transition={{ type: "spring", damping: 30, stiffness: 260 }}
             className="absolute right-0 top-0 flex h-full w-full max-w-[460px] flex-col overflow-hidden bg-cream sm:right-3 sm:top-3 sm:h-[calc(100%-24px)] sm:rounded-[32px]" data-lenis-prevent>
             <div className="flex items-center justify-between bg-ink px-6 py-5 text-cream">
               <div>
-                <p className="font-display text-3xl uppercase text-lime">Il tuo ordine</p>
-                <p className="text-sm text-cream/60">{count} {count === 1 ? "pezzo" : "pezzi"} nel carrello</p>
+                <p className="font-display text-3xl uppercase text-lime">{t("Il tuo ordine")}</p>
+                <p className="text-sm text-cream/60">{t(count === 1 ? "{n} pezzo nel carrello" : "{n} pezzi nel carrello", { n: count })}</p>
               </div>
-              <button onClick={() => setOpen(false)} aria-label="Chiudi" className="flex h-11 w-11 items-center justify-center rounded-full bg-lime text-xl font-bold text-ink transition-transform hover:rotate-90">✕</button>
+              <button onClick={() => setOpen(false)} aria-label={t("Chiudi")} className="flex h-11 w-11 items-center justify-center rounded-full bg-lime text-xl font-bold text-ink transition-transform hover:rotate-90">✕</button>
             </div>
 
             {step === "done" ? (
               <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.5 }} className="flex flex-1 flex-col items-center justify-center gap-5 p-8 text-center">
                 <div className="relative h-48 w-48 rounded-full bg-lime">
-                  <Image src="/assets/mascot/crown-thumbs-up.webp" alt="Mascotte SBRANO col pollice in su" fill sizes="192px" className="object-contain p-4" />
+                  <Image src="/assets/mascot/crown-thumbs-up.webp" alt={t("Mascotte SBRANO col pollice in su")} fill sizes="192px" className="object-contain p-4" />
                 </div>
-                <p className="font-display text-4xl uppercase leading-none">Ordine registrato nella demo.</p>
-                <p className="text-ink/70">Ordine <b>{order}</b>. Il tuo ordine demo è pronto per il ritiro in Piazza Santa Giulia. Nessun ordine reale è stato inviato.</p>
-                <button onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Torna al menu</button>
+                <p className="font-display text-4xl uppercase leading-none">{t("Ordine registrato nella demo.")}</p>
+                <p className="text-ink/70">{t("Ordine")} <b>{order}</b>. {t("Il tuo ordine demo è pronto per il ritiro in Piazza Santa Giulia. Nessun ordine reale è stato inviato.")}</p>
+                <button onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">{t("Torna al menu")}</button>
               </motion.div>
             ) : lines.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
                 <div className="relative h-40 w-40 rounded-full bg-lime">
                   <Image src="/assets/mascot/waving.webp" alt="" fill sizes="160px" className="object-contain p-4" />
                 </div>
-                <p className="max-w-[16ch] text-center font-display text-3xl uppercase leading-[0.95]">Carrello vuoto, pancia vuota.</p>
-                <p className="-mt-2 rotate-[-3deg] font-marker text-2xl">Rimediamo?</p>
-                <a href="#menu" onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">Vai al menu</a>
+                <p className="max-w-[16ch] text-center font-display text-3xl uppercase leading-[0.95]">{t("Carrello vuoto, pancia vuota.")}</p>
+                <p className="-mt-2 rotate-[-3deg] font-marker text-2xl">{t("Rimediamo?")}</p>
+                <a href="#menu" onClick={() => setOpen(false)} className="rounded-full bg-ink px-6 py-3 font-bold uppercase tracking-wider text-lime">{t("Vai al menu")}</a>
               </div>
             ) : (
               <>
@@ -69,7 +71,7 @@ export default function CartDrawer() {
                         <div className={`relative shrink-0 self-start overflow-hidden rounded-2xl bg-lime ${l.layers ? "h-24 w-24" : "h-16 w-16"}`} data-cart-thumb={l.layers ? "custom" : "menu"}>
                           {l.img.startsWith("data:") ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={l.img} alt={`Anteprima del tuo burger: ${(l.ingredients ?? []).join(", ")}`} className="absolute inset-0 h-full w-full object-contain p-1" />
+                            <img src={l.img} alt={t("Anteprima del tuo burger: {list}", { list: (l.ingredients ?? []).map((x) => t(x)).join(", ") })} className="absolute inset-0 h-full w-full object-contain p-1" />
                           ) : l.layers ? (
                             <div className="absolute inset-0 flex items-end justify-center p-1"><BurgerStack ids={l.layers} size={88} /></div>
                           ) : (
@@ -77,27 +79,27 @@ export default function CartDrawer() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`font-bold ${l.layers ? "leading-tight" : "truncate"}`}>{l.name}</p>
+                          <p className={`font-bold ${l.layers ? "leading-tight" : "truncate"}`}>{tn(l.name)}</p>
                           {l.ingredients?.length ? (
-                            <ul className="mt-1 flex flex-wrap gap-1" aria-label="Ingredienti">
-                              {l.ingredients.map((n, k) => <li key={k} className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px] leading-tight text-ink/70">{n}</li>)}
+                            <ul className="mt-1 flex flex-wrap gap-1" aria-label={t("Ingredienti")}>
+                              {l.ingredients.map((n, k) => <li key={k} className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px] leading-tight text-ink/70">{t(n)}</li>)}
                             </ul>
-                          ) : l.note && <p className="truncate text-xs text-ink/60">{l.note}</p>}
+                          ) : l.note && <p className="truncate text-xs text-ink/60">{t(l.note)}</p>}
                           {l.menu && (
                             <p className="mt-1.5 flex items-center gap-2 text-xs font-bold" data-cart-menu>
                               <span className="flex shrink-0 -space-x-2" aria-hidden>
                                 <span className="relative h-9 w-9 shrink-0 rounded-full bg-lime ring-2 ring-cream"><Image src={l.menu.friesImg} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
                                 <span className="relative h-9 w-9 shrink-0 rounded-full bg-lime ring-2 ring-cream"><Image src={l.menu.drinkImg} alt="" fill sizes="36px" className="object-contain p-0.5" /></span>
                               </span>
-                              <span className="min-w-0 leading-tight">Menu: {l.menu.fries} + {l.menu.drink}</span>
+                              <span className="min-w-0 leading-tight">{t("Menu:")} {t(l.menu.fries)} + {t(l.menu.drink)}</span>
                             </p>
                           )}
                           <p className="text-sm tabular-nums">{euro(l.price)}</p>
                         </div>
                         <div className="flex items-center gap-1 rounded-full bg-ink p-1 text-lime">
-                          <button aria-label="Meno" onClick={() => setQty(l.id, l.qty - 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">−</button>
+                          <button aria-label={t("Meno")} onClick={() => setQty(l.id, l.qty - 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">−</button>
                           <span className="w-6 text-center tabular-nums"><span key={l.qty} className="sb-pop inline-block">{l.qty}</span></span>
-                          <button aria-label="Più" onClick={() => setQty(l.id, l.qty + 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">+</button>
+                          <button aria-label={t("Più")} onClick={() => setQty(l.id, l.qty + 1)} className="h-8 w-8 rounded-full font-bold hover:bg-lime hover:text-ink">+</button>
                         </div>
                       </motion.li>
                     ))}
@@ -106,17 +108,17 @@ export default function CartDrawer() {
                 <div className="space-y-4 border-t-2 border-dashed border-ink/20 p-5">
                   {step === "checkout" ? (
                     <form onSubmit={submit} className="space-y-3">
-                      <input required placeholder="Come ti chiamiamo?" className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none focus:bg-white" />
-                      <select className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none" defaultValue="asap" aria-label="Orario ritiro">
-                        <option value="asap">Appena pronto (circa 15 min)</option><option>Ritiro alle 20:00</option><option>Ritiro alle 21:00</option>
+                      <input required placeholder={t("Come ti chiamiamo?")} className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none focus:bg-white" />
+                      <select className="h-12 w-full rounded-full border-2 border-ink bg-transparent px-5 outline-none" defaultValue="asap" aria-label={t("Orario ritiro")}>
+                        <option value="asap">{t("Appena pronto (circa 15 min)")}</option><option value="20">{t("Ritiro alle 20:00")}</option><option value="21">{t("Ritiro alle 21:00")}</option>
                       </select>
-                      <button type="submit" className="flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 font-bold uppercase tracking-wider text-lime">Conferma ordine <span className="tabular-nums">{euro(total)}</span></button>
-                      <button type="button" onClick={() => setStep("cart")} className="w-full text-sm underline">Torna al carrello</button>
+                      <button type="submit" className="flex h-14 w-full items-center justify-between rounded-full bg-ink px-6 font-bold uppercase tracking-wider text-lime">{t("Conferma ordine")} <span className="tabular-nums">{euro(total)}</span></button>
+                      <button type="button" onClick={() => setStep("cart")} className="w-full text-sm underline">{t("Torna al carrello")}</button>
                     </form>
                   ) : (
                     <>
-                      <div className="flex items-end justify-between"><span className="font-bold uppercase tracking-wider text-ink/60">Totale</span><span className="font-display text-4xl tabular-nums"><Tick value={total} format={euro} /></span></div>
-                      <button onClick={() => setStep("checkout")} className="flex h-14 w-full items-center justify-center rounded-full bg-ink font-bold uppercase tracking-wider text-lime transition-transform hover:scale-[1.02]">Procedi all’ordine</button>
+                      <div className="flex items-end justify-between"><span className="font-bold uppercase tracking-wider text-ink/60">{t("Totale")}</span><span className="font-display text-4xl tabular-nums"><Tick value={total} format={euro} /></span></div>
+                      <button onClick={() => setStep("checkout")} className="flex h-14 w-full items-center justify-center rounded-full bg-ink font-bold uppercase tracking-wider text-lime transition-transform hover:scale-[1.02]">{t("Procedi all’ordine")}</button>
                     </>
                   )}
                 </div>

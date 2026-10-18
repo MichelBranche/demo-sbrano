@@ -2,9 +2,11 @@
 import { useEffect, useRef } from "react";
 import { useCart } from "./CartProvider";
 import { gsap, reduced } from "@/lib/gsap";
+import { useT } from "@/lib/i18n";
 
 export default function CartButton({ variant = "lime" }: { variant?: "lime" | "dark" }) {
   const { count, setOpen, bump } = useCart();
+  const { t } = useT();
   const ref = useRef<HTMLButtonElement>(null);
   const badge = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function CartButton({ variant = "lime" }: { variant?: "lime" | "d
   }, [bump]);
   const c = variant === "lime" ? "bg-lime text-ink" : "bg-ink text-lime";
   return (
-    <button ref={ref} data-cart-target data-mag onClick={() => setOpen(true)} aria-label={`Carrello, ${count} articoli`}
+    <button ref={ref} data-cart-target data-mag onClick={() => setOpen(true)} aria-label={t("Carrello, {n} articoli", { n: count })}
       className={`group relative flex h-11 w-14 shrink-0 items-center justify-center rounded-full md:h-12 md:w-16 ${c}`}>
       {/* icon-only cart pill; count sits in a small badge on the top-right edge */}
       <svg className="transition-transform duration-300 ease-[cubic-bezier(.3,1.8,.5,1)] group-hover:-translate-y-0.5 group-hover:rotate-[-10deg]" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>

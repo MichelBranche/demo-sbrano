@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { tr, trName } from "@/lib/i18n";
 
 export type CartLine = {
   id: string; name: string; price: number; img: string; qty: number; note?: string;
@@ -56,7 +57,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
     setBump((b) => b + 1);
     // default confirmation sticker; callers can override right after with announce()
-    setNotice({ key: Date.now(), title: "Preso!", sub: `${l.name} è nel carrello.`, img: l.img });
+    setNotice({ key: Date.now(), title: tr("Preso!"), sub: tr("{name} è nel carrello.", { name: trName(l.name) }), img: l.img });
   }, []);
   const setQty = useCallback((id: string, qty: number) => {
     setLines((prev) => (qty <= 0 ? prev.filter((p) => p.id !== id) : prev.map((p) => (p.id === id ? { ...p, qty } : p))));
