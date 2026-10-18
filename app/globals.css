@@ -198,9 +198,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; heig
 /* HERO v3, desktop: laid out 1:1 on Michel's 1440x810 mockup; 1 unit = 1/1440 of the viewport width */
 .hx-arr { width: 18px; height: 13px; flex: none; }
 @media (min-width: 1024px) {
-  .hx { --u: calc(100vw / 1440); }
+  /* the 1440x810 mockup composition, scaled to ~84% of the viewport width, capped so it always
+     fits one viewport in height and never balloons on big screens; centred in the full-bleed frame */
+  .hx { --u: min(calc(100vw * 0.84 / 1440), calc(100vh / 880), 1.05px); --pad: calc((100vw - var(--u) * 1440) / 2); }
+  .hx-zig { left: var(--pad) !important; right: auto !important; width: calc(var(--u) * 1440) !important; overflow: visible; }
   .hx-frame { height: calc(var(--u) * 810); border-radius: calc(var(--u) * 36); }
-  .hx-nav, .hx-stage { position: absolute; inset: 0; padding: 0; margin: 0; }
+  .hx-nav, .hx-stage { position: absolute; top: 0; bottom: 0; left: var(--pad); right: var(--pad); padding: 0; margin: 0; }
   .hx-nav { z-index: 30; pointer-events: none; }
   .hx-nav a, .hx-nav button, .hx-nav ul { pointer-events: auto; }
   .hx-navr { display: contents; }
@@ -259,7 +262,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; heig
 @media (min-width:1024px) { .rv-pz { -webkit-text-stroke-width: .06em; } }
 @media (prefers-reduced-motion: reduce) { .rv-card { transition:none; } }
 @media (min-width: 1024px) {
-  .rv { --u: calc(100vw / 1440); }
+  .rv { --u: min(calc(100vw * 0.84 / 1440), 1.05px); }
   .rv-frame { width: calc(var(--u) * 1440); height: calc(var(--u) * 810); }
   .rv-head { position:absolute; inset:0; display:block; }
   .rv-eye { position:absolute; left:0; right:0; top:calc(var(--u) * 13); justify-content:center; gap:calc(var(--u) * 12); font-size:calc(var(--u) * 13.4); line-height:1; }

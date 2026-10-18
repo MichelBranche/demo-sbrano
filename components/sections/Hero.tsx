@@ -126,16 +126,21 @@ function WaveRibbon() {
   const [vw, setVw] = useState(1440);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const fit = () => { const w = el.parentElement!.clientWidth; setVw(w >= 1024 ? 1440 : Math.round(Math.max(w * 1.25, 480))); };
+    const fit = () => { const w = el.parentElement!.clientWidth; setVw(window.innerWidth >= 1024 ? 1440 : Math.round(Math.max(w * 1.25, 480))); };
     fit(); const ro = new ResizeObserver(fit); ro.observe(el.parentElement!); return () => ro.disconnect();
   }, []);
   const k = vw / 1440;
   const X = (x: number) => (x * k).toFixed(1);
-  const d = `M${X(-40)} 48 C ${X(110)} 78, ${X(240)} 72, ${X(420)} 62 S ${X(640)} 50, ${X(780)} 56 S ${X(960)} 86, ${X(1080)} 78 S ${X(1300)} 56, ${X(1480)} 62`;
+  const wide = vw === 1440;
+  // desktop: the stage is narrower than the frame, so the band keeps waving past both stage edges
+  const d = wide
+    ? "M-760 62 S -540 86, -420 78 S -190 18, -40 48 C 110 78, 240 72, 420 62 S 640 50, 780 56 S 960 86, 1080 78 S 1300 56, 1480 62 S 1700 86, 1820 78 S 2040 56, 2200 62"
+    : `M${X(-40)} 48 C ${X(110)} 78, ${X(240)} 72, ${X(420)} 62 S ${X(640)} 50, ${X(780)} 56 S ${X(960)} 86, ${X(1080)} 78 S ${X(1300)} 56, ${X(1480)} 62`;
+  const REP = wide ? 10 : 6;
   useGSAP(() => {
     if (reduced()) return;
     const tp = ref.current!.querySelector("textPath")!, t = ref.current!.querySelector("text")!;
-    const cyc = t.getComputedTextLength() / 6;
+    const cyc = t.getComputedTextLength() / REP;
     const o = { v: 0 };
     const tw = gsap.to(o, { v: -cyc, duration: cyc / 38, ease: "none", repeat: -1, onUpdate: () => tp.setAttribute("startOffset", o.v.toFixed(1)) });
     return () => tw.kill();
@@ -144,7 +149,7 @@ function WaveRibbon() {
     <svg ref={ref} viewBox={`0 0 ${vw} 120`} className="hx-ribbon block h-auto w-full overflow-visible" aria-hidden>
       <defs><path id="hx-rb" d={d} /></defs>
       <path d={d} stroke="#0b0b0b" strokeWidth="40" fill="none" />
-      <text fontFamily="var(--font-display)" fontSize="20" fill="#D7F64E" dy="7" letterSpacing="0.8"><textPath href="#hx-rb" startOffset="0">{MARQUEE.repeat(6)}</textPath></text>
+      <text fontFamily="var(--font-display)" fontSize="20" fill="#D7F64E" dy="7" letterSpacing="0.8"><textPath href="#hx-rb" startOffset="0">{MARQUEE.repeat(REP)}</textPath></text>
     </svg>
   );
 }
@@ -217,7 +222,7 @@ export default function Hero() {
       <div id="top" className="hx-frame relative overflow-hidden rounded-[28px] bg-[#F5ECD9] md:rounded-[36px]">
         {/* lime zigzag field (desktop: traced from the mockup, 1440x810 units) */}
         <svg className="h-zig hx-zig pointer-events-none absolute inset-0 hidden h-full w-full lg:block" viewBox="0 0 1440 810" preserveAspectRatio="none" aria-hidden>
-          <path d="M716 0 L1070 0 L902 80 L1060 72 L1336 56 L1314 0 L1440 0 L1440 402 L1386 386 L1300 470 L1120 520 L700 520 L556 490 L563 450 L575 400 L613 250 L658 100 L674 50 Z" fill="#CFF840" />
+          <path d="M716 0 L1070 0 L902 80 L1060 72 L1336 56 L1314 0 L2400 0 L2400 402 L1440 402 L1386 386 L1300 470 L1120 520 L700 520 L556 490 L563 450 L575 400 L613 250 L658 100 L674 50 Z" fill="#CFF840" />
         </svg>
 
         <nav className="h-nav hx-nav relative z-30 flex w-full items-center justify-between gap-3 px-4 pt-4 md:px-8" aria-label="Principale">
@@ -247,7 +252,7 @@ export default function Hero() {
           {/* left column */}
           <div className="hx-left h-title-par relative z-20 px-5 pt-5 md:px-10">
             {/* title art by Michel (two layers, sized independently to match the mockup); the real text is the h1 */}
-            <h1 className="hx-title relative aspect-[491/408] w-[min(88vw,520px)]">
+            <h1 className="hx-title relative aspect-[491/408] w-[min(82vw,480px)]">
               <span className="sr-only">Fame brutta. Prezzi giusti.</span>
               {TITLE.map((t, i) => (
                 <span key={i} aria-hidden className="absolute block overflow-hidden pb-[1%]" style={{ left: `${t.l}%`, top: `${t.t}%`, width: `${t.w}%`, scale: t.sy ? `1 ${t.sy}` : undefined, transformOrigin: "0 0" }}>
