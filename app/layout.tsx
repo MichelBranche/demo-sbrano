@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { I18nProvider, LangKey } from "@/lib/i18n";
 import { CartProvider } from "@/components/cart/CartProvider";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -105,6 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CookieLine />
         </CartProvider>
         </I18nProvider>
+        <Analytics />
       </body>
     </html>
   );
