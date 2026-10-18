@@ -71,7 +71,7 @@ export const viewport: Viewport = { themeColor: "#111111" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it" className={`${lunar.variable} ${excon.variable} ${tanker.variable} ${marker.variable}`}>
+    <html lang="it" suppressHydrationWarning className={`${lunar.variable} ${excon.variable} ${tanker.variable} ${marker.variable}`}>
       <head>
         <link rel="preload" as="image" href="/assets/brand/logo-compact.webp" fetchPriority="high" />
         {/* preloader only on the first visit of the session, never with reduced motion: decided before first paint */}

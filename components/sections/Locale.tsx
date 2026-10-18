@@ -6,7 +6,7 @@ import Sticker from "../ui/Sticker";
 import SectionHead from "../ui/SectionHead";
 import Ribbon from "./Ribbon";
 import { BLUR } from "@/lib/blur";
-import { HOURS, isOpenNow } from "./Dove";
+import { HOURS, isOpenNow } from "@/lib/hours";
 import { useDragStickers } from "@/lib/drag";
 
 /** the ribbon carries the real opening hours */

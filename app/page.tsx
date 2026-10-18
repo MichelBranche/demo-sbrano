@@ -5,7 +5,6 @@ import Builder from "@/components/sections/Builder";
 import Filiera from "@/components/sections/Filiera";
 import Locale from "@/components/sections/Locale";
 import Reviews from "@/components/sections/Reviews";
-import Dove from "@/components/sections/Dove";
 import Footer from "@/components/sections/Footer";
 
 export default function Home() {
@@ -18,7 +17,6 @@ export default function Home() {
       <Filiera />
       <Locale />
       <Reviews />
-      <Dove />
       <Footer />
     </main>
   );
