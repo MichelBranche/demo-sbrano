@@ -13,7 +13,7 @@ import { useDragStickers } from "@/lib/drag";
 const RIBBON = HOURS.flatMap(([d, h]) => [h.startsWith("Chiuso") ? `${d} chiuso` : `${d} ${h}`, "✶"]);
 
 const PICS = [
-  { src: "/assets/locale/esterno-piazza-logo.webp", alt: "L'insegna SBRANO di notte in Piazza Santa Giulia", cls: "lg:col-span-7 lg:row-span-2 aspect-[3/2] lg:aspect-auto" },
+  { src: "/assets/locale/locale-night.webp", alt: "Il locale SBRANO di notte: insegna al neon, gente fuori e il bancone acceso", cls: "lg:col-span-7 lg:row-span-2 aspect-[3/2] lg:aspect-auto" },
   { src: "/assets/locale/interno.webp", alt: "Interno con il murale della mascotte e il bancone", cls: "lg:col-span-5 aspect-[16/9] lg:aspect-auto lg:translate-y-16" },
   { src: "/assets/locale/tavolo.webp", alt: "Amici che condividono burger e patatine visti dall'alto", cls: "lg:col-span-5 aspect-[3/2] lg:aspect-auto lg:translate-y-16" },
 ];

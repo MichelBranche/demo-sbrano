@@ -57,3 +57,6 @@ next-env.d.ts
 /public/assets/doodles/*.webp
 /public/assets/mascot/thumbs-cream.webp
 /public/assets/menu/diavolo.webp
+/public/assets/hero/hero-burger.webp
+/public/assets/hero/fly-*.webp
+/public/assets/locale/locale-night.webp
