@@ -213,6 +213,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; heig
   .hx-lt { padding-top: .14em; }
   .hx-cart { position: absolute; left: calc(var(--u) * 1133); top: calc(var(--u) * 13); }
   .hx-cart > button { width: calc(var(--u) * 48); height: calc(var(--u) * 42); }
+  .hx-lang { position: absolute; left: calc(var(--u) * 1063); top: calc(var(--u) * 13); height: calc(var(--u) * 42) !important; pointer-events: auto; }
+  .hx-lang > button { min-height: 0; padding: 0 calc(var(--u) * 14); gap: calc(var(--u) * 6); font-size: calc(var(--u) * 16); }
   .hx-order { position: absolute; left: calc(var(--u) * 1197); top: calc(var(--u) * 13); width: calc(var(--u) * 143); height: calc(var(--u) * 42); gap: calc(var(--u) * 11); font-size: calc(var(--u) * 18.4); }
   .hx-order .hx-arr { width: calc(var(--u) * 17); height: calc(var(--u) * 12); }
   .hx-left { position: absolute; inset: 0; padding: 0; }
@@ -307,3 +309,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; heig
   .rv-goar { width:calc(var(--u) * 17); height:calc(var(--u) * 17); }
   .rv-map { position:absolute; left:calc(var(--u) * 514.5); top:0; width:calc(var(--u) * 827); height:calc(var(--u) * 347); border-radius:calc(var(--u) * 16) calc(var(--u) * 22) calc(var(--u) * 22) calc(var(--u) * 16); }
 }
+
+/* language switcher: springy menu pop, staggered items, code flip on change */
+@keyframes sb-lang-pop { from { opacity: 0; transform: translateY(-6px) scale(.9) rotate(-2deg); } }
+@keyframes sb-lang-in { from { opacity: 0; transform: translateX(-8px); } }
+@keyframes sb-lang-flip { 0% { transform: rotateX(90deg); } 60% { transform: rotateX(-15deg); } }
+.sb-lang-menu { transform-origin: 85% 0; animation: sb-lang-pop .32s cubic-bezier(.3,1.6,.5,1) both; }
+.sb-lang-item { animation: sb-lang-in .28s cubic-bezier(.3,1.4,.5,1) both; animation-delay: calc(var(--i) * 45ms + 60ms); }
+.sb-lang-flip { animation: sb-lang-flip .45s cubic-bezier(.3,1.6,.5,1); }
+@media (prefers-reduced-motion: reduce) { .sb-lang-menu, .sb-lang-item, .sb-lang-flip { animation: none; } }

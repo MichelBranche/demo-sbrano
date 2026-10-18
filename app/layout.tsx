@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { I18nProvider, LangKey } from "@/lib/i18n";
 import { CartProvider } from "@/components/cart/CartProvider";
 import SmoothScroll from "@/components/SmoothScroll";
 import CartToast from "@/components/cart/CartToast";
@@ -76,9 +77,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" as="image" href="/assets/brand/logo-compact.webp" fetchPriority="high" />
         {/* preloader only on the first visit of the session, never with reduced motion: decided before first paint */}
         <script dangerouslySetInnerHTML={{ __html: `try{var d=document.documentElement;if(sessionStorage.getItem("sb-pre")||matchMedia("(prefers-reduced-motion: reduce)").matches)d.classList.add("sb-nopre");else sessionStorage.setItem("sb-pre","1")}catch(e){}` }} />
+        {/* saved language: <html lang> before first paint (the copy itself switches in I18nProvider) */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var l=localStorage.getItem("sb-lang");if(l==="en"||l==="fr")document.documentElement.lang=l}catch(e){}` }} />
       </head>
       <body>
-        <div id="sb-preloader" className="sb-preloader" role="button" tabIndex={-1} aria-label="Salta intro">
+        <div id="sb-preloader" className="sb-preloader" role="button" tabIndex={-1} aria-label="Salta intro" suppressHydrationWarning>
           <div className="sb-pile" aria-hidden="true">
             {PILE.map(([n, w, h, px, py, x, y, r], i) => (
               // eslint-disable-next-line @next/next/no-img-element
@@ -86,18 +89,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 style={{ ["--i" as string]: i, left: `${50 + px}%`, top: `${50 + py}%`, ["--x" as string]: `${x}vmax`, ["--y" as string]: `${y}vmax`, ["--r" as string]: `${r}deg` } as React.CSSProperties} />
             ))}
           </div>
-          <p className="sb-pre-copy" aria-hidden="true"><span>Scaldo la piastra...</span><span>Pronto. Sbrana.</span></p>
-          <span className="sb-pre-skip">Tocca per saltare</span>
+          <p className="sb-pre-copy" aria-hidden="true"><span data-pre="0" suppressHydrationWarning>Scaldo la piastra...</span><span data-pre="1" suppressHydrationWarning>Pronto. Sbrana.</span></p>
+          <span className="sb-pre-skip" data-pre="2" suppressHydrationWarning>Tocca per saltare</span>
         </div>
+        {/* preloader copy in the saved language, swapped before it is painted */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var L={en:["Heating the grill...","Ready. Go wild.","Tap to skip","Skip intro"],fr:["Je chauffe la plancha...","Prêt. Croque.","Touche pour passer","Passer l'intro"]}[localStorage.getItem("sb-lang")];if(L){document.querySelectorAll("[data-pre]").forEach(function(e){e.textContent=L[+e.getAttribute("data-pre")]});var p=document.getElementById("sb-preloader");p&&p.setAttribute("aria-label",L[3])}}catch(e){}` }} />
+        <I18nProvider>
         <CartProvider>
           <Preloader />
           <SmoothScroll />
-          {children}
+          <LangKey>{children}</LangKey>
           <CartDrawer />
           <CartToast />
           <Micro />
           <CookieLine />
         </CartProvider>
+        </I18nProvider>
       </body>
     </html>
   );
