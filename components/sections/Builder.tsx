@@ -7,6 +7,7 @@ import { stackLayout, composeBurger } from "@/lib/stack";
 import { useCart } from "../cart/CartProvider";
 import { flyToCart } from "@/lib/fly";
 import Tick from "../ui/Tick";
+import Doodle from "../ui/Doodle";
 
 type Layer = { uid: number; ing: Ingredient };
 /** total filling layers (buns excluded) and max copies of the same ingredient */
@@ -44,6 +45,16 @@ function makeName(fill: Ingredient[], closed: boolean) {
 }
 
 type Tab = "pane" | IngGroup | "menu";
+/** line icons for the category tabs */
+const ICON: Record<Tab, string> = {
+  pane: "M4 13h16M5 13a7 5 0 0 1 14 0M5 16h14a1 1 0 0 1 0 2.5H5a1 1 0 0 1 0-2.5Z",
+  base: "M5 9.5c0-2.5 3-4.5 7-4.5s7 1.6 7 4.6c0 3.4-2.6 5.4-6.6 5.4H9c-2.4 0-4-2-4-5.5ZM9.5 9.3a1.8 1.8 0 1 0 0 .1",
+  formaggi: "M3.5 16.5 13 6l7.5 4.5v6H3.5ZM3.5 16.5h17M9 13.2a1.2 1.2 0 1 0 0 .1M15.5 13.8a1 1 0 1 0 0 .1",
+  verdure: "M5 19C5 10 10 5 19 5c0 9-5 14-14 14ZM5 19l8-8",
+  salse: "M10 3h4v3l1.5 2v11a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 8.5 19V8L10 6Z",
+  croccanti: "M6 10h12l-1.5 10h-9ZM8 10 7 4M11 10V3.5M14 10l.8-6M16.8 10l1.7-4.5",
+  menu: "M7 7h10l-1.2 13H8.2ZM6 7h12M12 7l1.5-4H16",
+};
 const TABS: { id: Tab; label: string; step: number }[] = [
   { id: "pane", label: "Pane", step: 0 },
   { id: "base", label: "Carne", step: 1 },
@@ -163,7 +174,18 @@ export default function Builder() {
   }, []);
   const widthFit = Math.min(1, (box.w * 0.5) / 260, (box.h * 0.6) / 260);
   const availH = Math.max(160, Math.min(box.h * 0.66, box.vh * 0.55));
-  const fit = Math.min(widthFit, availH / Math.max(1, stackH + (closed ? 0 : GAP)));
+  const fitBase = Math.min(widthFit, availH / Math.max(1, stackH + (closed ? 0 : GAP)));
+  // menu: the burger shrinks a little to leave room for the sides
+  const fit = asMenu ? fitBase * 0.86 : fitBase;
+  const side = useMemo(() => {
+    const bw = 260 * fit * (bread.bottom.w / 100);
+    const bh = Math.max((stackH + (closed ? 0 : GAP * 0.5)) * fit, 150 * fit);
+    const fh = Math.min(bh * 0.72, box.h * 0.46, box.w * 0.36), fw = fh * 1.02;
+    const dh = Math.min(bh * 0.82, box.h * 0.52, box.w * 0.46), dw = dh * 0.51;
+    const cx = box.w / 2;
+    const fx = Math.max(0, cx - bw / 2 - fw * 0.78), dx = Math.min(box.w - dw, cx + bw / 2 - dw * 0.22);
+    return { fx, fw, fh, dx, dw, dh };
+  }, [fit, bread.bottom.w, stackH, closed, box.w, box.h]);
 
   // warm the image cache before the section is reached: stage + card images never pop in
   useEffect(() => {
@@ -297,62 +319,118 @@ export default function Builder() {
     gsap.fromTo(cardsRef.current.querySelectorAll(`[data-panel="${tab}"] .b-card`), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.04, overwrite: true });
   }, { dependencies: [tab], scope: root });
 
+  /* ---------- carousel: edges, arrows, wheel, mouse drag ---------- */
+  const [edge, setEdge] = useState({ l: false, r: false });
+  const edges = () => {
+    const el = cardsRef.current; if (!el) return;
+    const l = el.scrollLeft > 4, r = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setEdge((e) => (e.l === l && e.r === r ? e : { l, r }));
+  };
+  useEffect(() => { const t = setTimeout(edges, 60); return () => clearTimeout(t); }, [tab, asMenu, warm, box.w]);
+  const nudge = (d: number) => {
+    const el = cardsRef.current; if (!el) return;
+    const step = (el.querySelector<HTMLElement>(`[data-panel="${tab}"] .b-card`)?.offsetWidth ?? 200) + 16;
+    el.scrollBy({ left: d * step * Math.max(1, Math.floor(el.clientWidth / step) - 1), behavior: reduced() ? "auto" : "smooth" });
+  };
+  useEffect(() => {
+    const el = cardsRef.current; if (!el) return;
+    // vertical wheel scrolls the cards sideways while there is room, then hands back to the page
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      const max = el.scrollWidth - el.clientWidth; if (max < 4) return;
+      const d = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+      if ((d > 0 && el.scrollLeft >= max - 2) || (d < 0 && el.scrollLeft <= 2)) return; // native scroll moves the page (Lenis skips data-lenis-prevent)
+      e.preventDefault(); el.scrollLeft += d;
+    };
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => el.removeEventListener("wheel", wheel);
+  }, []);
+  const drag = useRef({ x: 0, left: 0, moved: false });
+  const dragStart = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    const el = cardsRef.current!; drag.current = { x: e.clientX, left: el.scrollLeft, moved: false };
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - drag.current.x;
+      if (!drag.current.moved && Math.abs(dx) > 6) { drag.current.moved = true; el.style.scrollSnapType = "none"; el.style.cursor = "grabbing"; }
+      if (drag.current.moved) el.scrollLeft = drag.current.left - dx;
+    };
+    const up = () => {
+      removeEventListener("pointermove", move); removeEventListener("pointerup", up);
+      if (drag.current.moved) { const l = el.scrollLeft; el.style.scrollSnapType = ""; el.style.cursor = ""; el.scrollLeft = l; }
+      setTimeout(() => (drag.current.moved = false), 0);
+    };
+    addEventListener("pointermove", move); addEventListener("pointerup", up);
+  };
+  const dragClick = (e: React.MouseEvent) => { if (drag.current.moved) { e.preventDefault(); e.stopPropagation(); } };
+
   /* ---------- pieces ---------- */
-  const card = (opts: { key: string; img: string; name: string; desc?: string; priceLabel: string; selected: boolean; badge?: React.ReactNode; spicy?: boolean;
+  const card = (opts: { key: string; img: string; name: string; desc?: string; priceLabel: string; selected: boolean; spicy?: boolean;
     main: React.ReactNode; foot: React.ReactNode }) => (
-    <div key={opts.key} data-ing={opts.key} data-tilt
-      className={`b-card relative flex w-[164px] shrink-0 snap-start flex-col rounded-[22px] border-2 bg-white p-2 transition-[border-color,box-shadow] duration-200 md:w-[172px] lg:w-[clamp(140px,11vw,172px)] ${opts.selected ? "border-lime shadow-[0_0_0_3px_#d6ff4d]" : "border-ink/10"}`}>
-      <span aria-hidden className={`absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${opts.selected ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
+    <div key={opts.key} data-ing={opts.key} data-card
+      className={`b-card group/c relative flex w-[188px] shrink-0 snap-start flex-col rounded-[22px] border-[2.5px] bg-[#fffaf0] p-2.5 transition-[translate,rotate,box-shadow,border-color] duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] md:w-[206px] ${opts.selected ? "border-ink shadow-[0_0_0_3px_#d6ff4d,6px_6px_0_3px_#111]" : "border-ink shadow-[5px_5px_0_#111]"} hover:-translate-y-1 hover:-rotate-[1.2deg] hover:shadow-[7px_8px_0_#111]`}>
+      <span aria-hidden className={`absolute right-3.5 top-3.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${opts.selected ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
       {opts.main}
-      <p className="mt-2 truncate px-1 text-[14px] font-bold leading-tight">{opts.name}{opts.spicy && <span aria-label="piccante"> 🌶</span>}</p>
-      <p className="mt-0.5 line-clamp-2 h-[2.7em] px-1 text-[11.5px] leading-[1.35] text-ink/55">{opts.desc}</p>
-      <div className="mt-1.5 flex h-8 items-center justify-between gap-1 pl-1">
-        <span className={`text-[12.5px] font-bold tabular-nums ${opts.priceLabel === "Gratis" ? "uppercase tracking-wider text-ink/50" : ""}`}>{opts.priceLabel}</span>
+      <p className="mt-2.5 truncate px-1 text-[15.5px] font-bold leading-tight md:text-[16px]">{opts.name}{opts.spicy && <span aria-label="piccante"> 🌶</span>}</p>
+      <p className="mt-1 line-clamp-2 h-[2.7em] px-1 text-[12.5px] leading-[1.35] text-ink/60">{opts.desc}</p>
+      <div className="mt-2 flex h-10 items-center justify-between gap-1 pl-1">
+        <span className={`text-[14px] font-bold tabular-nums ${opts.priceLabel === "Incluso" ? "text-[12px] uppercase tracking-wider" : ""}`}>{opts.priceLabel}</span>
         {opts.foot}
       </div>
     </div>
   );
-  const thumb = (img: string, alt: string, sizes = "160px") => (
-    <span className="relative block h-[92px] w-full overflow-hidden rounded-[16px] bg-cream">
-      <Image src={img} alt={alt} fill sizes={sizes} loading="eager" className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105" />
+  const thumb = (img: string, alt: string, sizes = "200px") => (
+    <span className="relative block aspect-[1.2] w-full overflow-hidden rounded-[16px] bg-cream">
+      <Image src={img} alt={alt} fill sizes={sizes} loading="eager" className="object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover/c:-rotate-3 group-hover/c:scale-[1.07]" />
     </span>
   );
+  /** micro-interaction: the card squashes and the + button spins when something is added */
+  const bump = (key: string) => {
+    if (reduced()) return;
+    const el = root.current?.querySelector(`[data-ing="${key}"]`); if (!el) return;
+    gsap.fromTo(el, { scale: 0.95 }, { scale: 1, duration: 0.5, ease: "elastic.out(1.1,0.45)", clearProps: "scale" });
+    const plus = el.querySelector("[data-plus]"); if (plus) gsap.fromTo(plus, { rotate: 0 }, { rotate: 180, duration: 0.45, ease: "back.out(2)", clearProps: "rotate" });
+  };
   const ingCard = (ing: Ingredient) => {
     const count = counts[ing.id] ?? 0;
     const maxed = full || count >= PER;
     return card({
       key: ing.id, img: ing.img, name: ing.name, desc: ing.desc, priceLabel: `+${euro(ing.price)}`, selected: count > 0, spicy: ing.spicy,
       main: (
-        <button type="button" onClick={() => addIng(ing)} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={maxed}
+        <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} aria-label={`Aggiungi ${ing.name}, ${euro(ing.price)}`} aria-disabled={maxed}
           className={`group block w-full text-left transition-transform active:scale-[0.97] ${maxed ? "opacity-60" : ""}`}>{thumb(ing.img, "")}</button>
       ),
-      foot: (
-        <span className="flex h-8 items-center rounded-full bg-ink p-0.5 text-lime">
-          <button type="button" onClick={() => removeOne(ing)} disabled={!count} aria-label={`Togli un ${ing.name}`} className="flex h-7 w-7 items-center justify-center rounded-full text-base leading-none hover:bg-cream/15 disabled:opacity-30">−</button>
-          <span className="w-4 text-center text-xs font-bold tabular-nums" data-count><span key={count} className={count ? "sb-pop inline-block" : "inline-block"}>{count}</span></span>
-          <button type="button" onClick={() => addIng(ing)} tabIndex={-1} aria-hidden className={`flex h-7 w-7 items-center justify-center rounded-full bg-lime text-base leading-none text-ink ${maxed ? "opacity-40" : ""}`}>+</button>
+      foot: count ? (
+        <span className="flex h-10 items-center rounded-full border-2 border-ink bg-lime p-0.5 text-ink">
+          <button type="button" onClick={() => removeOne(ing)} aria-label={`Togli un ${ing.name}`} className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none hover:bg-ink/10">−</button>
+          <span className="w-5 text-center text-sm font-bold tabular-nums" data-count><span key={count} className="sb-pop inline-block">{count}</span></span>
+          <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} tabIndex={-1} aria-hidden data-plus className={`flex h-8 w-8 items-center justify-center rounded-full bg-ink text-lg leading-none text-lime ${maxed ? "opacity-40" : ""}`}>+</button>
         </span>
+      ) : (
+        <button type="button" onClick={() => { addIng(ing); bump(ing.id); }} tabIndex={-1} aria-hidden data-plus data-count
+          className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-ink bg-[#fffaf0] text-[22px] leading-none text-ink transition-colors hover:bg-lime ${maxed ? "opacity-40" : ""}`}>+</button>
       ),
     });
   };
   const breadCard = (b: (typeof BREADS)[number]) => {
     const sel = b.id === breadId;
     return card({
-      key: "bread-" + b.id, img: b.top.img, name: b.name, desc: b.desc, priceLabel: b.extra ? `+${euro(b.extra)}` : "Gratis", selected: sel,
+      key: "bread-" + b.id, img: b.top.img, name: b.name, desc: b.desc, priceLabel: b.extra ? `+${euro(b.extra)}` : "Incluso", selected: sel,
       main: (
-        <button type="button" role="radio" aria-checked={sel} onClick={() => pickBread(b.id)} aria-label={`${b.name}, ${b.extra ? "+" + euro(b.extra) : "gratis"}`} data-bread={b.id}
+        <button type="button" role="radio" aria-checked={sel} onClick={() => { pickBread(b.id); bump("bread-" + b.id); }} aria-label={`${b.name}, ${b.extra ? "+" + euro(b.extra) : "gratis"}`} data-bread={b.id}
           className="group block w-full text-left transition-transform active:scale-[0.97]">{thumb(b.top.img, "")}</button>
       ),
-      foot: (
-        <button type="button" tabIndex={-1} aria-hidden onClick={() => pickBread(b.id)}
-          className={`flex h-8 items-center rounded-full px-3 text-[11px] font-bold uppercase tracking-wider ${sel ? "bg-lime text-ink" : "bg-ink text-lime"}`}>{sel ? "Scelto" : "Scegli"}</button>
+      foot: sel ? (
+        <span className="sb-pop-in flex h-10 items-center rounded-full border-2 border-ink bg-lime px-4 text-[12px] font-bold uppercase tracking-wider text-ink">Scelto</span>
+      ) : (
+        <button type="button" tabIndex={-1} aria-hidden data-plus onClick={() => { pickBread(b.id); bump("bread-" + b.id); }}
+          className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-ink bg-[#fffaf0] text-[22px] leading-none text-ink transition-colors hover:bg-lime">+</button>
       ),
     });
   };
 
   const tile = (o: { key: string; img: string; name: string; desc: string; sel: boolean; onPick: () => void; data: Record<string, string>; tint?: string }) => (
     <button key={o.key} type="button" role="radio" aria-checked={o.sel} onClick={o.onPick} {...o.data} data-tilt
-      className={`b-card group relative flex w-[calc((100vw-84px)/3)] max-w-[150px] shrink-0 flex-col items-center md:w-[150px] rounded-[22px] border-2 bg-white p-2 pb-2.5 text-center transition-[border-color,box-shadow] duration-200 ${o.sel ? "border-lime shadow-[0_0_0_3px_#d6ff4d]" : "border-ink/10 hover:border-ink/30"}`}>
+      className={`b-card group relative flex w-[calc((100vw-84px)/3)] max-w-[150px] shrink-0 flex-col items-center md:w-[150px] rounded-[22px] border-[2.5px] border-ink bg-[#fffaf0] p-2 pb-2.5 text-center transition-[translate,rotate,box-shadow] duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] hover:-translate-y-1 hover:-rotate-[1.2deg] ${o.sel ? "shadow-[0_0_0_3px_#d6ff4d,6px_6px_0_3px_#111]" : "shadow-[5px_5px_0_#111]"}`}>
       <span aria-hidden className={`absolute -right-1.5 -top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-lime text-ink transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] ${o.sel ? "scale-100" : "scale-0"}`}><Check className="h-4 w-4" /></span>
       <span className="relative block aspect-square w-full overflow-hidden rounded-[16px]" style={{ background: o.tint ?? "#f6ebd7" }}>
         <Image src={o.img} alt="" fill sizes="150px" loading="eager" className={`object-contain p-1.5 transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:-rotate-6 group-hover:scale-110 ${o.sel ? "scale-105" : ""}`} />
@@ -365,11 +443,11 @@ export default function Builder() {
     <div className="flex flex-col gap-4">
       <div role="radiogroup" aria-label="Scegli le patatine">
         <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Patatine</p>
-        <div className="flex gap-3">{FRIES.map((f) => tile({ key: f.id, img: f.img, name: f.name, desc: f.desc, sel: fries === f.id, onPick: () => setFries(f.id), data: { "data-fries": f.id } }))}</div>
+        <div className="flex gap-4">{FRIES.map((f) => tile({ key: f.id, img: f.img, name: f.name, desc: f.desc, sel: fries === f.id, onPick: () => setFries(f.id), data: { "data-fries": f.id } }))}</div>
       </div>
       <div role="radiogroup" aria-label="Scegli la bibita">
         <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60">Bibita</p>
-        <div className="flex gap-3">{DRINKS.map((d) => tile({ key: d.id, img: d.img, name: d.name, desc: "Alla spina, refill disponibile.", sel: drink === d.id, onPick: () => setDrink(d.id), data: { "data-drink": d.id }, tint: d.tint }))}</div>
+        <div className="flex gap-4">{DRINKS.map((d) => tile({ key: d.id, img: d.img, name: d.name, desc: "Alla spina, refill disponibile.", sel: drink === d.id, onPick: () => setDrink(d.id), data: { "data-drink": d.id }, tint: d.tint }))}</div>
       </div>
     </div>
   );
@@ -379,7 +457,7 @@ export default function Builder() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)] lg:gap-x-12 lg:gap-y-8 xl:gap-x-16">
         {/* 1. head */}
         <div className="b-head lg:col-start-1 lg:row-start-1">
-          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/70"><span>01 / Builder</span><span aria-hidden className="h-px w-16 bg-ink/40" /></p>
+          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/70"><span>01 / Builder</span><span aria-hidden className="h-px w-16 bg-ink/40" /><Doodle name="k-crown-rays" className="-mt-2 w-12 -rotate-6 text-ink" /></p>
           <h2 id="b-title" className="mt-4 font-display text-[12.4vw] uppercase leading-[0.86] md:text-[clamp(52px,7vw,84px)] lg:text-[clamp(48px,4.7vw,84px)]">
             <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">Costruisci</span></span>
             <span className="block overflow-hidden pb-[0.06em]"><span className="b-line block whitespace-nowrap">il tuo mostro</span></span>
@@ -424,16 +502,16 @@ export default function Builder() {
               <circle cx="56" cy="51" r="26" fill="none" stroke="#111" strokeOpacity=".08" strokeWidth=".25" />
               <g className="sb-orbit" style={{ transformOrigin: "56px 51px" }}><circle cx="56" cy="4.5" r="1.1" fill="#111" /></g>
             </svg>
-            {/* Fallo menu: fries + drink slide in next to the burger */}
+            {/* Fallo menu: fries + drink grouped with the burger like a real menu shot (sized from the burger, slight overlap) */}
             {asMenu && (
               <>
-                <button type="button" onClick={() => goTab("menu")} aria-label={`Patatine: ${friesObj.full}. Cambia`} data-stage-side="fries"
-                  className="sb-side-l absolute bottom-[15%] left-[1%] z-[4] aspect-square w-[24%] max-w-[150px] lg:left-[4%] lg:w-[21%]">
-                  <span key={friesObj.id} className="sb-pop relative block h-full w-full"><Image src={friesObj.img} alt="" fill sizes="150px" className="object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,.25)]" /></span>
-                </button>
                 <button type="button" onClick={() => goTab("menu")} aria-label={`Bibita: ${drinkObj.name}. Cambia`} data-stage-side="drink"
-                  className="sb-side-r absolute bottom-[15%] right-[1%] z-[4] aspect-[3/4] w-[20%] max-w-[124px] lg:right-[5%] lg:w-[17%]">
-                  <span key={drinkObj.id} className="sb-pop relative block h-full w-full"><Image src={drinkObj.img} alt="" fill sizes="124px" className="object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,.25)]" /></span>
+                  className="sb-side-r absolute bottom-[17%] z-[1] transition-[left,width,height] duration-500 ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ left: side.dx, width: side.dw, height: side.dh }}>
+                  <span key={drinkObj.id} className="sb-pop relative block h-full w-full"><Image src={drinkObj.img} alt="" fill sizes="(min-width:1024px) 200px, 30vw" className="object-contain object-bottom drop-shadow-[0_16px_14px_rgba(0,0,0,.3)]" /></span>
+                </button>
+                <button type="button" onClick={() => goTab("menu")} aria-label={`Patatine: ${friesObj.full}. Cambia`} data-stage-side="fries"
+                  className="sb-side-l absolute bottom-[16%] z-[55] transition-[left,width,height] duration-500 ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ left: side.fx, width: side.fw, height: side.fh }}>
+                  <span key={friesObj.id} className="sb-pop relative block h-full w-full"><Image src={friesObj.img} alt="" fill sizes="(min-width:1024px) 260px, 40vw" className="object-contain object-bottom drop-shadow-[0_16px_14px_rgba(0,0,0,.3)]" /></span>
                 </button>
               </>
             )}
@@ -487,35 +565,47 @@ export default function Builder() {
           </div>
         </div>
 
-        {/* 4. ingredient panel */}
-        <div className="rounded-[28px] border border-ink/10 bg-[#fbf4e6] p-3 md:p-5 lg:col-start-2 lg:row-start-3 lg:self-start">
-          <div className="flex flex-col-reverse gap-3">
-            <div role="tablist" aria-label="Categorie" className="no-scrollbar -mx-3 flex min-w-0 gap-1.5 overflow-x-auto px-3 md:mx-0 md:px-0">
+        {/* 4. ingredient panel: category tabs + horizontal card carousel */}
+        <div className="relative rounded-[30px] border-[2.5px] border-ink bg-[#fbf4e6] p-3 pt-2 md:p-5 md:pt-3 lg:col-start-2 lg:row-start-3 lg:self-start">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+            <div role="tablist" aria-label="Categorie" data-lenis-prevent className="no-scrollbar -mx-3 flex min-w-0 flex-1 gap-1 overflow-x-auto px-3 pb-2 pt-3 md:mx-0 md:px-0">
               {TABS.filter((t) => t.id !== "menu" || asMenu).map((t) => {
-                const n = t.id === "pane" || t.id === "menu" ? 0 : fill.filter((f) => f.group === t.id).length;
+                const n = t.id === "pane" ? (breadPicked ? 1 : 0) : t.id === "menu" ? 0 : fill.filter((f) => f.group === t.id).length;
                 const on = tab === t.id;
                 return (
                   <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => goTab(t.id)} data-tab={t.id}
-                    className={`sb-lift flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-[12px] lg:h-9 lg:px-3.5 lg:text-[11px] font-bold uppercase tracking-wider transition-colors ${t.id === "menu" ? (on ? "sb-pop-in border-ink bg-ink text-lime" : "sb-pop-in border-ink bg-white text-ink") : on ? "border-ink bg-lime text-ink" : "border-ink/12 bg-white text-ink/80 hover:border-ink/40"}`}>
-                    {t.label}
-                    {n > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[10px] tabular-nums text-lime">{n}</span>}
+                    className={`sb-lift relative flex h-11 shrink-0 items-center gap-2 rounded-full px-3.5 font-tanker text-[15px] uppercase leading-none tracking-[0.03em] transition-colors lg:px-3 ${on ? "border-2 border-ink bg-lime text-ink" : "border-2 border-transparent text-ink/75 hover:text-ink"} ${t.id === "menu" ? "sb-pop-in" : ""}`}>
+                    <svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0"><path d={ICON[t.id]} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <span className="pt-[0.12em]">{t.label}</span>
+                    {n > 0 && <span key={n} className="sb-pop absolute -right-1.5 -top-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink px-1 font-body text-[10.5px] font-bold tabular-nums text-lime">{n}</span>}
+                    {on && <span aria-hidden className="absolute -bottom-2 left-1 right-1 h-[3px] rounded-full bg-ink" />}
                   </button>
                 );
               })}
             </div>
-            <p className="flex items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:justify-end">
-              <span className={`tabular-nums ${full ? "text-red-600" : ""}`}>{fill.length}/{MAX} strati</span>
-              <span className="text-ink/50">Massimo {PER} per ingrediente</span>
+            <p className="flex shrink-0 items-baseline gap-2 px-1 text-[11px] font-bold uppercase leading-tight tracking-wider md:block md:border-l-2 md:border-ink/15 md:pl-4 md:text-right">
+              <span className={`block font-tanker text-[16px] tracking-[0.04em] tabular-nums ${full ? "text-red-600" : ""}`}>{fill.length}/{MAX} strati</span>
+              <span className="block text-ink/55">Massimo {PER} per ingrediente</span>
             </p>
           </div>
-          <div ref={cardsRef} className="no-scrollbar -mx-3 mt-4 snap-x snap-mandatory overflow-x-auto scroll-pl-3 px-3 pb-2 pt-2 md:-mx-5 md:px-5">
-            {TABS.filter((t) => (warm || t.id === tab) && (t.id !== "menu" || asMenu)).map((t) => (
-              <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-3">
-                {t.id === "pane" ? BREADS.map(breadCard) : t.id === "menu" ? menuPicker : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
-              </div>
-            ))}
+          <div className="relative mt-2 border-t-2 border-ink/10 pt-1">
+            <div ref={cardsRef} data-lenis-prevent data-cards onScroll={edges} onPointerDown={dragStart} onClickCapture={dragClick}
+              className="no-scrollbar -mx-3 snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-pl-3 px-3 pb-4 pt-4 md:-mx-5 md:scroll-pl-5 md:px-5">
+              {TABS.filter((t) => (warm || t.id === tab) && (t.id !== "menu" || asMenu)).map((t) => (
+                <div key={t.id} role="tabpanel" data-panel={t.id} hidden={t.id !== tab} className="flex w-max gap-4 pr-3">
+                  {t.id === "pane" ? BREADS.map(breadCard) : t.id === "menu" ? menuPicker : INGREDIENTS.filter((i) => i.group === t.id).map(ingCard)}
+                </div>
+              ))}
+            </div>
+            {/* scroll hints: edge fades + round arrows */}
+            <span aria-hidden className={`pointer-events-none absolute -left-3 bottom-0 top-0 w-12 bg-gradient-to-r from-[#fbf4e6] to-transparent transition-opacity duration-300 md:-left-5 ${edge.l ? "opacity-100" : "opacity-0"}`} />
+            <span aria-hidden className={`pointer-events-none absolute -right-3 bottom-0 top-0 w-16 bg-gradient-to-l from-[#fbf4e6] to-transparent transition-opacity duration-300 md:-right-5 ${edge.r ? "opacity-100" : "opacity-0"}`} />
+            <button type="button" onClick={() => nudge(-1)} aria-label="Ingredienti precedenti" disabled={!edge.l}
+              className="absolute -left-5 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink text-lg text-cream shadow-[3px_3px_0_rgba(17,17,17,.25)] transition-[opacity,scale] hover:scale-110 disabled:pointer-events-none disabled:opacity-0 md:-left-8 md:h-12 md:w-12">←</button>
+            <button type="button" onClick={() => nudge(1)} aria-label="Ingredienti successivi" disabled={!edge.r}
+              className="absolute -right-5 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#fbf4e6] bg-ink text-lg text-cream shadow-[3px_3px_0_rgba(17,17,17,.25)] transition-[opacity,scale] hover:scale-110 disabled:pointer-events-none disabled:opacity-0 md:-right-8 md:h-12 md:w-12">→</button>
           </div>
-          <p className={`mt-2 min-h-5 px-1 text-sm ${full ? "text-red-600" : "text-ink/70"}`} role="status">{full ? `Hai raggiunto ${MAX} strati. Rimuovine uno (−) per aggiungerne altri.` : toast}</p>
+          <p className={`mt-1 min-h-5 px-1 text-sm ${full ? "text-red-600" : "text-ink/70"}`} role="status">{full ? `Hai raggiunto ${MAX} strati. Rimuovine uno (−) per aggiungerne altri.` : toast}</p>
         </div>
 
         {/* 5. summary: sticky compact bar on mobile, full card on desktop */}
