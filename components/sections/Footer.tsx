@@ -5,7 +5,7 @@ import { SplitText } from "gsap/SplitText";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
 import { useCart } from "../cart/CartProvider";
 import { LINKS } from "./Hero";
-import { HOURS } from "./Dove";
+import { HOURS } from "@/lib/hours";
 import Doodle from "../ui/Doodle";
 
 if (typeof window !== "undefined") gsap.registerPlugin(SplitText);
