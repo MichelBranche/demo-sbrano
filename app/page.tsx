@@ -1,5 +1,4 @@
 import Hero from "@/components/sections/Hero";
-import Ribbon from "@/components/sections/Ribbon";
 import Menu from "@/components/sections/Menu";
 import Spotlight from "@/components/sections/Spotlight";
 import Builder from "@/components/sections/Builder";
@@ -13,7 +12,6 @@ export default function Home() {
   return (
     <main className="relative overflow-x-clip">
       <Hero />
-      <Ribbon id="hero-rb" className="z-30 -mt-[72px] md:-mt-[128px]" />
       <Menu />
       <Spotlight />
       <Builder />
